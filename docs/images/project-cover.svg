@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="460" viewBox="0 0 1280 460" role="img" aria-labelledby="title desc">
+  <title id="title">TACC AgentForge</title>
+  <desc id="desc">A shopping and budget advisor powered by quantized language models on TACC. Connected compute blocks illustrate serving, evidence retrieval, and agent tools.</desc>
+  <defs>
+    <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0b1225"/><stop offset="1" stop-color="#162b45"/></linearGradient>
+    <linearGradient id="chip" x2="1" y2="1"><stop stop-color="#17364b"/><stop offset="1" stop-color="#142339"/></linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#a5d8ed" stroke-opacity=".06"/></pattern>
+  </defs>
+  <rect width="1280" height="460" rx="24" fill="url(#bg)"/>
+  <rect width="1280" height="460" rx="24" fill="url(#grid)"/>
+  <path d="M64 72h40" stroke="#5de3cf" stroke-width="5"/>
+  <g font-family="Arial, Helvetica, sans-serif">
+    <text x="120" y="78" font-size="15" font-weight="700" letter-spacing="3" fill="#a7bbd0">ADVANCED AI COMPUTING AND SYSTEMS</text>
+    <text x="64" y="177" font-size="64" font-weight="700" letter-spacing="-2" fill="#f5f8fd">TACC AgentForge</text>
+    <text x="66" y="228" font-size="25" fill="#bcd0e3">Shopping decisions. Grounded in evidence.</text>
+    <text x="66" y="270" font-size="19" fill="#8fa9c2">Quantized language models · Retrieval · Agent tools</text>
+    <rect x="64" y="331" width="217" height="38" rx="19" fill="#5de3cf" fill-opacity=".12" stroke="#5de3cf" stroke-opacity=".4"/>
+    <text x="172" y="356" text-anchor="middle" font-size="14" font-weight="700" letter-spacing="1.2" fill="#73ebda">BUILT FOR TACC</text>
+    <text x="66" y="412" font-size="13" letter-spacing="2" fill="#849bb3">A COURSE PROJECT / FROM GPU TO AGENT</text>
+    <g stroke="#5de3cf" stroke-opacity=".55" stroke-width="2" fill="none">
+      <path d="M1004 200V120H909M1004 260v80H909M1068 230h113"/>
+      <path d="M940 230h-93"/>
+    </g>
+    <g fill="url(#chip)" stroke="#5de3cf" stroke-opacity=".6">
+      <rect x="940" y="166" width="128" height="128" rx="24"/>
+      <rect x="955" y="181" width="98" height="98" rx="16" stroke-opacity=".22"/>
+      <rect x="793" y="92" width="116" height="56" rx="12"/>
+      <rect x="793" y="312" width="116" height="56" rx="12"/>
+    </g>
+    <text x="1004" y="223" text-anchor="middle" font-size="16" font-weight="700" letter-spacing="2" fill="#eefcff">AGENT</text>
+    <text x="1004" y="248" text-anchor="middle" font-size="13" fill="#77d8ce">FORGE</text>
+    <text x="851" y="125" text-anchor="middle" font-size="13" fill="#bcd0e3">EVIDENCE</text>
+    <text x="851" y="345" text-anchor="middle" font-size="13" fill="#bcd0e3">GPU SERVING</text>
+    <circle cx="847" cy="230" r="6" fill="#5de3cf"/>
+    <circle cx="1181" cy="230" r="6" fill="#efbd70"/>
+    <text x="1168" y="205" text-anchor="middle" font-size="12" letter-spacing="1" fill="#efbd70">TOOLS</text>
+  </g>
+</svg>
