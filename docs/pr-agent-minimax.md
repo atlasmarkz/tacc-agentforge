@@ -22,7 +22,7 @@ to read the repository and post feedback. The pinned PR-Agent image is v0.49.0.
    `PR_AGENT_ENABLED` with the value `true` after the workflow is present on
    the branch used by your PR.
 4. The workflow defaults to `MiniMax-M3.1-Flash` and
-   `https://api.minimax.io/v1`. If your account uses a different model or
+   `https://api.minimax.cn/v1`. If your account uses a different model or
    regional endpoint, change both the model settings and/or endpoint in
    `.github/workflows/pr-agent.yml` to the values provided by your MiniMax
    console. The `openai/` prefix selects the compatible protocol in LiteLLM;

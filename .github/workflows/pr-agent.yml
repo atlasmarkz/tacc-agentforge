@@ -37,7 +37,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENAI_KEY: ${{ secrets.MINIMAX_API_KEY }}
-          OPENAI__API_BASE: https://api.minimax.io/v1
+          OPENAI__API_BASE: https://api.minimax.cn/v1
           config.model: openai/MiniMax-M3.1-Flash
           config.model_weak: openai/MiniMax-M3.1-Flash
           config.fallback_models: '[]'
