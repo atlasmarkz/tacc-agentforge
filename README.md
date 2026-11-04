@@ -121,3 +121,7 @@ in the planning stage.
 ## License
 
 No license has been selected yet. Unless a license is added, all rights are reserved by the repository owner.
+
+## PR-Agent code review
+
+An opt-in PR-Agent workflow can use MiniMax for pull request reviews. See [setup and limitations](docs/pr-agent-minimax.md).
