@@ -1,0 +1,3 @@
+# Agent-only dependencies; the repository-wide runtime remains unchanged.
+langgraph==1.2.19
+pydantic==2.14.2
