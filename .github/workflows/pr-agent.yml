@@ -1,0 +1,49 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: pr-agent-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    # Explicit opt-in; only repository branches can use the API credential.
+    if: >-
+      vars.PR_AGENT_ENABLED == 'true' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      github.event.pull_request.draft == false &&
+      github.event.sender.type != 'Bot'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check configuration
+        env:
+          MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+        run: |
+          if [ -z "$MINIMAX_API_KEY" ]; then
+            echo 'Missing MINIMAX_API_KEY repository secret.' >&2
+            exit 1
+          fi
+      - name: Review pull request
+        uses: docker://pragent/pr-agent@sha256:b1ed6e8de56eb4d6e4169ee0d5c209bb5ed1ef071a01c0c042c64b80192a785c
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENAI_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          OPENAI__API_BASE: https://api.minimax.cn/v1
+          config.model: openai/MiniMax-M3.1-Flash
+          config.model_weak: openai/MiniMax-M3.1-Flash
+          config.fallback_models: '[]'
+          config.custom_model_max_tokens: '32000'
+          github_action_config.auto_review: 'true'
+          github_action_config.auto_describe: 'false'
+          github_action_config.auto_improve: 'false'
+          github_action_config.handle_push_trigger: 'true'
+          github_action_config.push_commands: '["/review"]'

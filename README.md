@@ -1,5 +1,7 @@
 # TACC AgentForge
 
+![TACC AgentForge — shopping and budget advisor with quantized language models, evidence retrieval, and agent tools](docs/images/project-cover.svg)
+
 TACC AgentForge is a course project for **Advanced AI Computing and Systems**. The project explores how to deploy a large language model on the TACC platform and build a shopping and budget advisor on top of the deployed model.
 
 ## Project Goals
@@ -121,3 +123,7 @@ in the planning stage.
 ## License
 
 No license has been selected yet. Unless a license is added, all rights are reserved by the repository owner.
+
+## PR-Agent code review
+
+An opt-in PR-Agent workflow can use MiniMax for pull request reviews. See [setup and limitations](docs/pr-agent-minimax.md).
