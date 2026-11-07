@@ -304,6 +304,38 @@ acceptance lengths are log samples.
 
 Files: `inference/results/private-spec-mtp-28389/`, `inference/results/private-spec-mtp-eager-28390/`.
 
+#### E5c Fix for the CUDA-graph capture crash — MTP now works with graphs (rebuild 28397, run 28403)
+
+**Cause.** `GPUModelRunner._warmup_and_capture` runs a warm-up `_dummy_run` before each capture, but the warm-up
+builds ordinary attention metadata. Only the capture run goes through `build_for_cudagraph_capture`, which for the
+GDN (linear-attention) backend builds the speculative-decoding metadata (`num_accepted_tokens`). So the spec-decode
+variant of the Triton kernel `_causal_conv1d_update_kernel` (`IS_SPEC_DECODING=True`, `seqlen = k+1`) was first
+compiled inside stream capture, which CUDA forbids. n-gram (E5, job 28360) failed with the same
+`cudaErrorStreamCaptureInvalidated`; this cause was only confirmed for MTP, I did not retest n-gram.
+
+**Fix** (`vllm/v1/worker/gpu_model_runner.py`, marker `AGENTFORGE-E5c`): in `_dummy_run`, pass
+`for_cudagraph_capture=is_graph_capturing or (force_attention and self.speculative_config is not None)`, so the
+FULL-mode warm-up builds the same spec-decode metadata and compiles the kernel before capture. Rebuilt with
+job 28397 (passed).
+
+**Result, compile + CUDA graphs, output tokens/s (change vs graphs baseline), one measurement per cell:**
+
+| workload | graphs baseline | mtp-k1 | mtp-k3 |
+|---|---|---|---|
+| distinct, c1 | 57.7 | 73.5 (+27%) | 81.8 (+42%) |
+| shared prefix, c1 | 37.6 | 44.2 (+18%) | 47.9 (+27%) |
+| distinct, c4 | 139.5 | 129.0 (-8%) | 136.8 (-2%) |
+| shared prefix, c4 | 63.9 | 67.0 (+5%) | 69.8 (+9%) |
+
+- All requests succeeded; mean acceptance length from the log (unweighted, few windows): k1 about 1.84, k3 about 2.92.
+- Single request: clear gain. At 4 concurrent requests the gain mostly disappears (ITL roughly doubles: 21 -> 57 ms),
+  so MTP helps latency of a lone request, not throughput under load.
+- The `shared prefix` baseline here (37.6 / 63.9) is lower than distinct because this baseline has no prefix caching.
+- Not tested: MTP together with prefix caching or LoRA, longer outputs, real agent prompts, and `--max-num-seqs`
+  other than 8. The fix was tested only on this model and node type.
+
+Files: `inference/results/private-spec-mtp-28403/`.
+
 ### Node 10-0-1-11 cannot start vLLM (jobs 28354, 28358, 28359)
 Every vLLM server started on 10-0-1-11 died during import with `NVMLError_InvalidArgument` in
 `pynvml.nvmlDeviceGetHandleByIndex` (E5 baseline and variants, E6, and the first corrected E4 attempt). The same

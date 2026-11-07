@@ -1,0 +1,593 @@
+{
+  "group": "spec-mtp",
+  "settings": {
+    "served_name": "qwen3.8-27b",
+    "workload": {
+      "input_len": 512,
+      "output_len": 128,
+      "num_prompts": 16,
+      "concurrency": [
+        1,
+        4
+      ],
+      "prompt_kinds": [
+        "distinct",
+        "shared_prefix"
+      ],
+      "repeats": 2
+    },
+    "model_path": "$QWEN_MODEL_PATH",
+    "tensor_parallel_size": 2,
+    "startup_timeout_s": 1500
+  },
+  "results": [
+    {
+      "variant": "baseline",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "ok",
+      "error": "",
+      "startup_s": 280.29574114992283,
+      "streaming": {
+        "distinct-c1": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 35.51002720603719,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 57.67385049065273,
+          "requests_per_s": 0.4505769569582245,
+          "ttft_ms": {
+            "mean": 298.73243356269086,
+            "p50": 298.9110000198707,
+            "p95": 300.86512805428356,
+            "p99": 301.47557298187166
+          },
+          "tpot_ms": {
+            "mean": 15.120658076216566,
+            "p50": 15.112534330380479,
+            "p95": 15.155157220080554,
+            "p99": 15.155853755867446
+          },
+          "itl_ms": {
+            "mean": 15.118641342498421,
+            "p50": 15.127492952160537,
+            "p95": 15.332489041611552,
+            "p99": 15.493498998694122
+          },
+          "e2e_ms": {
+            "mean": 2219.0560092421947,
+            "p50": 2218.866407056339,
+            "p95": 2224.516894086264,
+            "p99": 2224.6558079496026
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c1": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 24.49923354992643,
+          "output_tokens": 920,
+          "output_tokens_per_s": 37.55219517888806,
+          "requests_per_s": 0.6530816552850098,
+          "ttft_ms": {
+            "mean": 674.3959780069417,
+            "p50": 659.5837740460411,
+            "p95": 708.3464619936422,
+            "p99": 850.6483919918537
+          },
+          "tpot_ms": {
+            "mean": 15.158274928567353,
+            "p50": 15.15457616187632,
+            "p95": 15.176027033734938,
+            "p99": 15.178733232979928
+          },
+          "itl_ms": {
+            "mean": 15.149098341295554,
+            "p50": 15.187698067165911,
+            "p95": 15.383356949314475,
+            "p99": 15.541500062681735
+          },
+          "e2e_ms": {
+            "mean": 1530.8400818321388,
+            "p50": 1509.9425460211933,
+            "p95": 1557.0027270587161,
+            "p99": 1728.906981064938
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "distinct-c4": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 14.678674586000852,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 139.5221338276135,
+          "requests_per_s": 1.0900166705282304,
+          "ttft_ms": {
+            "mean": 956.27877375955,
+            "p50": 1099.0195169579238,
+            "p95": 1129.432579036802,
+            "p99": 1129.8212140100077
+          },
+          "tpot_ms": {
+            "mean": 21.338168768669153,
+            "p50": 18.720037079284218,
+            "p95": 24.864790810814757,
+            "p99": 24.877293810879035
+          },
+          "itl_ms": {
+            "mean": 21.367321604703992,
+            "p50": 18.72323697898537,
+            "p95": 19.05462797731161,
+            "p99": 19.855750957503915
+          },
+          "e2e_ms": {
+            "mean": 3666.2262073805323,
+            "p50": 3474.478090996854,
+            "p95": 4245.384271955118,
+            "p99": 4245.408215094358
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c4": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 14.44978142704349,
+          "output_tokens": 924,
+          "output_tokens_per_s": 63.94560392939147,
+          "requests_per_s": 1.1072831849245275,
+          "ttft_ms": {
+            "mean": 1361.117870423186,
+            "p50": 1302.1358869737014,
+            "p95": 2099.2359810043126,
+            "p99": 2536.402455996722
+          },
+          "tpot_ms": {
+            "mean": 39.321847433496465,
+            "p50": 40.29660862027507,
+            "p95": 51.8439871604122,
+            "p99": 51.861903035647366
+          },
+          "itl_ms": {
+            "mean": 36.302327250982444,
+            "p50": 18.84163194335997,
+            "p95": 19.344568019732833,
+            "p99": 642.5957899773493
+          },
+          "e2e_ms": {
+            "mean": 3597.8888496756554,
+            "p50": 3582.6935910154134,
+            "p95": 4941.059706965461,
+            "p99": 5481.144293094985
+          },
+          "gpu_mem_gb": 0.0
+        }
+      },
+      "vllm_bench": {
+        "returncode": 0,
+        "tail": "able_tqdm=False, num_warmups=0, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/mnt/home/markzhang/USERDIR/tacc-agentforge-results/private-spec-mtp-28403', result_filename='vllmbench-baseline-c4.json', ignore_eos=False, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-85597a9e-', top_p=None, top_k=None, min_p=None, temperature=None, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)\nINFO 11-07 06:53:09 [utils.py:90] Sampling input_len from [512, 512] and output_len from [128, 128]\nWARNING: vllm bench serve no longer sets temperature==0 (greedy) in requests by default. The default will be determined on the server side and can be model/API specific. For the old behavior, include --temperature=0.\nStarting initial single prompt test run...\nSkipping endpoint ready check.\nStarting main benchmark run...\nTraffic request rate: inf\nBurstiness factor: 1.0 (Poisson process)\nMaximum request concurrency: 4\ntip: install termplotlib and gnuplot to plot the metrics\n============ Serving Benchmark Result ============\nSuccessful requests:                     16        \nFailed requests:                         0         \nMaximum request concurrency:             4         \nBenchmark duration (s):                  16.43     \nTotal input tokens:                      9031      \nTotal generated tokens:                  2048      \nRequest throughput (req/s):              0.97      \nOutput token throughput (tok/s):         124.63    \nPeak output token throughput (tok/s):    206.00    \nPeak concurrent requests:                8.00      \nTotal token throughput (tok/s):          674.23    \n---------------Time to First Token----------------\nMean TTFT (ms):                          1332.26   \nMedian TTFT (ms):                        1601.97   \nP99 TTFT (ms):                           1685.64   \n-----Time per Output Token (excl. 1st token)------\nMean TPOT (ms):                          21.83     \nMedian TPOT (ms):                        19.56     \nP99 TPOT (ms):                           28.71     \n---------------Inter-token Latency----------------\nMean ITL (ms):                           21.66     \nMedian ITL (ms):                         19.60     \nP99 ITL (ms):                            21.55     \n==================================================\n\n  0%|          | 0/16 [00:00<?, ?it/s]\n  6%|▋         | 1/16 [00:04<01:01,  4.13s/it]\n 31%|███▏      | 5/16 [00:08<00:16,  1.48s/it]\n 56%|█████▋    | 9/16 [00:12<00:08,  1.23s/it]\n 81%|████████▏ | 13/16 [00:16<00:03,  1.14s/it]\n100%|██████████| 16/16 [00:16<00:00,  1.03s/it]\n"
+      },
+      "peak_gpu_mem_gb": 43.4803466796875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        21.74,
+        21.74
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.27,
+        "kv_cache_gib": 9.49,
+        "kv_cache_tokens": 180224.0,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 784.0
+      }
+    },
+    {
+      "variant": "mtp-k1",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce",
+        "--speculative-config",
+        "{\"method\": \"mtp\", \"num_speculative_tokens\": 1}"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "ok",
+      "error": "",
+      "startup_s": 280.06631669204216,
+      "streaming": {
+        "distinct-c1": {
+          "config": "mtp-k1",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 27.5283989290474,
+          "output_tokens": 2022,
+          "output_tokens_per_s": 73.45142030277785,
+          "requests_per_s": 0.5812179648093202,
+          "ttft_ms": {
+            "mean": 309.61206668871455,
+            "p50": 309.27016597706825,
+            "p95": 313.7869470519945,
+            "p99": 317.87796795833856
+          },
+          "tpot_ms": {
+            "mean": 11.247740317106768,
+            "p50": 11.276860645326867,
+            "p95": 11.761863528032178,
+            "p99": 11.79183326756919
+          },
+          "itl_ms": {
+            "mean": 20.47683829312786,
+            "p50": 20.48764901701361,
+            "p95": 20.693674916401505,
+            "p99": 20.882879034616053
+          },
+          "e2e_ms": {
+            "mean": 1720.198525377782,
+            "p50": 1741.4475689874962,
+            "p95": 1803.026834037155,
+            "p99": 1804.0170739404857
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c1": {
+          "config": "mtp-k1",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 20.71783301990945,
+          "output_tokens": 916,
+          "output_tokens_per_s": 44.213118192416225,
+          "requests_per_s": 0.772281540478886,
+          "ttft_ms": {
+            "mean": 676.8107533789589,
+            "p50": 676.3649679487571,
+            "p95": 678.3849410712719,
+            "p99": 678.4322960302234
+          },
+          "tpot_ms": {
+            "mean": 10.97986878208722,
+            "p50": 10.935787945137625,
+            "p95": 11.276904792637277,
+            "p99": 11.284038619186473
+          },
+          "itl_ms": {
+            "mean": 21.108883794478707,
+            "p50": 21.166505990549922,
+            "p95": 21.400795900262892,
+            "p99": 21.49517205543816
+          },
+          "e2e_ms": {
+            "mean": 1294.5035231023212,
+            "p50": 1288.6328130261973,
+            "p95": 1330.3759819827974,
+            "p99": 1330.9409100329503
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "distinct-c4": {
+          "config": "mtp-k1",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 15.827208956005052,
+          "output_tokens": 2041,
+          "output_tokens_per_s": 128.955143365667,
+          "requests_per_s": 1.0109173414261008,
+          "ttft_ms": {
+            "mean": 877.10600624996,
+            "p50": 598.9878589753062,
+            "p95": 2663.640217971988,
+            "p99": 2665.815385989845
+          },
+          "tpot_ms": {
+            "mean": 22.624328125665187,
+            "p50": 20.71318006249306,
+            "p95": 29.163001787181447,
+            "p99": 42.75170520432
+          },
+          "itl_ms": {
+            "mean": 41.11457793901071,
+            "p50": 26.446842006407678,
+            "p95": 27.087754919193685,
+            "p99": 297.60916298255324
+          },
+          "e2e_ms": {
+            "mean": 3741.6496888836264,
+            "p50": 2991.4487480418757,
+            "p95": 6343.9925300190225,
+            "p99": 6367.223744047806
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c4": {
+          "config": "mtp-k1",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 13.693306626053527,
+          "output_tokens": 918,
+          "output_tokens_per_s": 67.04005285716528,
+          "requests_per_s": 1.168454080299177,
+          "ttft_ms": {
+            "mean": 1339.4263159352704,
+            "p50": 1346.4443710399792,
+            "p95": 2204.1412459220737,
+            "p99": 2653.8416070397943
+          },
+          "tpot_ms": {
+            "mean": 36.640093821875475,
+            "p50": 36.55772203637753,
+            "p95": 47.8471125721366,
+            "p99": 47.856009195259375
+          },
+          "itl_ms": {
+            "mean": 70.33519744055663,
+            "p50": 27.091001975350082,
+            "p95": 659.4071169383824,
+            "p99": 660.8287199633196
+          },
+          "e2e_ms": {
+            "mean": 3405.779149608861,
+            "p50": 3394.592133932747,
+            "p95": 4096.972099971026,
+            "p99": 4757.9812170006335
+          },
+          "gpu_mem_gb": 0.0
+        }
+      },
+      "vllm_bench": {
+        "returncode": 0,
+        "tail": "_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)\nINFO 11-07 07:00:58 [utils.py:90] Sampling input_len from [512, 512] and output_len from [128, 128]\nWARNING: vllm bench serve no longer sets temperature==0 (greedy) in requests by default. The default will be determined on the server side and can be model/API specific. For the old behavior, include --temperature=0.\nStarting initial single prompt test run...\nSkipping endpoint ready check.\nStarting main benchmark run...\nTraffic request rate: inf\nBurstiness factor: 1.0 (Poisson process)\nMaximum request concurrency: 4\ntip: install termplotlib and gnuplot to plot the metrics\n============ Serving Benchmark Result ============\nSuccessful requests:                     16        \nFailed requests:                         0         \nMaximum request concurrency:             4         \nBenchmark duration (s):                  15.74     \nTotal input tokens:                      9031      \nTotal generated tokens:                  2048      \nRequest throughput (req/s):              1.02      \nOutput token throughput (tok/s):         130.09    \nPeak output token throughput (tok/s):    140.00    \nPeak concurrent requests:                7.00      \nTotal token throughput (tok/s):          703.76    \n---------------Time to First Token----------------\nMean TTFT (ms):                          873.01    \nMedian TTFT (ms):                        505.66    \nP99 TTFT (ms):                           1774.92   \n-----Time per Output Token (excl. 1st token)------\nMean TPOT (ms):                          23.81     \nMedian TPOT (ms):                        24.08     \nP99 TPOT (ms):                           36.36     \n---------------Inter-token Latency----------------\nMean ITL (ms):                           38.22     \nMedian ITL (ms):                         28.47     \nP99 ITL (ms):                            421.55    \n---------------Speculative Decoding---------------\nAcceptance rate (%):                     63.04     \nAcceptance length:                       1.63      \nDrafts:                                  1250      \nDraft tokens:                            1250      \nAccepted tokens:                         788       \nPer-position acceptance (%):\n  Position 0:                            63.04     \n==================================================\n\n  0%|          | 0/16 [00:00<?, ?it/s]\n  6%|▋         | 1/16 [00:03<00:59,  3.94s/it]\n 25%|██▌       | 4/16 [00:05<00:13,  1.11s/it]\n 31%|███▏      | 5/16 [00:07<00:15,  1.44s/it]\n 38%|███▊      | 6/16 [00:08<00:12,  1.21s/it]\n 44%|████▍     | 7/16 [00:08<00:08,  1.01it/s]\n 50%|█████     | 8/16 [00:09<00:06,  1.19it/s]\n 56%|█████▋    | 9/16 [00:11<00:09,  1.29s/it]\n 69%|██████▉   | 11/16 [00:12<00:04,  1.05it/s]\n 81%|████████▏ | 13/16 [00:15<00:03,  1.15s/it]\n100%|██████████| 16/16 [00:15<00:00,  1.52it/s]\n100%|██████████| 16/16 [00:15<00:00,  1.02it/s]\n"
+      },
+      "peak_gpu_mem_gb": 43.4959716796875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        21.75,
+        21.75
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.68,
+        "kv_cache_gib": 8.9,
+        "kv_cache_tokens": 117077.0,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 800.0
+      }
+    },
+    {
+      "variant": "mtp-k3",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce",
+        "--speculative-config",
+        "{\"method\": \"mtp\", \"num_speculative_tokens\": 3}"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "ok",
+      "error": "",
+      "startup_s": 435.3800796190044,
+      "streaming": {
+        "distinct-c1": {
+          "config": "mtp-k3",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 24.934316819999367,
+          "output_tokens": 2040,
+          "output_tokens_per_s": 81.81495465573585,
+          "requests_per_s": 0.6416859188685164,
+          "ttft_ms": {
+            "mean": 318.3405550007592,
+            "p50": 321.10288098920137,
+            "p95": 323.014716967009,
+            "p99": 323.75181501265615
+          },
+          "tpot_ms": {
+            "mean": 9.798275815125761,
+            "p50": 9.847057370036312,
+            "p95": 10.469637802934026,
+            "p99": 10.47215763824134
+          },
+          "itl_ms": {
+            "mean": 26.58407547340751,
+            "p50": 26.60007798112929,
+            "p95": 26.82819403707981,
+            "p99": 27.03962696250528
+          },
+          "e2e_ms": {
+            "mean": 1558.0753926333273,
+            "p50": 1559.8846840439364,
+            "p95": 1651.902331970632,
+            "p99": 1652.2869640029967
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c1": {
+          "config": "mtp-k3",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 19.11655581393279,
+          "output_tokens": 916,
+          "output_tokens_per_s": 47.91658125635729,
+          "requests_per_s": 0.8369708516394286,
+          "ttft_ms": {
+            "mean": 687.2623672461486,
+            "p50": 687.8710329765454,
+            "p95": 690.7664780737832,
+            "p99": 691.3780079921708
+          },
+          "tpot_ms": {
+            "mean": 9.016511106785195,
+            "p50": 9.23503639309534,
+            "p95": 9.245270071135435,
+            "p99": 9.24562691112182
+          },
+          "itl_ms": {
+            "mean": 27.201178253293826,
+            "p50": 27.31254301033914,
+            "p95": 27.51009096391499,
+            "p99": 27.765273000113666
+          },
+          "e2e_ms": {
+            "mean": 1194.4180535065243,
+            "p50": 1203.2422029878944,
+            "p95": 1208.4389780648053,
+            "p99": 1208.5236010607332
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "distinct-c4": {
+          "config": "mtp-k3",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 14.90849671291653,
+          "output_tokens": 2040,
+          "output_tokens_per_s": 136.83472178872134,
+          "requests_per_s": 1.0732135042252653,
+          "ttft_ms": {
+            "mean": 892.555449725478,
+            "p50": 621.9433229416609,
+            "p95": 2646.9480969244614,
+            "p99": 2647.596023976803
+          },
+          "tpot_ms": {
+            "mean": 20.411221131550903,
+            "p50": 18.496918130469155,
+            "p95": 26.301962323486805,
+            "p99": 38.82268867657087
+          },
+          "itl_ms": {
+            "mean": 57.15556779955572,
+            "p50": 35.387272015213966,
+            "p95": 37.46618703007698,
+            "p99": 559.9263299955055
+          },
+          "e2e_ms": {
+            "mean": 3475.543189168093,
+            "p50": 2797.872705035843,
+            "p95": 5660.6135229812935,
+            "p99": 5987.297312007286
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c4": {
+          "config": "mtp-k3",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 13.114263005089015,
+          "output_tokens": 916,
+          "output_tokens_per_s": 69.84761550416859,
+          "requests_per_s": 1.2200456856623334,
+          "ttft_ms": {
+            "mean": 1603.2880500497413,
+            "p50": 1514.3010009778664,
+            "p95": 2181.5637190593407,
+            "p99": 2641.7012530146167
+          },
+          "tpot_ms": {
+            "mean": 29.600401485936906,
+            "p50": 23.490651375530952,
+            "p95": 45.210254732020466,
+            "p99": 45.232007785151445
+          },
+          "itl_ms": {
+            "mean": 87.27191693472275,
+            "p50": 36.02827398572117,
+            "p95": 460.48907202202827,
+            "p99": 1293.0381009355187
+          },
+          "e2e_ms": {
+            "mean": 3266.4528784152935,
+            "p50": 3251.5690580476075,
+            "p95": 3957.4388150358573,
+            "p99": 3957.529390929267
+          },
+          "gpu_mem_gb": 0.0
+        }
+      },
+      "vllm_bench": {
+        "returncode": 0,
+        "tail": " output_len from [128, 128]\nWARNING: vllm bench serve no longer sets temperature==0 (greedy) in requests by default. The default will be determined on the server side and can be model/API specific. For the old behavior, include --temperature=0.\nStarting initial single prompt test run...\nSkipping endpoint ready check.\nStarting main benchmark run...\nTraffic request rate: inf\nBurstiness factor: 1.0 (Poisson process)\nMaximum request concurrency: 4\ntip: install termplotlib and gnuplot to plot the metrics\n============ Serving Benchmark Result ============\nSuccessful requests:                     16        \nFailed requests:                         0         \nMaximum request concurrency:             4         \nBenchmark duration (s):                  14.88     \nTotal input tokens:                      9031      \nTotal generated tokens:                  2048      \nRequest throughput (req/s):              1.08      \nOutput token throughput (tok/s):         137.63    \nPeak output token throughput (tok/s):    108.00    \nPeak concurrent requests:                6.00      \nTotal token throughput (tok/s):          744.55    \n---------------Time to First Token----------------\nMean TTFT (ms):                          820.51    \nMedian TTFT (ms):                        507.97    \nP99 TTFT (ms):                           1792.89   \n-----Time per Output Token (excl. 1st token)------\nMean TPOT (ms):                          22.18     \nMedian TPOT (ms):                        21.24     \nP99 TPOT (ms):                           30.92     \n---------------Inter-token Latency----------------\nMean ITL (ms):                           52.83     \nMedian ITL (ms):                         37.23     \nP99 ITL (ms):                            436.27    \n---------------Speculative Decoding---------------\nAcceptance rate (%):                     48.47     \nAcceptance length:                       2.45      \nDrafts:                                  837       \nDraft tokens:                            2511      \nAccepted tokens:                         1217      \nPer-position acceptance (%):\n  Position 0:                            67.86     \n  Position 1:                            45.28     \n  Position 2:                            32.26     \n==================================================\n\n  0%|          | 0/16 [00:00<?, ?it/s]\n  6%|▋         | 1/16 [00:03<00:48,  3.24s/it]\n 19%|█▉        | 3/16 [00:04<00:16,  1.26s/it]\n 25%|██▌       | 4/16 [00:05<00:15,  1.28s/it]\n 31%|███▏      | 5/16 [00:06<00:12,  1.09s/it]\n 38%|███▊      | 6/16 [00:07<00:10,  1.03s/it]\n 44%|████▍     | 7/16 [00:08<00:09,  1.01s/it]\n 50%|█████     | 8/16 [00:08<00:06,  1.16it/s]\n 56%|█████▋    | 9/16 [00:09<00:05,  1.19it/s]\n 62%|██████▎   | 10/16 [00:11<00:06,  1.04s/it]\n 75%|███████▌  | 12/16 [00:12<00:03,  1.08it/s]\n 81%|████████▏ | 13/16 [00:13<00:02,  1.03it/s]\n 88%|████████▊ | 14/16 [00:14<00:01,  1.04it/s]\n 94%|█████████▍| 15/16 [00:14<00:00,  1.36it/s]\n100%|██████████| 16/16 [00:14<00:00,  1.08it/s]\n"
+      },
+      "peak_gpu_mem_gb": 43.5233154296875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        21.76,
+        21.76
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.68,
+        "kv_cache_gib": 8.55,
+        "kv_cache_tokens": 74865.0,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 800.0
+      }
+    }
+  ]
+}

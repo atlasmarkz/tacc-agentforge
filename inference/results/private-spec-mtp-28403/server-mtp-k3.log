@@ -1,0 +1,441 @@
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345] 
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345]        █     █     █▄   ▄█
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345]  ▄▄ ▄█ █     █     █ ▀▄▀ █  version 0.26.0
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345]   █▄█▀ █     █     █     █  model   /mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345]    ▀▀  ▀▀▀▀▀ ▀▀▀▀▀ ▀     ▀
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:345] 
+(APIServer pid=23659) INFO 11-07 07:02:51 [api_utils.py:273] non-default args: {'host': '127.0.0.1', 'model': '/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4', 'dtype': 'bfloat16', 'max_model_len': 4096, 'served_model_name': ['qwen3.8-27b'], 'safetensors_load_strategy': 'prefetch', 'reasoning_parser': 'qwen3', 'tensor_parallel_size': 2, 'disable_custom_all_reduce': True, 'gpu_memory_utilization': 0.85, 'language_model_only': True, 'max_num_batched_tokens': 2048, 'max_num_seqs': 8, 'speculative_config': {'method': 'mtp', 'num_speculative_tokens': 3}}
+(APIServer pid=23659) INFO 11-07 07:02:51 [model.py:623] Resolved architecture: Qwen3_5ForConditionalGeneration
+(APIServer pid=23659) INFO 11-07 07:02:51 [model.py:1788] Using max model len 4096
+(APIServer pid=23659) INFO 11-07 07:03:06 [model.py:623] Resolved architecture: Qwen3_5MTP
+(APIServer pid=23659) INFO 11-07 07:03:06 [model.py:1788] Using max model len 262144
+(APIServer pid=23659) WARNING 11-07 07:03:06 [speculative.py:901] Enabling num_speculative_tokens > 1 will run multiple times of forward on same MTP layer,which may result in lower acceptance rate
+(APIServer pid=23659) INFO 11-07 07:03:06 [speculative.py:1126] Overriding draft model max model len from 262144 to 4096
+(APIServer pid=23659) INFO 11-07 07:03:06 [vllm.py:1109] Asynchronous scheduling is enabled.
+(APIServer pid=23659) INFO 11-07 07:03:06 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(APIServer pid=23659) WARNING 11-07 07:03:06 [vllm.py:1718] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens or max_num_seqs.
+(APIServer pid=23659) INFO 11-07 07:03:15 [registry.py:134] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(EngineCore pid=23697) INFO 11-07 07:06:03 [core.py:116] Initializing a V1 LLM engine (v0.26.0) with config: model='/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4', speculative_config=SpeculativeConfig(method='mtp', model='/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4', num_spec_tokens=3), tokenizer='/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=False, dtype=torch.bfloat16, max_seq_len=4096, download_dir=None, load_format=auto, tensor_parallel_size=2, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=True, quantization=compressed-tensors, quantization_config=None, enforce_eager=False, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='qwen3', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=qwen3.8-27b, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::plamo2_mamba_mixer', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::kda_attention', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [2048], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'size_asserts': False, 'alignment_asserts': False, 'scalar_asserts': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16, 24, 32, 40, 48, 56, 64], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 64, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=23697) INFO 11-07 07:06:03 [multiproc_executor.py:140] DP group leader: node_rank=0, node_rank_within_dp=0, master_addr=127.0.0.1, mq_connect_ip=172.17.0.2 (local), world_size=2, local_world_size=2
+INFO 11-07 07:07:01 [registry.py:134] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+INFO 11-07 07:07:03 [registry.py:134] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(Worker pid=23718) INFO 11-07 07:07:03 [parallel_state.py:1615] world_size=2 rank=0 local_rank=0 distributed_init_method=tcp://127.0.0.1:43731 backend=nccl
+(Worker pid=23719) INFO 11-07 07:07:07 [parallel_state.py:1615] world_size=2 rank=1 local_rank=1 distributed_init_method=tcp://127.0.0.1:43731 backend=nccl
+(Worker pid=23719) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=23719) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=23718) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.cudart module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.runtime module instead.
+(Worker pid=23718) <frozen importlib._bootstrap_external>:1301: FutureWarning: The cuda.nvrtc module is deprecated and will be removed in a future release, please switch to use the cuda.bindings.nvrtc module instead.
+(Worker pid=23718) INFO 11-07 07:07:10 [pynccl.py:113] vLLM is using nccl==2.28.9
+(Worker pid=23718) WARNING 11-07 07:07:12 [symm_mem.py:66] SymmMemCommunicator: Device capability 8.6 not supported, communicator is not available.
+(Worker pid=23718) INFO 11-07 07:07:12 [cuda_communicator.py:264] Using ['PYNCCL'] all-reduce backends (in dispatch order) for group 'tp:0' out of potential backends: ['NCCL_SYMM_MEM', 'QUICK_REDUCE', 'FLASHINFER', 'AITER_CUSTOM', 'CUSTOM', 'SYMM_MEM', 'PYNCCL'].
+(Worker pid=23719) WARNING 11-07 07:07:12 [symm_mem.py:66] SymmMemCommunicator: Device capability 8.6 not supported, communicator is not available.
+(Worker pid=23718) INFO 11-07 07:07:12 [parallel_state.py:1946] rank 0 in world size 2 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(Worker pid=23718) INFO 11-07 07:07:13 [topk_topp_sampler.py:39] FlashInfer top-p/top-k sampling disabled via VLLM_USE_FLASHINFER_SAMPLER=0.
+(Worker pid=23718) WARNING 11-07 07:07:13 [__init__.py:204] min_p and logit_bias parameters won't work with speculative decoding.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:13 [gpu_model_runner.py:5250] Starting to load model /mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4...
+(Worker pid=23719) WARNING 11-07 07:07:13 [__init__.py:204] min_p and logit_bias parameters won't work with speculative decoding.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [cuda.py:541] Using backend AttentionBackendEnum.FLASH_ATTN for vit attention
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [mm_encoder_attention.py:373] Using AttentionBackendEnum.FLASH_ATTN for MMEncoderAttention.
+(Worker_TP1 pid=23719) INFO 11-07 07:07:14 [compressed_tensors_wNa16.py:137] Using MarlinLinearKernel for CompressedTensorsWNA16
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [compressed_tensors_wNa16.py:137] Using MarlinLinearKernel for CompressedTensorsWNA16
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [qwen_gdn_linear_attn.py:150] Using Triton/FLA GDN prefill kernel (requested=auto, head_k_dim=128).
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(Worker_TP0 pid=23718) INFO 11-07 07:07:14 [flash_attn.py:776] Using FlashAttention version 2
+(Worker_TP1 pid=23719) INFO 11-07 07:07:15 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP0 pid=23718) INFO 11-07 07:07:15 [weight_utils.py:869] Filesystem type for checkpoints: NFS4. Checkpoint size: 19.57 GiB. Available RAM: 229.64 GiB.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:15 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:01,  2.39it/s]
+(Worker_TP0 pid=23718) INFO 11-07 07:07:16 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/3)
+(Worker_TP0 pid=23718) INFO 11-07 07:07:16 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/3)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:16 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/2)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:16 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/2)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:16 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 1.55s
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:01<00:02,  1.09it/s]
+(Worker_TP0 pid=23718) INFO 11-07 07:07:17 [weight_utils.py:803] Prefetching checkpoint files: 30% (3/3)
+(Worker_TP0 pid=23718) INFO 11-07 07:07:17 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 1.78s
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:02<00:01,  1.02it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:03<00:01,  1.01s/it]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.25it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.19it/s]
+(Worker_TP0 pid=23718) 
+(Worker_TP0 pid=23718) INFO 11-07 07:07:19 [default_loader.py:430] Loading weights took 4.24 seconds
+(Worker_TP1 pid=23719) INFO 11-07 07:07:23 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(Worker_TP1 pid=23719) INFO 11-07 07:07:23 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP0 pid=23718) INFO 11-07 07:07:23 [gpu_model_runner.py:5274] Loading drafter model...
+(Worker_TP0 pid=23718) INFO 11-07 07:07:23 [vllm.py:1109] Asynchronous scheduling is enabled.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:23 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(Worker_TP0 pid=23718) WARNING 11-07 07:07:23 [vllm.py:1718] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens or max_num_seqs.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:23 [weight_utils.py:869] Filesystem type for checkpoints: NFS4. Checkpoint size: 19.57 GiB. Available RAM: 228.92 GiB.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:23 [weight_utils.py:831] Prefetching checkpoint files into page cache started (in background, num_threads=8, block_size=16777216 bytes)
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:01,  2.42it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:00<00:01,  2.42it/s]
+(Worker_TP0 pid=23718) INFO 11-07 07:07:24 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/3)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:24 [llm_base_proposer.py:1475] Detected MTP model. Sharing target model embedding weights with the draft model.
+(Worker_TP1 pid=23719) INFO 11-07 07:07:24 [llm_base_proposer.py:1551] Detected MTP model. Sharing target model lm_head weights with the draft model.
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:01<00:00,  5.55it/s]
+(Worker_TP0 pid=23718) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:01<00:00,  4.59it/s]
+(Worker_TP0 pid=23718) 
+(Worker_TP0 pid=23718) INFO 11-07 07:07:24 [default_loader.py:430] Loading weights took 1.11 seconds
+(Worker_TP0 pid=23718) INFO 11-07 07:07:24 [llm_base_proposer.py:1475] Detected MTP model. Sharing target model embedding weights with the draft model.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:24 [llm_base_proposer.py:1551] Detected MTP model. Sharing target model lm_head weights with the draft model.
+(Worker_TP1 pid=23719) INFO 11-07 07:07:25 [interface.py:905] Setting attention block size to 800 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP1 pid=23719) INFO 11-07 07:07:25 [interface.py:929] Padding mamba page size by 0.25% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [gpu_model_runner.py:5347] Model loading took 9.68 GiB memory and 10.493612 seconds
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [interface.py:905] Setting attention block size to 800 tokens to ensure that attention page size is >= mamba page size.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [interface.py:929] Padding mamba page size by 0.25% to ensure that mamba page size and attention page size are exactly equal.
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/3)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:25 [weight_utils.py:803] Prefetching checkpoint files: 10% (1/2)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:25 [weight_utils.py:803] Prefetching checkpoint files: 20% (2/2)
+(Worker_TP1 pid=23719) INFO 11-07 07:07:25 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 2.30s
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [weight_utils.py:803] Prefetching checkpoint files: 30% (3/3)
+(Worker_TP0 pid=23718) INFO 11-07 07:07:25 [weight_utils.py:826] Prefetching checkpoint files into page cache finished in 2.22s
+(Worker_TP0 pid=23718) INFO 11-07 07:07:35 [backends.py:1094] Using cache directory: /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/80d8c7b7c8/rank_0_0/backbone for vLLM's torch.compile
+(Worker_TP0 pid=23718) INFO 11-07 07:07:35 [backends.py:1155] Dynamo bytecode transform time: 9.09 s
+(Worker_TP0 pid=23718) INFO 11-07 07:08:12 [backends.py:292] Directly load the compiled graph(s) for compile range (1, 2048) from the cache, took 36.460 s
+(Worker_TP1 pid=23719) INFO 11-07 07:08:13 [decorators.py:311] Directly load AOT compilation from path /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/torch_aot_compile/acbf39e610bd2b92bc56119c21db43d96583af9e13e5684f23ea9bf44bbd8164/rank_1_0/model
+(Worker_TP0 pid=23718) INFO 11-07 07:08:13 [decorators.py:311] Directly load AOT compilation from path /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/torch_aot_compile/acbf39e610bd2b92bc56119c21db43d96583af9e13e5684f23ea9bf44bbd8164/rank_0_0/model
+(Worker_TP0 pid=23718) INFO 11-07 07:08:13 [monitor.py:53] torch.compile took 46.88 s in total
+(Worker_TP0 pid=23718) INFO 11-07 07:08:16 [monitor.py:81] Initial profiling/warmup run took 3.03 s
+(Worker_TP0 pid=23718) INFO 11-07 07:08:16 [backends.py:1094] Using cache directory: /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/80d8c7b7c8/rank_0_0/eagle_head for vLLM's torch.compile
+(Worker_TP0 pid=23718) INFO 11-07 07:08:16 [backends.py:1155] Dynamo bytecode transform time: 0.22 s
+(Worker_TP1 pid=23719) INFO 11-07 07:08:19 [decorators.py:311] Directly load AOT compilation from path /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/torch_aot_compile/503d9ddf67d58303dcfee623bc76df547e8c5ff97f70e6730ffbe42c188cc5bb/rank_1_0/model
+(Worker_TP0 pid=23718) INFO 11-07 07:08:19 [backends.py:292] Directly load the compiled graph(s) for compile range (1, 2048) from the cache, took 2.888 s
+(Worker_TP0 pid=23718) INFO 11-07 07:08:19 [decorators.py:311] Directly load AOT compilation from path /mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/cache/vllm/torch_compile_cache/torch_aot_compile/503d9ddf67d58303dcfee623bc76df547e8c5ff97f70e6730ffbe42c188cc5bb/rank_0_0/model
+(Worker_TP0 pid=23718) INFO 11-07 07:08:19 [monitor.py:53] torch.compile took 3.13 s in total
+(Worker_TP0 pid=23718) INFO 11-07 07:08:19 [monitor.py:81] Initial profiling/warmup run took 0.01 s
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:20 [kv_cache_utils.py:1237] Add 3 padding layers, may waste at most 6.25% KV cache memory
+(Worker_TP0 pid=23718) INFO 11-07 07:08:20 [gpu_model_runner.py:6616] Profiling CUDA graph memory: PIECEWISE=9 (largest=64), FULL=5 (largest=32)
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:20 [kv_cache_utils.py:1237] Add 3 padding layers, may waste at most 6.25% KV cache memory
+(Worker_TP1 pid=23719) INFO 11-07 07:08:20 [gpu_model_runner.py:6616] Profiling CUDA graph memory: PIECEWISE=9 (largest=64), FULL=5 (largest=32)
+(Worker_TP1 pid=23719) INFO 11-07 07:08:22 [gpu_model_runner.py:6741] Estimated CUDA graph memory: 1.15 GiB total
+(Worker_TP0 pid=23718) INFO 11-07 07:08:22 [gpu_model_runner.py:6741] Estimated CUDA graph memory: 1.15 GiB total
+(Worker_TP1 pid=23719) INFO 11-07 07:08:22 [gpu_worker.py:575] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.8500 is equivalent to --gpu-memory-utilization=0.8015 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.8985. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(Worker_TP0 pid=23718) INFO 11-07 07:08:22 [gpu_worker.py:560] Available KV cache memory: 8.55 GiB
+(Worker_TP0 pid=23718) INFO 11-07 07:08:22 [gpu_worker.py:575] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.8500 is equivalent to --gpu-memory-utilization=0.8015 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.8985. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(EngineCore pid=23697) WARNING 11-07 07:08:22 [kv_cache_utils.py:1237] Add 3 padding layers, may waste at most 6.25% KV cache memory
+(EngineCore pid=23697) INFO 11-07 07:08:22 [kv_cache_utils.py:2177] GPU KV cache size: 74,865 tokens
+(EngineCore pid=23697) INFO 11-07 07:08:22 [kv_cache_utils.py:2178] Maximum concurrency for 4,096 tokens per request: 18.28x
+(Worker_TP1 pid=23719) INFO 11-07 07:08:22 [qwen_triton_warmup.py:370] Warming up Qwen Triton kernels for model_type=qwen3_5_text.
+(Worker_TP0 pid=23718) INFO 11-07 07:08:22 [qwen_triton_warmup.py:370] Warming up Qwen Triton kernels for model_type=qwen3_5_text.
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408] Module vllm.third_party.deep_gemm was found but failed to import
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408] Traceback (most recent call last):
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/utils/import_utils.py", line 406, in _has_module
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]     importlib.import_module(module_name)
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py", line 90, in import_module
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]     return _bootstrap._gcd_import(name[level:], package, level)
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/third_party/deep_gemm/__init__.py", line 123, in <module>
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]     _find_cuda_home()                           # CUDA home
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]     ^^^^^^^^^^^^^^^^^
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/third_party/deep_gemm/__init__.py", line 117, in _find_cuda_home
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]     assert cuda_home is not None
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:25 [import_utils.py:408] AssertionError
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408] Module vllm.third_party.deep_gemm was found but failed to import
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408] Traceback (most recent call last):
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/utils/import_utils.py", line 406, in _has_module
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]     importlib.import_module(module_name)
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/importlib/__init__.py", line 90, in import_module
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]     return _bootstrap._gcd_import(name[level:], package, level)
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1387, in _gcd_import
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1360, in _find_and_load
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 1331, in _find_and_load_unlocked
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 935, in _load_unlocked
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap_external>", line 999, in exec_module
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/third_party/deep_gemm/__init__.py", line 123, in <module>
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]     _find_cuda_home()                           # CUDA home
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]     ^^^^^^^^^^^^^^^^^
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]   File "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/vllm-src/vllm/third_party/deep_gemm/__init__.py", line 117, in _find_cuda_home
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]     assert cuda_home is not None
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408]            ^^^^^^^^^^^^^^^^^^^^^
+(Worker_TP1 pid=23719) WARNING 11-07 07:08:25 [import_utils.py:408] AssertionError
+(Worker_TP0 pid=23718) INFO 11-07 07:08:25 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP0 pid=23718) INFO 11-07 07:08:25 [gpu_model_runner.py:6802] Rank 0: Torch profiler disabled for CUDA graph capture
+(Worker_TP1 pid=23719) INFO 11-07 07:08:25 [cutedsl_warmup.py:101] Skipping CuTeDSL warmup because no compile units were requested.
+(Worker_TP0 pid=23718) Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/9 [00:00<?, ?it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  11%|█         | 1/9 [00:00<00:01,  8.00it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  22%|██▏       | 2/9 [00:00<00:00,  8.18it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  33%|███▎      | 3/9 [00:00<00:00,  8.63it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  44%|████▍     | 4/9 [00:00<00:00,  8.72it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  56%|█████▌    | 5/9 [00:00<00:00,  8.53it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  67%|██████▋   | 6/9 [00:00<00:00,  8.24it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  78%|███████▊  | 7/9 [00:00<00:00,  8.07it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  89%|████████▉ | 8/9 [00:00<00:00,  7.80it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 9/9 [00:01<00:00,  7.56it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 9/9 [00:01<00:00,  8.00it/s]
+(Worker_TP0 pid=23718) Capturing CUDA graphs (decode, FULL):   0%|          | 0/5 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):  20%|██        | 1/5 [00:02<00:09,  2.26s/it]Capturing CUDA graphs (decode, FULL):  40%|████      | 2/5 [00:02<00:03,  1.02s/it]Capturing CUDA graphs (decode, FULL):  60%|██████    | 3/5 [00:02<00:01,  1.62it/s]Capturing CUDA graphs (decode, FULL):  80%|████████  | 4/5 [00:02<00:00,  2.32it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 5/5 [00:04<00:00,  1.07s/it]Capturing CUDA graphs (decode, FULL): 100%|██████████| 5/5 [00:04<00:00,  1.02it/s]
+(Worker_TP1 pid=23719) INFO 11-07 07:08:32 [gpu_worker.py:793] CUDA graph pool memory: 0.89 GiB (actual), 1.15 GiB (estimated), difference: 0.26 GiB (28.9%).
+(Worker_TP1 pid=23719) INFO 11-07 07:08:32 [gpu_worker.py:857] Free memory on device (22.39/23.69 GiB) on startup. Desired GPU memory utilization is (0.85, 20.14 GiB). Actual usage is 9.68 GiB for weight, 0.2 GiB for peak activation, 0.55 GiB for non-torch memory, and 0.89 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=9301655040` (8.66 GiB) to fit into requested memory, or `--kv-cache-memory=11716869632` (10.91 GiB) to fully utilize gpu memory. Current kv cache memory in use is 8.55 GiB.
+(Worker_TP0 pid=23718) INFO 11-07 07:08:32 [gpu_model_runner.py:6848] Graph capturing finished in 7 secs, took 0.89 GiB
+(Worker_TP0 pid=23718) INFO 11-07 07:08:32 [gpu_worker.py:793] CUDA graph pool memory: 0.89 GiB (actual), 1.15 GiB (estimated), difference: 0.26 GiB (28.9%).
+(Worker_TP0 pid=23718) INFO 11-07 07:08:32 [gpu_worker.py:857] Free memory on device (22.39/23.69 GiB) on startup. Desired GPU memory utilization is (0.85, 20.14 GiB). Actual usage is 9.68 GiB for weight, 0.2 GiB for peak activation, 0.55 GiB for non-torch memory, and 0.89 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=9301655040` (8.66 GiB) to fit into requested memory, or `--kv-cache-memory=11716869632` (10.91 GiB) to fully utilize gpu memory. Current kv cache memory in use is 8.55 GiB.
+(Worker_TP1 pid=23719) INFO 11-07 07:08:37 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(Worker_TP0 pid=23718) INFO 11-07 07:08:37 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=23697) INFO 11-07 07:08:37 [core.py:340] init engine (profile, create kv cache, warmup model) took 71.80 s (compilation: 50.01 s)
+(EngineCore pid=23697) INFO 11-07 07:08:41 [registry.py:134] All limits of multimodal modalities supported by the model are set to 0, running in text-only mode.
+(EngineCore pid=23697) INFO 11-07 07:08:41 [vllm.py:1109] Asynchronous scheduling is enabled.
+(EngineCore pid=23697) INFO 11-07 07:08:41 [kernel.py:295] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(EngineCore pid=23697) WARNING 11-07 07:08:41 [vllm.py:1718] max_num_scheduled_tokens is set to 2048 based on the speculative decoding settings. This may lead to suboptimal performance. Consider increasing max_num_batched_tokens to accommodate the additional draft token slots, or decrease num_speculative_tokens or max_num_seqs.
+(APIServer pid=23659) INFO 11-07 07:08:41 [api_server.py:673] Supported tasks: ['generate']
+(APIServer pid=23659) WARNING 11-07 07:08:42 [model.py:1546] Default vLLM sampling parameters have been overridden by the model's `generation_config.json`: `{'temperature': 1.0, 'top_k': 20, 'top_p': 0.95}`. If this is not intended, please relaunch vLLM instance with `--generation-config vllm`.
+(APIServer pid=23659) INFO 11-07 07:08:43 [hf.py:540] Detected the chat template content format to be 'openai'. You can set `--chat-template-content-format` to override this.
+(APIServer pid=23659) INFO 11-07 07:08:43 [api_server.py:677] Starting vLLM server on http://127.0.0.1:8000
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:37] Available routes are:
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /openapi.json, Methods: GET, HEAD
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /docs, Methods: GET, HEAD
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /docs/oauth2-redirect, Methods: GET, HEAD
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /redoc, Methods: GET, HEAD
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /load, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /version, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /health, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /metrics, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /tokenize, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /detokenize, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/models, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /ping, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /ping, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /invocations, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/chat/completions, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/chat/completions/batch, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/responses, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/responses/{response_id}, Methods: GET
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/responses/{response_id}/cancel, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/completions, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/messages, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/messages/count_tokens, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /generative_scoring, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /scale_elastic_ep, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /is_scaling_elastic_ep, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/chat/completions/render, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/completions/render, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/chat/completions/derender, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /v1/completions/derender, Methods: POST
+(APIServer pid=23659) INFO 11-07 07:08:43 [launcher.py:46] Route: /inference/v1/generate, Methods: POST
+(APIServer pid=23659) INFO:     Started server process [23659]
+(APIServer pid=23659) INFO:     Waiting for application startup.
+(APIServer pid=23659) INFO:     Application startup complete.
+(APIServer pid=23659) INFO:     127.0.0.1:44744 - "GET /health HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:44752 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:08:47 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b80f08ff33f061b4-9f7db6bc prompt_tokens=376 running=0 waiting=1
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:47 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _compute_slot_mapping_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:49 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _causal_conv1d_fwd_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:49 [jit_monitor.py:135] Triton kernel JIT compilation during inference: eagle_prepare_next_token_padded_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:49 [jit_monitor.py:135] Triton kernel JIT compilation during inference: eagle_step_slot_mapping_metadata_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(APIServer pid=23659) INFO 11-07 07:08:54 [loggers.py:310] Engine 000: Avg prompt throughput: 30.3 tokens/s, Avg generation throughput: 0.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.0%, Prefix cache hit rate: 0.0%
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: rejection_greedy_sample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(Worker_TP0 pid=23718) WARNING 11-07 07:08:54 [jit_monitor.py:135] Triton kernel JIT compilation during inference: eagle_prepare_inputs_padded_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(APIServer pid=23659) INFO:     127.0.0.1:46872 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:08:54 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-906c1c5faab21b47-9933e12a prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:46878 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:08:56 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a4e86492abffe15e-beabad42 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:46892 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:08:57 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-ad6c3b3f19cf6264-88f12fec prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:46896 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:08:59 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-99394bb60eda126d-a7dc5be4 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:53644 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:00 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-88bbda7af8cd9427-83a5cacc prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:53660 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:02 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-80fde037d7bfe5ae-8914377b prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:53672 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:03 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a017ae80f16a1205-9f702b4e prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO 11-07 07:09:04 [loggers.py:310] Engine 000: Avg prompt throughput: 225.6 tokens/s, Avg generation throughput: 77.1 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:04 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.77, Accepted throughput: 22.08 tokens/s, Drafted throughput: 37.47 tokens/s, Accepted: 495 tokens, Drafted: 840 tokens, Per-position acceptance rate: 0.807, 0.579, 0.382, Avg Draft acceptance rate: 58.9%
+(APIServer pid=23659) INFO:     127.0.0.1:53682 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:05 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-889a3d95fbb01965-a86e64de prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:53690 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:07 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9282f180b07d7aff-9ccc7e9d prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:53698 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:08 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a7d222c076a436e0-a3a89f07 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37284 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:10 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8e262836e8eb8e9f-81a46875 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37286 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:11 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b1561c64a1efbd5f-b0015c75 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37302 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:13 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-95782bac6e9a20d6-922a4b5e prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO 11-07 07:09:14 [loggers.py:310] Engine 000: Avg prompt throughput: 263.1 tokens/s, Avg generation throughput: 81.3 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:14 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.73, Accepted throughput: 51.49 tokens/s, Drafted throughput: 89.39 tokens/s, Accepted: 515 tokens, Drafted: 894 tokens, Per-position acceptance rate: 0.785, 0.570, 0.372, Avg Draft acceptance rate: 57.6%
+(APIServer pid=23659) INFO:     127.0.0.1:37318 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:14 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a53872fcd885cc0e-8f274cb0 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37328 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:16 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b0e2a05e3068622e-98d16830 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37336 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:18 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-81e64ec6f1ae7ab7-820ba493 prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:37338 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:19 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a9f909608f5caccc-848c89b6 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47684 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:20 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8a5c5d62233a32d6-a5f8581a prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47692 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:21 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bbf599a1684aeeca-9ecbdad5 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47694 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:22 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9786bcbfe3827bd5-915e87af prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47708 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:23 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-83d4e4fa299fc26f-9e5026c2 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO 11-07 07:09:24 [loggers.py:310] Engine 000: Avg prompt throughput: 466.7 tokens/s, Avg generation throughput: 64.4 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.3%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:24 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.86, Accepted throughput: 42.60 tokens/s, Drafted throughput: 68.69 tokens/s, Accepted: 426 tokens, Drafted: 687 tokens, Per-position acceptance rate: 0.825, 0.642, 0.393, Avg Draft acceptance rate: 62.0%
+(APIServer pid=23659) INFO:     127.0.0.1:47712 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:25 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b512b0b96c4c07c1-a450420a prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47714 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:26 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b1f6f71598e737de-8dc16f12 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47720 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:27 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a9dbd82e79c5ed93-88a4c6ac prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:47732 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:28 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-813409d13aafcc0f-b56a865c prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48414 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:29 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-ac227f8a6c5fc0fc-b8285a91 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48426 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:31 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b28e12d2e0f88982-9184a42b prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48436 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:32 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a03494216ad3b815-ac9efbc9 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48448 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:33 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b4a1456bb3ebda44-8d09e445 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO 11-07 07:09:34 [loggers.py:310] Engine 000: Avg prompt throughput: 707.9 tokens/s, Avg generation throughput: 45.8 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.3%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:34 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 3.17, Accepted throughput: 32.40 tokens/s, Drafted throughput: 44.70 tokens/s, Accepted: 324 tokens, Drafted: 447 tokens, Per-position acceptance rate: 0.899, 0.711, 0.564, Avg Draft acceptance rate: 72.5%
+(APIServer pid=23659) INFO:     127.0.0.1:48454 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:34 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8dd3cda052d84e65-a7f54f49 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48466 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:35 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-98e76d05b671016d-8116d31c prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48472 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:37 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9edbbd14ba3f5e8c-b6deadf7 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48480 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:38 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8879728dd35b3e1c-9fb44170 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:48484 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:39 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8112385db6856fce-be924dee prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49276 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:39 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-89aa5dc978359bf0-b6d3627f prompt_tokens=376 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49282 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:49292 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:49296 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:40 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-945a7bbbe0a161c8-91b20a15 prompt_tokens=376 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:09:40 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9aa214f7557db04e-8bb90b56 prompt_tokens=376 running=1 waiting=2
+(EngineCore pid=23697) INFO 11-07 07:09:40 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-acfe17de873f511b-8dddcb39 prompt_tokens=376 running=1 waiting=3
+(APIServer pid=23659) INFO 11-07 07:09:44 [loggers.py:310] Engine 000: Avg prompt throughput: 630.3 tokens/s, Avg generation throughput: 41.6 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 15.9%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:44 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.86, Accepted throughput: 27.60 tokens/s, Drafted throughput: 44.39 tokens/s, Accepted: 276 tokens, Drafted: 444 tokens, Per-position acceptance rate: 0.845, 0.581, 0.439, Avg Draft acceptance rate: 62.2%
+(APIServer pid=23659) INFO:     127.0.0.1:49312 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:45 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-afa6bcaed9a7f1a7-9d7b94fd prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49318 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:45 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8cb01f0048e11385-8dbbb838 prompt_tokens=376 running=2 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49326 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:45 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-aa7b239d82be998c-97fd1f3e prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49328 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:46 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-af8dc3d69228f253-85afc30b prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49338 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:47 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a963855561dba975-89f0380a prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:49352 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:49362 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:48 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a385df2a45c34d1e-ad221d90 prompt_tokens=376 running=2 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:09:48 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b08975a01a50cf82-8ba1edfd prompt_tokens=376 running=2 waiting=2
+(APIServer pid=23659) INFO:     127.0.0.1:49378 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:48 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a134c630a1a3082c-850ad9e3 prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:36442 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:50 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-81197252e824c448-9ffd0a55 prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:36458 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:36460 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:51 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-839da68a752e7445-9747a75e prompt_tokens=376 running=2 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:09:51 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-988aff60c585c5a7-b23333f2 prompt_tokens=376 running=2 waiting=2
+(APIServer pid=23659) INFO:     127.0.0.1:36474 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:51 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-adba3426287d4172-bbf196c2 prompt_tokens=376 running=3 waiting=1
+(APIServer pid=23659) INFO 11-07 07:09:54 [loggers.py:310] Engine 000: Avg prompt throughput: 451.2 tokens/s, Avg generation throughput: 191.3 tokens/s, Running: 1 reqs, Waiting: 0 reqs, GPU KV cache usage: 4.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:09:54 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.86, Accepted throughput: 124.79 tokens/s, Drafted throughput: 201.28 tokens/s, Accepted: 1248 tokens, Drafted: 2013 tokens, Per-position acceptance rate: 0.815, 0.624, 0.420, Avg Draft acceptance rate: 62.0%
+(APIServer pid=23659) INFO:     127.0.0.1:36482 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:54 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-ae7d9dfa18ca4dfc-80d139b9 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:36498 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:55 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-98502794eda9a9eb-bbb56787 prompt_tokens=885 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:36502 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:36516 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:36528 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:56 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b301df1fb0561194-a24e4e63 prompt_tokens=885 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:09:56 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a2754f89e8607fbb-92af4ec2 prompt_tokens=885 running=1 waiting=2
+(EngineCore pid=23697) INFO 11-07 07:09:56 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a72b2e0c7a8bfa58-ba0e4436 prompt_tokens=885 running=1 waiting=3
+(APIServer pid=23659) INFO:     127.0.0.1:36534 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:58 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-99da9c01ed689414-90af9420 prompt_tokens=885 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:36546 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:36552 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:59 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9ef6f028366a895a-9d200773 prompt_tokens=885 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:09:59 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-872462fe431a5231-844c1d29 prompt_tokens=885 running=1 waiting=2
+(APIServer pid=23659) INFO:     127.0.0.1:36554 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:09:59 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a0b42fdd31fdbe44-96db00e2 prompt_tokens=885 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:39616 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:10:02 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-a61c695d90fe4419-bc7cb413 prompt_tokens=885 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:39624 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:39628 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:39630 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:10:02 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9ec7fc842322bafd-84fcf4c9 prompt_tokens=885 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:10:02 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b8f9d2c0e2a57767-bc3eff99 prompt_tokens=885 running=1 waiting=2
+(EngineCore pid=23697) INFO 11-07 07:10:02 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b43dc1b3c893715f-a386f3bd prompt_tokens=885 running=1 waiting=3
+(APIServer pid=23659) INFO 11-07 07:10:04 [loggers.py:310] Engine 000: Avg prompt throughput: 884.9 tokens/s, Avg generation throughput: 47.4 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 16.8%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:10:04 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 3.19, Accepted throughput: 33.70 tokens/s, Drafted throughput: 46.20 tokens/s, Accepted: 337 tokens, Drafted: 462 tokens, Per-position acceptance rate: 0.883, 0.708, 0.597, Avg Draft acceptance rate: 72.9%
+(APIServer pid=23659) INFO:     127.0.0.1:39632 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:10:05 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-8078a6b217ff8645-955b49ee prompt_tokens=885 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:39634 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:39636 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:10:06 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b7ce68d2d1ced765-ac2caed8 prompt_tokens=885 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:10:06 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-9553cd16ee2c454a-b0bce820 prompt_tokens=885 running=1 waiting=2
+(APIServer pid=23659) INFO:     127.0.0.1:39644 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:10:06 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-b64d0dab93741263-b6ccbb6f prompt_tokens=885 running=3 waiting=1
+(APIServer pid=23659) INFO 11-07 07:10:14 [loggers.py:310] Engine 000: Avg prompt throughput: 619.4 tokens/s, Avg generation throughput: 45.4 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:10:14 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 3.29, Accepted throughput: 32.70 tokens/s, Drafted throughput: 42.90 tokens/s, Accepted: 327 tokens, Drafted: 429 tokens, Per-position acceptance rate: 0.902, 0.748, 0.636, Avg Draft acceptance rate: 76.2%
+(APIServer pid=23659) INFO 11-07 07:10:24 [loggers.py:310] Engine 000: Avg prompt throughput: 0.0 tokens/s, Avg generation throughput: 0.0 tokens/s, Running: 0 reqs, Waiting: 0 reqs, GPU KV cache usage: 0.0%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO:     127.0.0.1:55644 - "POST /tokenize HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "GET /metrics HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "GET /metrics HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55654 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:16 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-1-824faf1a prompt_tokens=565 running=0 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55656 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55662 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(Worker_TP0 pid=23718) WARNING 11-07 07:11:16 [jit_monitor.py:135] Triton kernel JIT compilation during inference: expand_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(EngineCore pid=23697) INFO 11-07 07:11:16 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-0-8d9536db prompt_tokens=566 running=1 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:11:16 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-2-bef68e49 prompt_tokens=564 running=1 waiting=2
+(EngineCore pid=23697) INFO 11-07 07:11:16 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-3-8978d57b prompt_tokens=564 running=1 waiting=3
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55662 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:19 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-4-8528527c prompt_tokens=564 running=2 waiting=1
+(EngineCore pid=23697) INFO 11-07 07:11:19 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-5-b12d3e8d prompt_tokens=564 running=2 waiting=2
+(APIServer pid=23659) INFO:     127.0.0.1:55654 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:20 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-6-a7d4e389 prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55656 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:22 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-7-82f56964 prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55662 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:22 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-8-8d459817 prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:23 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-9-aac8c03b prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO 11-07 07:11:24 [loggers.py:310] Engine 000: Avg prompt throughput: 507.9 tokens/s, Avg generation throughput: 96.9 tokens/s, Running: 4 reqs, Waiting: 0 reqs, GPU KV cache usage: 15.9%, Prefix cache hit rate: 0.0%
+(APIServer pid=23659) INFO 11-07 07:11:24 [metrics.py:120] SpecDecoding metrics: Mean acceptance length: 2.56, Accepted throughput: 8.39 tokens/s, Drafted throughput: 16.16 tokens/s, Accepted: 587 tokens, Drafted: 1131 tokens, Per-position acceptance rate: 0.698, 0.493, 0.366, Avg Draft acceptance rate: 51.9%
+(APIServer pid=23659) INFO:     127.0.0.1:55656 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:24 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-10-88fa5f0c prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55654 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:25 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-11-baa15643 prompt_tokens=565 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55662 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:26 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-12-aaf17762 prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55648 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:27 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-13-a68d7614 prompt_tokens=564 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55654 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:28 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-14-80b57f88 prompt_tokens=566 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55656 - "POST /v1/chat/completions HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:29 [scheduler.py:2139] AGENTFORGE-E2 add_request id=chatcmpl-bench-53165354-15-8dbfd3a9 prompt_tokens=565 running=3 waiting=1
+(APIServer pid=23659) INFO:     127.0.0.1:55662 - "GET /metrics HTTP/1.1" 200 OK
+(APIServer pid=23659) INFO:     127.0.0.1:55654 - "GET /metrics HTTP/1.1" 200 OK
+(EngineCore pid=23697) INFO 11-07 07:11:31 [core.py:1313] [shutdown] EngineCore: trigger received signal=SIGTERM
+(APIServer pid=23659) INFO 11-07 07:11:31 [launcher.py:100] [shutdown] API server: shutdown triggered
+(APIServer pid=23659) INFO 11-07 07:11:31 [launcher.py:116] [shutdown] API server: stopping engine client mode=abort timeout=0s
+(EngineCore pid=23697) INFO 11-07 07:11:31 [core.py:1432] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=23697) INFO 11-07 07:11:31 [core.py:1463] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=23697) INFO 11-07 07:11:31 [core.py:1326] [shutdown] EngineCore: exiting busy loop
+(APIServer pid=23659) INFO 11-07 07:11:31 [core_client.py:655] [shutdown] MPClient: start timeout=0s
+(APIServer pid=23659) INFO 11-07 07:11:31 [core_client.py:657] [shutdown] MPClient: stopping engine manager
+(APIServer pid=23659) WARNING 11-07 07:11:31 [utils.py:626] [shutdown] Process manager: force killing remaining processes count=1
+(Worker_TP0 pid=23718) INFO 11-07 07:11:31 [multiproc_executor.py:793] Parent process exited, terminating worker queues
+(APIServer pid=23659) INFO 11-07 07:11:31 [core_client.py:659] [shutdown] MPClient: engine manager stopped
+(APIServer pid=23659) INFO:     Shutting down
+(APIServer pid=23659) INFO 11-07 07:11:31 [core_client.py:660] [shutdown] MPClient: cleaning up background resources
+(APIServer pid=23659) INFO 11-07 07:11:31 [core_client.py:662] [shutdown] MPClient: complete
+(APIServer pid=23659) INFO 11-07 07:11:31 [launcher.py:125] [shutdown] API server: engine client stopped
+(APIServer pid=23659) INFO 11-07 07:11:31 [launcher.py:128] [shutdown] API server: signalling HTTP server shutdown
+(APIServer pid=23659) INFO 11-07 07:11:31 [launcher.py:149] [shutdown] API server: shutting down FastAPI HTTP server
+(APIServer pid=23659) INFO:     Shutting down
+(APIServer pid=23659) INFO:     Waiting for application shutdown.
+(APIServer pid=23659) INFO:     Application shutdown complete.
+/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 2 leaked semaphore objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
+/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/python/cpython-3.12.14-linux-x86_64-gnu/lib/python3.12/multiprocessing/resource_tracker.py:279: UserWarning: resource_tracker: There appear to be 4 leaked shared_memory objects to clean up at shutdown
+  warnings.warn('resource_tracker: There appear to be %d '
