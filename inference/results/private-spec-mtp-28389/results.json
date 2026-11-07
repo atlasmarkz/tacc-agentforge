@@ -1,0 +1,295 @@
+{
+  "group": "spec-mtp",
+  "settings": {
+    "served_name": "qwen3.8-27b",
+    "workload": {
+      "input_len": 512,
+      "output_len": 128,
+      "num_prompts": 16,
+      "concurrency": [
+        1,
+        4
+      ],
+      "prompt_kinds": [
+        "distinct",
+        "shared_prefix"
+      ],
+      "repeats": 2
+    },
+    "model_path": "$QWEN_MODEL_PATH",
+    "tensor_parallel_size": 2,
+    "startup_timeout_s": 1500
+  },
+  "results": [
+    {
+      "variant": "baseline",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "ok",
+      "error": "",
+      "startup_s": 265.0798062219983,
+      "streaming": {
+        "distinct-c1": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 35.53658135095611,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 57.63075462364076,
+          "requests_per_s": 0.45024027049719345,
+          "ttft_ms": {
+            "mean": 300.04942962114,
+            "p50": 300.0479420879856,
+            "p95": 301.52887699659914,
+            "p99": 302.61720705311745
+          },
+          "tpot_ms": {
+            "mean": 15.123253413735005,
+            "p50": 15.118556283231033,
+            "p95": 15.153147936541968,
+            "p99": 15.153367338174089
+          },
+          "itl_ms": {
+            "mean": 15.121074615107798,
+            "p50": 15.127565944567323,
+            "p95": 15.330530004575849,
+            "p99": 15.491200960241258
+          },
+          "e2e_ms": {
+            "mean": 2220.7026131654857,
+            "p50": 2219.6523749735206,
+            "p95": 2225.978664937429,
+            "p99": 2227.0948590012267
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c1": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 24.287213603034616,
+          "output_tokens": 920,
+          "output_tokens_per_s": 37.880014358050886,
+          "requests_per_s": 0.6587828584008849,
+          "ttft_ms": {
+            "mean": 660.7476221397519,
+            "p50": 660.6095900060609,
+            "p95": 663.0180210340768,
+            "p99": 664.1272529959679
+          },
+          "tpot_ms": {
+            "mean": 15.165408272949952,
+            "p50": 15.167450291457873,
+            "p95": 15.186311213515832,
+            "p99": 15.188343677436933
+          },
+          "itl_ms": {
+            "mean": 15.15673986701127,
+            "p50": 15.20431600511074,
+            "p95": 15.35965094808489,
+            "p99": 15.496188076213002
+          },
+          "e2e_ms": {
+            "mean": 1517.593469194253,
+            "p50": 1511.0900800209492,
+            "p95": 1540.3217069106176,
+            "p99": 1542.523966054432
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "distinct-c4": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 13.95533736597281,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 146.75388679557275,
+          "requests_per_s": 1.1465147405904121,
+          "ttft_ms": {
+            "mean": 911.2324372472358,
+            "p50": 1101.4188620029017,
+            "p95": 1132.9225560184568,
+            "p99": 1134.3037300975993
+          },
+          "tpot_ms": {
+            "mean": 20.269154371108446,
+            "p50": 18.744962527343315,
+            "p95": 24.91239309457578,
+            "p99": 24.92129051229205
+          },
+          "itl_ms": {
+            "mean": 20.26596437994387,
+            "p50": 18.735294928774238,
+            "p95": 19.02640308253467,
+            "p99": 19.889166112989187
+          },
+          "e2e_ms": {
+            "mean": 3485.4150423780084,
+            "p50": 3481.642883969471,
+            "p95": 3508.4176460513845,
+            "p99": 3509.264399064705
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "shared_prefix-c4": {
+          "config": "baseline",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 14.43551604601089,
+          "output_tokens": 918,
+          "output_tokens_per_s": 63.593154347515004,
+          "requests_per_s": 1.1083774178216124,
+          "ttft_ms": {
+            "mean": 1632.9176243816619,
+            "p50": 1314.382590004243,
+            "p95": 2530.020565027371,
+            "p99": 2543.2109689572826
+          },
+          "tpot_ms": {
+            "mean": 34.844018820581255,
+            "p50": 36.797606827819656,
+            "p95": 51.35992669550303,
+            "p99": 52.06912737464466
+          },
+          "itl_ms": {
+            "mean": 33.04682922224739,
+            "p50": 18.907138030044734,
+            "p95": 19.2722239298746,
+            "p99": 639.4057610305026
+          },
+          "e2e_ms": {
+            "mean": 3597.4854064334068,
+            "p50": 3594.732790021226,
+            "p95": 4240.249071037397,
+            "p99": 4856.289200019091
+          },
+          "gpu_mem_gb": 0.0
+        }
+      },
+      "vllm_bench": {
+        "returncode": 0,
+        "tail": "able_tqdm=False, num_warmups=0, profile=False, save_result=True, save_detailed=False, append_result=False, metadata=None, result_dir='/mnt/home/markzhang/USERDIR/tacc-agentforge-results/private-spec-mtp-28389', result_filename='vllmbench-baseline-c4.json', ignore_eos=False, self_timed=None, percentile_metrics=None, metric_percentiles='99', goodput=None, request_id_prefix='bench-781472a2-', top_p=None, top_k=None, min_p=None, temperature=None, frequency_penalty=None, presence_penalty=None, repetition_penalty=None, served_model_name=None, lora_modules=None, lora_assignment='random', ramp_up_strategy=None, ramp_up_start_rps=None, ramp_up_end_rps=None, ready_check_timeout_sec=0, chat_template_kwargs=None, extra_body=None, skip_tokenizer_init=False, insecure=False, plot_timeline=False, timeline_itl_thresholds='25,50', plot_dataset_stats=False)\nINFO 11-07 03:29:34 [utils.py:90] Sampling input_len from [512, 512] and output_len from [128, 128]\nWARNING: vllm bench serve no longer sets temperature==0 (greedy) in requests by default. The default will be determined on the server side and can be model/API specific. For the old behavior, include --temperature=0.\nStarting initial single prompt test run...\nSkipping endpoint ready check.\nStarting main benchmark run...\nTraffic request rate: inf\nBurstiness factor: 1.0 (Poisson process)\nMaximum request concurrency: 4\ntip: install termplotlib and gnuplot to plot the metrics\n============ Serving Benchmark Result ============\nSuccessful requests:                     16        \nFailed requests:                         0         \nMaximum request concurrency:             4         \nBenchmark duration (s):                  16.44     \nTotal input tokens:                      9031      \nTotal generated tokens:                  2048      \nRequest throughput (req/s):              0.97      \nOutput token throughput (tok/s):         124.59    \nPeak output token throughput (tok/s):    208.00    \nPeak concurrent requests:                8.00      \nTotal token throughput (tok/s):          674.01    \n---------------Time to First Token----------------\nMean TTFT (ms):                          1338.73   \nMedian TTFT (ms):                        1605.72   \nP99 TTFT (ms):                           1703.55   \n-----Time per Output Token (excl. 1st token)------\nMean TPOT (ms):                          21.79     \nMedian TPOT (ms):                        19.53     \nP99 TPOT (ms):                           28.74     \n---------------Inter-token Latency----------------\nMean ITL (ms):                           21.63     \nMedian ITL (ms):                         19.55     \nP99 ITL (ms):                            20.78     \n==================================================\n\n  0%|          | 0/16 [00:00<?, ?it/s]\n  6%|▋         | 1/16 [00:04<01:02,  4.13s/it]\n 31%|███▏      | 5/16 [00:08<00:16,  1.48s/it]\n 56%|█████▋    | 9/16 [00:12<00:08,  1.23s/it]\n 81%|████████▏ | 13/16 [00:16<00:03,  1.14s/it]\n100%|██████████| 16/16 [00:16<00:00,  1.03s/it]\n"
+      },
+      "peak_gpu_mem_gb": 43.4803466796875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        21.74,
+        21.74
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.27,
+        "kv_cache_gib": 9.49,
+        "kv_cache_tokens": 180224.0,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 784.0
+      }
+    },
+    {
+      "variant": "mtp-k1",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce",
+        "--speculative-config",
+        "{\"method\": \"mtp\", \"num_speculative_tokens\": 1}"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "failed",
+      "error": "server not ready (crash or timeout); see server log",
+      "peak_gpu_mem_gb": 29.2694091796875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        14.63,
+        14.63
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.68,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 800.0
+      }
+    },
+    {
+      "variant": "mtp-k3",
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "4096",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "2048",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce",
+        "--speculative-config",
+        "{\"method\": \"mtp\", \"num_speculative_tokens\": 3}"
+      ],
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "status": "failed",
+      "error": "server not ready (crash or timeout); see server log",
+      "peak_gpu_mem_gb": 29.2694091796875,
+      "gpu_mem_error": "",
+      "gpu_mem_source": "pynvml",
+      "peak_gpu_mem_per_gpu_gb": [
+        14.63,
+        14.63
+      ],
+      "server_log_facts": {
+        "weights_gib": 9.68,
+        "attention_backend": "FLASH_ATTN",
+        "block_size": 800.0
+      }
+    }
+  ]
+}

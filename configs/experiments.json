@@ -80,6 +80,28 @@
           "{\"method\": \"ngram\", \"num_speculative_tokens\": 5, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]}
       ]
     },
+    "spec-mtp": {
+      "_comment": "E5b: MTP-head speculative decoding vs graphs baseline (compiled + CUDA graphs).",
+      "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
+                   "startup_timeout_s": 1500,
+                   "workload": {"input_len": 512, "output_len": 128, "num_prompts": 16,
+                                "concurrency": [1, 4], "prompt_kinds": ["distinct", "shared_prefix"],
+                                "repeats": 2}},
+      "baseline": {
+        "env": {"NCCL_P2P_DISABLE": "1", "NCCL_IB_DISABLE": "1"},
+        "args": ["--safetensors-load-strategy", "prefetch", "--language-model-only",
+                 "--dtype", "bfloat16", "--gpu-memory-utilization", "0.85",
+                 "--max-model-len", "4096", "--max-num-seqs", "8",
+                 "--max-num-batched-tokens", "2048", "--reasoning-parser", "qwen3",
+                 "--disable-custom-all-reduce"]
+      },
+      "variants": [
+        {"name": "mtp-k1", "append": ["--speculative-config",
+          "{\"method\": \"mtp\", \"num_speculative_tokens\": 1}"]},
+        {"name": "mtp-k3", "append": ["--speculative-config",
+          "{\"method\": \"mtp\", \"num_speculative_tokens\": 3}"]}
+      ]
+    },
     "spec-ngram-eager": {
       "_comment": "E5 retry: the compiled+CUDA-graphs start failed with ngram speculation (job 28360), so compare eager baseline vs eager + ngram.",
       "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
@@ -100,6 +122,28 @@
           "{\"method\": \"ngram\", \"num_speculative_tokens\": 3, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]},
         {"name": "ngram-k5", "append": ["--speculative-config",
           "{\"method\": \"ngram\", \"num_speculative_tokens\": 5, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]}
+      ]
+    },
+    "spec-mtp-eager": {
+      "_comment": "E5b fallback: MTP-head speculation in eager mode vs eager baseline.",
+      "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
+                   "startup_timeout_s": 900,
+                   "workload": {"input_len": 512, "output_len": 128, "num_prompts": 16,
+                                "concurrency": [1, 4], "prompt_kinds": ["distinct", "shared_prefix"],
+                                "repeats": 2}},
+      "baseline": {
+        "env": {"NCCL_P2P_DISABLE": "1", "NCCL_IB_DISABLE": "1"},
+        "args": ["--safetensors-load-strategy", "prefetch", "--language-model-only",
+                 "--dtype", "bfloat16", "--gpu-memory-utilization", "0.85",
+                 "--max-model-len", "4096", "--max-num-seqs", "8",
+                 "--max-num-batched-tokens", "2048", "--reasoning-parser", "qwen3",
+                 "--enforce-eager", "--disable-custom-all-reduce"]
+      },
+      "variants": [
+        {"name": "mtp-k1", "append": ["--speculative-config",
+          "{\"method\": \"mtp\", \"num_speculative_tokens\": 1}"]},
+        {"name": "mtp-k3", "append": ["--speculative-config",
+          "{\"method\": \"mtp\", \"num_speculative_tokens\": 3}"]}
       ]
     },
     "paged-quant": {

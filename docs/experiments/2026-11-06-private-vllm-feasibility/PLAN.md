@@ -270,6 +270,40 @@ Output tokens/s (change vs the eager baseline), single run each:
   weights, which would be the next thing to try if speculation is revisited).
 - Files: `inference/results/private-spec-ngram-eager-28364/results.json`.
 
+### E5b MTP-head speculative decoding — works in eager mode, fails with CUDA graphs (jobs 28389, 28390)
+
+The checkpoint carries `mtp.*` weights; vLLM 0.26.0 supports them for this architecture as
+`--speculative-config '{"method":"mtp","num_speculative_tokens":k}'` (`Qwen3_5MTP`). Same workload as E5
+(512 in / 128 out, 16 prompts, 2 repeats), one measurement per cell.
+
+**With compile + CUDA graphs (28389): both variants fail to start.** The baseline ran (57.6 tok/s, distinct c1).
+Both `mtp-k1` and `mtp-k3` crash during CUDA graph capture with `RuntimeError: Triton Error [CUDA]: operation not
+permitted when stream is capturing`, raised from `causal_conv1d_update` (linear-attention layer,
+`vllm/model_executor/layers/mamba/ops/causal_conv1d.py`) — a Triton kernel is JIT-compiled for the first time
+inside the capture. The variant labelled `mtp-k5` in that job's `results.json` actually used k=3
+(a label typo in the first submission; fixed in `configs/experiments.json`).
+
+**Eager (28390), output tokens/s (change vs eager baseline):**
+
+| workload | eager baseline | mtp-k1 | mtp-k3 |
+|---|---|---|---|
+| distinct, c1 | 11.3 | 17.2 (+52%) | 24.4 (+116%) |
+| shared prefix, c1 | 10.2 | 15.4 (+51%) | 20.7 (+103%) |
+| distinct, c4 | 37.8 | 38.6 (+2%) | 63.0 (+67%) |
+| shared prefix, c4 | 29.8 | 36.3 (+22%) | 48.0 (+61%) |
+
+- Mean acceptance length from the server's periodic log lines (unweighted mean of 10 s windows):
+  k1 about 1.84, k3 about 2.86. Far better than n-gram (1.5-2.4 at k=3).
+- TTFT gets worse at c4 (distinct: 780 ms baseline, 1735-2954 ms with MTP).
+
+**Conclusion.** MTP is a real speedup, unlike n-gram, but only in eager mode, where even the best cell
+(24.4 tok/s) is far below the graphs baseline without speculation (57.6 tok/s). So MTP is not useful with this
+build until it can run under CUDA graphs. A possible fix is pre-compiling the Triton kernel for the
+speculative-decode shape before capture; not tried. Caveats: one measurement per cell, synthetic prompts,
+acceptance lengths are log samples.
+
+Files: `inference/results/private-spec-mtp-28389/`, `inference/results/private-spec-mtp-eager-28390/`.
+
 ### Node 10-0-1-11 cannot start vLLM (jobs 28354, 28358, 28359)
 Every vLLM server started on 10-0-1-11 died during import with `NVMLError_InvalidArgument` in
 `pynvml.nvmlDeviceGetHandleByIndex` (E5 baseline and variants, E6, and the first corrected E4 attempt). The same
