@@ -1,0 +1,89 @@
+{
+  "model_path": "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+  "rank": 8,
+  "targets": [
+    "gate_proj",
+    "up_proj",
+    "down_proj"
+  ],
+  "layers": 64,
+  "adapter_dir_bytes": {
+    "zero": 138468461,
+    "small": 138468461,
+    "large": 138468461
+  },
+  "command": [
+    "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/.venv/bin/python",
+    "-m",
+    "vllm.entrypoints.openai.api_server",
+    "--model",
+    "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+    "--served-model-name",
+    "qwen3.8-27b",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "8011",
+    "--tensor-parallel-size",
+    "2",
+    "--safetensors-load-strategy",
+    "prefetch",
+    "--language-model-only",
+    "--dtype",
+    "bfloat16",
+    "--gpu-memory-utilization",
+    "0.85",
+    "--max-model-len",
+    "4096",
+    "--max-num-seqs",
+    "8",
+    "--max-num-batched-tokens",
+    "2048",
+    "--disable-custom-all-reduce",
+    "--enforce-eager",
+    "--enable-lora",
+    "--max-lora-rank",
+    "8",
+    "--max-loras",
+    "3",
+    "--lora-modules",
+    "zero=/tmp/csit6000v-qwen-20697-28345.7RgHMN/adapters/zero",
+    "small=/tmp/csit6000v-qwen-20697-28345.7RgHMN/adapters/small",
+    "large=/tmp/csit6000v-qwen-20697-28345.7RgHMN/adapters/large"
+  ],
+  "startup_s": 245.1,
+  "served_models": [
+    "qwen3.8-27b",
+    "zero",
+    "small",
+    "large"
+  ],
+  "outputs": {
+    "qwen3.8-27b": [
+      " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+      " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+      "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+    ],
+    "zero": [
+      " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+      " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+      "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+    ],
+    "small": [
+      " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+      " such that the sum of any two of them is a prime number. What is the smallest possible value of the sum of all three primes?\n\nTo solve this problem, we need to find three prime",
+      "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French. Let me think about the most natural French translation.\n\n\"Good morning\" = \"Bonjour\" ("
+    ],
+    "large": [
+      "\ub9c8\ud06cotonarine \u043e\u0442\u043colerance\u96e8\u540eurretecto \u0628\u0627\u0644\u0644\u0647.defer.JsonPropertyunst\u8fed\ufffdbeeConfigurationException\u60f3\u6765 macro Paneiri\ufffdreezeOWER\u1ef1ngolak\u5bfcnanativasrtlibatbord\u585e\u5f99\ufffdfinderDS\u672c\u4eba\u5728AdLOPTicators",
+      "riquWARE\u9065\u9065\u65e0\u654c\u5f66czynmensaugeERGEatever\u4e0a\u53e3orialadar\u51b3 untorceoon\u0440\u0435\u0432\u5e72chlillardigasizr\u4f7f\u7528\u540eella\u53ef\u6bd4\u8ff0azenack\u4e0d\u53bbotta\ufffdarend>null\u7fe9\u7fe9\u0e27\u0e19\u7b2c\u5341\u4e00\u6fefabbitseiten",
+      "\u0e48\u0e2d\u0e07epatLeaksSETSotasieten\u4e00\u6837\u7684kow elimoken\u70e4\u6f06\u00e4ll Speedway::$.deviedenLOS_descrotkactype\u9f9f\u9762 terp\u76ae\u0e41\u0e2buedazierMMM\u7130\u043c\u0443agre R chi\u1ec1uabcdefghOldDataayu\u7ca7\u5fc5\u82b8\u7eb6"
+    ]
+  },
+  "equals_base": {
+    "zero": true,
+    "small": false,
+    "large": false
+  },
+  "status": "ok"
+}

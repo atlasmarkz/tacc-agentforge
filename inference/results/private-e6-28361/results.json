@@ -1,0 +1,871 @@
+{
+  "model_path": "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+  "nocache": {
+    "extra_args": [],
+    "startup_s": 525.2395366430283,
+    "cells": {
+      "distinct-c1": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 34.98284288402647,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 58.542983678869,
+          "requests_per_s": 0.45736705999116406,
+          "ttft_ms": {
+            "mean": 294.402064064343,
+            "p50": 294.8882719501853,
+            "p95": 296.36575002223253,
+            "p99": 297.0137110678479
+          },
+          "tpot_ms": {
+            "mean": 14.89534047737032,
+            "p50": 14.897786448416337,
+            "p95": 14.919007094356958,
+            "p99": 14.919151291691177
+          },
+          "itl_ms": {
+            "mean": 14.893105482340214,
+            "p50": 14.900461072102189,
+            "p95": 15.11522801592946,
+            "p99": 15.245998976752162
+          },
+          "e2e_ms": {
+            "mean": 2186.1103046903736,
+            "p50": 2185.328155057505,
+            "p95": 2190.434360061772,
+            "p99": 2191.0733740078285
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1787.0
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 313.5
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 2100.4
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 14.9
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 2114.6
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2039,
+            "mean_ms": 14.9
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 327.9
+          }
+        }
+      },
+      "shared_prefix-c1": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 23.964002839056775,
+          "output_tokens": 920,
+          "output_tokens_per_s": 38.39091516466417,
+          "requests_per_s": 0.6676680898202465,
+          "ttft_ms": {
+            "mean": 654.0174864348955,
+            "p50": 654.1850829962641,
+            "p95": 655.4902159841731,
+            "p99": 658.1728119635954
+          },
+          "tpot_ms": {
+            "mean": 14.927308647022942,
+            "p50": 14.931780481544722,
+            "p95": 14.94184979398189,
+            "p99": 14.94615242907977
+          },
+          "itl_ms": {
+            "mean": 14.91831783425516,
+            "p50": 14.964191010221839,
+            "p95": 15.160282026045024,
+            "p99": 15.280736959539354
+          },
+          "e2e_ms": {
+            "mean": 1497.4112248019082,
+            "p50": 1491.1696190247312,
+            "p95": 1521.3490369496867,
+            "p99": 1521.7973560793325
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 801.3
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 633.7
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1435.0
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 14.9
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 1448.4
+          },
+          "inter_token_latency_seconds": {
+            "requests": 911,
+            "mean_ms": 15.0
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 647.2
+          }
+        }
+      },
+      "distinct-c4": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 13.811681833001785,
+          "output_tokens": 2048,
+          "output_tokens_per_s": 148.2802764183639,
+          "requests_per_s": 1.158439659518468,
+          "ttft_ms": {
+            "mean": 902.688093498,
+            "p50": 1088.0367270438,
+            "p95": 1118.5578460572287,
+            "p99": 1118.9822519663721
+          },
+          "tpot_ms": {
+            "mean": 20.054159695766113,
+            "p50": 18.455259347019176,
+            "p95": 24.565906550801234,
+            "p99": 24.57236101498871
+          },
+          "itl_ms": {
+            "mean": 20.05147091346778,
+            "p50": 18.46206607297063,
+            "p95": 18.801374942995608,
+            "p99": 19.62075603660196
+          },
+          "e2e_ms": {
+            "mean": 3449.5663748602965,
+            "p50": 3430.5041789775714,
+            "p95": 3515.191534999758,
+            "p99": 3515.2692269766703
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 2404.6
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 657.5
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3062.1
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 19.8
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 3260.6
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2039,
+            "mean_ms": 20.0
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 856.4
+          }
+        }
+      },
+      "shared_prefix-c4": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 14.271631525014527,
+          "output_tokens": 918,
+          "output_tokens_per_s": 64.32340958291842,
+          "requests_per_s": 1.1211051779157895,
+          "ttft_ms": {
+            "mean": 1505.7738685572986,
+            "p50": 1294.6452989708632,
+            "p95": 2099.1605260642245,
+            "p99": 2528.9113119943067
+          },
+          "tpot_ms": {
+            "mean": 36.3695675547797,
+            "p50": 39.57812929252998,
+            "p95": 51.430525607429445,
+            "p99": 51.43356596402425
+          },
+          "itl_ms": {
+            "mean": 33.95739380277075,
+            "p50": 18.58531404286623,
+            "p95": 18.870590953156352,
+            "p99": 632.7998068882152
+          },
+          "e2e_ms": {
+            "mean": 3558.237074241333,
+            "p50": 3554.2469249339774,
+            "p95": 4204.651961917989,
+            "p99": 4816.85218506027
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1940.0
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1172.8
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3112.8
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 35.1
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 3386.8
+          },
+          "inter_token_latency_seconds": {
+            "requests": 909,
+            "mean_ms": 36.3
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 1446.9
+          }
+        }
+      },
+      "distinct-c8": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 10.03981633798685,
+          "output_tokens": 2040,
+          "output_tokens_per_s": 203.19096797432593,
+          "requests_per_s": 1.5936546507790268,
+          "ttft_ms": {
+            "mean": 1428.9333866836387,
+            "p50": 1606.658436008729,
+            "p95": 2165.540093090385,
+            "p99": 2166.186981019564
+          },
+          "tpot_ms": {
+            "mean": 28.15066122826097,
+            "p50": 26.747323464470234,
+            "p95": 36.60901736259079,
+            "p99": 36.78112860684701
+          },
+          "itl_ms": {
+            "mean": 28.163162532367572,
+            "p50": 22.676448919810355,
+            "p95": 23.135168943554163,
+            "p99": 282.530669006519
+          },
+          "e2e_ms": {
+            "mean": 4990.903111262014,
+            "p50": 4978.251722990535,
+            "p95": 5562.450173078105,
+            "p99": 5562.630912987515
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3360.8
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.9
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1022.3
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 4383.1
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 27.4
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 4707.1
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2031,
+            "mean_ms": 28.1
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 1346.6
+          }
+        }
+      },
+      "shared_prefix-c8": {
+        "client": {
+          "config": "nocache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 12.557178459945135,
+          "output_tokens": 918,
+          "output_tokens_per_s": 73.10559477419507,
+          "requests_per_s": 1.2741715864783456,
+          "ttft_ms": {
+            "mean": 2927.465251130343,
+            "p50": 2685.145666007884,
+            "p95": 4917.9784540319815,
+            "p99": 4989.743722020648
+          },
+          "tpot_ms": {
+            "mean": 58.90253372515495,
+            "p50": 53.0093201253164,
+            "p95": 98.03568512350986,
+            "p99": 99.67102146349914
+          },
+          "itl_ms": {
+            "mean": 57.600534565454566,
+            "p50": 22.841101977974176,
+            "p95": 24.249749025329947,
+            "p99": 1410.0185960996896
+          },
+          "e2e_ms": {
+            "mean": 6254.350747010903,
+            "p50": 6201.819519978017,
+            "p95": 7494.6342940675095,
+            "p99": 7497.4573160288855
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3140.2
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 170.1
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 2117.8
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 5258.0
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 56.4
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 5921.2
+          },
+          "inter_token_latency_seconds": {
+            "requests": 909,
+            "mean_ms": 58.7
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 2781.4
+          }
+        }
+      }
+    },
+    "status": "ok"
+  },
+  "prefixcache": {
+    "extra_args": [
+      "--enable-prefix-caching"
+    ],
+    "startup_s": 474.22192573803477,
+    "cells": {
+      "distinct-c1": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 34.882364092976786,
+          "output_tokens": 2040,
+          "output_tokens_per_s": 58.48227472663567,
+          "requests_per_s": 0.4586845076598876,
+          "ttft_ms": {
+            "mean": 294.39585982618155,
+            "p50": 294.2612759070471,
+            "p95": 296.53758206404746,
+            "p99": 297.27719398215413
+          },
+          "tpot_ms": {
+            "mean": 14.904656847851868,
+            "p50": 14.90769177990577,
+            "p95": 14.939066740376214,
+            "p99": 14.942782425035642
+          },
+          "itl_ms": {
+            "mean": 14.902251515282792,
+            "p50": 14.91089491173625,
+            "p95": 15.124512021429837,
+            "p99": 15.270686009898782
+          },
+          "e2e_ms": {
+            "mean": 2179.8324770643376,
+            "p50": 2185.5028429999948,
+            "p95": 2192.481356090866,
+            "p99": 2192.5327519420534
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1781.1
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 288.1
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 2069.2
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 14.9
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 2083.4
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2031,
+            "mean_ms": 14.9
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 302.5
+          }
+        }
+      },
+      "shared_prefix-c1": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 15.471273927949369,
+          "output_tokens": 924,
+          "output_tokens_per_s": 59.72358865230635,
+          "requests_per_s": 1.034174695278032,
+          "ttft_ms": {
+            "mean": 120.05649942875607,
+            "p50": 119.57177706062794,
+            "p95": 123.12826490961015,
+            "p99": 123.71564109344035
+          },
+          "tpot_ms": {
+            "mean": 14.916966180150437,
+            "p50": 14.91617608865324,
+            "p95": 14.931747535291803,
+            "p99": 14.934675914540502
+          },
+          "itl_ms": {
+            "mean": 14.90739676156478,
+            "p50": 14.928709017112851,
+            "p95": 15.14075801242143,
+            "p99": 15.23904490750283
+          },
+          "e2e_ms": {
+            "mean": 966.5994096794748,
+            "p50": 957.6514369109645,
+            "p95": 986.1030400497839,
+            "p99": 987.4449910130352
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 803.8
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 133.0
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 936.8
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 14.9
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 950.0
+          },
+          "inter_token_latency_seconds": {
+            "requests": 915,
+            "mean_ms": 14.9
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 146.3
+          }
+        }
+      },
+      "distinct-c4": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 13.784864151035435,
+          "output_tokens": 2040,
+          "output_tokens_per_s": 147.9884007305772,
+          "requests_per_s": 1.1606933390633507,
+          "ttft_ms": {
+            "mean": 771.7766363130067,
+            "p50": 841.9192469445989,
+            "p95": 1114.024603040889,
+            "p99": 1114.6224740659818
+          },
+          "tpot_ms": {
+            "mean": 21.021130455291967,
+            "p50": 20.51010531442988,
+            "p95": 24.603635610300838,
+            "p99": 24.75886595174216
+          },
+          "itl_ms": {
+            "mean": 21.006905322808784,
+            "p50": 18.47860007546842,
+            "p95": 18.783411011099815,
+            "p99": 21.28258894663304
+          },
+          "e2e_ms": {
+            "mean": 3429.119578744576,
+            "p50": 3445.6438140477985,
+            "p95": 3690.036812913604,
+            "p99": 3690.279315924272
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 2508.4
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 623.8
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3132.2
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 20.7
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 3240.8
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2031,
+            "mean_ms": 21.0
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 732.7
+          }
+        }
+      },
+      "shared_prefix-c4": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 5.73283644602634,
+          "output_tokens": 922,
+          "output_tokens_per_s": 160.8278918612924,
+          "requests_per_s": 2.7909395550766574,
+          "ttft_ms": {
+            "mean": 246.93963181198342,
+            "p50": 224.88771099597216,
+            "p95": 377.41298507899046,
+            "p99": 377.7804510900751
+          },
+          "tpot_ms": {
+            "mean": 20.69261686755915,
+            "p50": 20.966040207362123,
+            "p95": 22.644244801735372,
+            "p99": 22.663474625525332
+          },
+          "itl_ms": {
+            "mean": 20.370914800003632,
+            "p50": 18.574393005110323,
+            "p95": 19.162275013513863,
+            "p99": 106.2442590482533
+          },
+          "e2e_ms": {
+            "mean": 1418.4228153826552,
+            "p50": 1407.0050989976153,
+            "p95": 1527.7135430369526,
+            "p99": 1527.7853170409799
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1111.1
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.0
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 173.8
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1284.9
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 20.4
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 1340.3
+          },
+          "inter_token_latency_seconds": {
+            "requests": 913,
+            "mean_ms": 20.7
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 229.4
+          }
+        }
+      },
+      "distinct-c8": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 9.997429583105259,
+          "output_tokens": 2015,
+          "output_tokens_per_s": 201.55180721704363,
+          "requests_per_s": 1.6004113724430264,
+          "ttft_ms": {
+            "mean": 1417.4696037443937,
+            "p50": 1594.0759090008214,
+            "p95": 2147.6900320267305,
+            "p99": 2147.8999820537865
+          },
+          "tpot_ms": {
+            "mean": 28.265041982857817,
+            "p50": 26.709869251894492,
+            "p95": 36.58260738634775,
+            "p99": 37.37463381292079
+          },
+          "itl_ms": {
+            "mean": 28.164416595274872,
+            "p50": 22.646336001344025,
+            "p95": 23.23537797201425,
+            "p99": 282.50923403538764
+          },
+          "e2e_ms": {
+            "mean": 4935.593106114538,
+            "p50": 4913.486359990202,
+            "p95": 5539.279790013097,
+            "p99": 5539.843427017331
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 3319.6
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.9
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1011.6
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 4331.2
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 27.5
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 4655.0
+          },
+          "inter_token_latency_seconds": {
+            "requests": 2006,
+            "mean_ms": 28.1
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 1335.8
+          }
+        }
+      },
+      "shared_prefix-c8": {
+        "client": {
+          "config": "prefixcache",
+          "requests": 16,
+          "failed": 0,
+          "success_rate": 1.0,
+          "wall_s": 3.892082351958379,
+          "output_tokens": 924,
+          "output_tokens_per_s": 237.40504862007117,
+          "requests_per_s": 4.110909932815085,
+          "ttft_ms": {
+            "mean": 514.2335578639177,
+            "p50": 564.6015349775553,
+            "p95": 658.6867698933929,
+            "p99": 659.9935649428517
+          },
+          "tpot_ms": {
+            "mean": 25.00899145891668,
+            "p50": 23.93531458701232,
+            "p95": 31.226573857046397,
+            "p99": 31.55098259074813
+          },
+          "itl_ms": {
+            "mean": 25.02983180409811,
+            "p50": 22.799337981268764,
+            "p95": 23.315411992371082,
+            "p99": 97.99994004424661
+          },
+          "e2e_ms": {
+            "mean": 1933.583842306689,
+            "p50": 1924.1988320136443,
+            "p95": 2046.9350159401074,
+            "p99": 2047.0595919759944
+          },
+          "gpu_mem_gb": 0.0
+        },
+        "server_phase_means": {
+          "request_decode_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1347.3
+          },
+          "request_queue_time_seconds": {
+            "requests": 17,
+            "mean_ms": 0.1
+          },
+          "request_prefill_time_seconds": {
+            "requests": 17,
+            "mean_ms": 353.5
+          },
+          "request_inference_time_seconds": {
+            "requests": 17,
+            "mean_ms": 1700.8
+          },
+          "request_time_per_output_token_seconds": {
+            "requests": 17,
+            "mean_ms": 24.5
+          },
+          "e2e_request_latency_seconds": {
+            "requests": 17,
+            "mean_ms": 1820.2
+          },
+          "inter_token_latency_seconds": {
+            "requests": 915,
+            "mean_ms": 25.0
+          },
+          "time_to_first_token_seconds": {
+            "requests": 17,
+            "mean_ms": 473.2
+          }
+        }
+      }
+    },
+    "status": "ok"
+  }
+}

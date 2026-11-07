@@ -23,3 +23,15 @@ deploy/tacc/serpapi-collect/test_serpapi.py
 deploy/tacc/serpapi-collect/shopping_queries.json
 deploy/tacc/serpapi-collect/mode.txt
 deploy/tacc/serpapi-collect/max_calls.txt
+deploy/tacc/private-vllm/vllm-v0.26.0.tar.gz
+deploy/tacc/private-vllm/vllm-src/
+deploy/tacc/private-vllm/vllm-source.tar.gz
+deploy/tacc/private-vllm/qwen-private-experiments/benchmark.py
+deploy/tacc/private-vllm/qwen-private-experiments/experiments.py
+deploy/tacc/private-vllm/qwen-private-experiments/experiments.json
+deploy/tacc/private-vllm/qwen-private-experiments/tuxiv.conf
+deploy/tacc/private-vllm/qwen-private-experiments/group.txt
+deploy/tacc/private-vllm/qwen-private-experiments/only.txt
+deploy/tacc/private-vllm/qwen-private-e6/benchmark.py
+deploy/tacc/private-vllm/qwen-private-e6/experiments.py
+deploy/tacc/private-vllm/qwen-private-build/vllm-source.tar.gz

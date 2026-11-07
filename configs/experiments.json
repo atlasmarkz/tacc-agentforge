@@ -45,6 +45,63 @@
          "set": {"--max-num-batched-tokens": 4096}}
       ]
     },
+    "official-32k": {
+      "_comment": "The course's own serve.sh settings (32K, compiled, CUDA graphs, prefix caching), no variants.",
+      "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
+                   "startup_timeout_s": 1500},
+      "baseline": {
+        "args": ["--safetensors-load-strategy", "prefetch", "--language-model-only",
+                 "--dtype", "bfloat16", "--gpu-memory-utilization", "0.90",
+                 "--max-model-len", "32768", "--max-num-seqs", "4",
+                 "--max-num-batched-tokens", "4096", "--reasoning-parser", "qwen3",
+                 "--enable-prefix-caching"]
+      },
+      "variants": []
+    },
+    "spec-ngram": {
+      "_comment": "E5: n-gram (prompt-lookup) speculative decoding vs the graphs baseline. Smaller workload so baseline + 2 variants fit one job. May be unsupported on the hybrid linear-attention model; a failed start is a result.",
+      "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
+                   "startup_timeout_s": 1200,
+                   "workload": {"input_len": 512, "output_len": 128, "num_prompts": 16,
+                                "concurrency": [1, 4], "prompt_kinds": ["distinct", "shared_prefix"],
+                                "repeats": 2}},
+      "baseline": {
+        "env": {"NCCL_P2P_DISABLE": "1", "NCCL_IB_DISABLE": "1"},
+        "args": ["--safetensors-load-strategy", "prefetch", "--language-model-only",
+                 "--dtype", "bfloat16", "--gpu-memory-utilization", "0.85",
+                 "--max-model-len", "4096", "--max-num-seqs", "8",
+                 "--max-num-batched-tokens", "2048", "--reasoning-parser", "qwen3",
+                 "--disable-custom-all-reduce"]
+      },
+      "variants": [
+        {"name": "ngram-k3", "append": ["--speculative-config",
+          "{\"method\": \"ngram\", \"num_speculative_tokens\": 3, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]},
+        {"name": "ngram-k5", "append": ["--speculative-config",
+          "{\"method\": \"ngram\", \"num_speculative_tokens\": 5, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]}
+      ]
+    },
+    "spec-ngram-eager": {
+      "_comment": "E5 retry: the compiled+CUDA-graphs start failed with ngram speculation (job 28360), so compare eager baseline vs eager + ngram.",
+      "settings": {"model_path": "$QWEN_MODEL_PATH", "tensor_parallel_size": 2,
+                   "startup_timeout_s": 900,
+                   "workload": {"input_len": 512, "output_len": 128, "num_prompts": 16,
+                                "concurrency": [1, 4], "prompt_kinds": ["distinct", "shared_prefix"],
+                                "repeats": 2}},
+      "baseline": {
+        "env": {"NCCL_P2P_DISABLE": "1", "NCCL_IB_DISABLE": "1"},
+        "args": ["--safetensors-load-strategy", "prefetch", "--language-model-only",
+                 "--dtype", "bfloat16", "--gpu-memory-utilization", "0.85",
+                 "--max-model-len", "4096", "--max-num-seqs", "8",
+                 "--max-num-batched-tokens", "2048", "--reasoning-parser", "qwen3",
+                 "--enforce-eager", "--disable-custom-all-reduce"]
+      },
+      "variants": [
+        {"name": "ngram-k3", "append": ["--speculative-config",
+          "{\"method\": \"ngram\", \"num_speculative_tokens\": 3, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]},
+        {"name": "ngram-k5", "append": ["--speculative-config",
+          "{\"method\": \"ngram\", \"num_speculative_tokens\": 5, \"prompt_lookup_max\": 4, \"prompt_lookup_min\": 2}"]}
+      ]
+    },
     "paged-quant": {
       "settings": {"model_path": "$SMALL_MODEL_PATH", "tensor_parallel_size": 1,
                    "startup_timeout_s": 420},

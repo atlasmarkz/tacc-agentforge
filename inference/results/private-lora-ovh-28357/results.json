@@ -1,0 +1,95 @@
+{
+  "model_path": "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+  "rank": 8,
+  "prompt": "Write a long, detailed essay about the history of computing.",
+  "nolora": {
+    "startup_s": 445.5,
+    "single_stream_tok_per_s": {
+      "qwen3.8-27b": [
+        65.3,
+        65.2,
+        65.1
+      ]
+    },
+    "concurrent4_tok_per_s": {
+      "qwen3.8-27b": 195.4
+    },
+    "status": "ok"
+  },
+  "lora5": {
+    "startup_s": 290.1,
+    "single_stream_tok_per_s": {
+      "qwen3.8-27b": [
+        65.4,
+        65.1,
+        64.9
+      ],
+      "all_zero": [
+        49.8,
+        49.5,
+        49.4
+      ],
+      "mlp_zero": [
+        49.7,
+        49.5,
+        49.4
+      ],
+      "full_zero": [
+        49.7,
+        49.5,
+        49.4
+      ],
+      "lin_zero": [
+        49.7,
+        49.4,
+        49.4
+      ]
+    },
+    "concurrent4_tok_per_s": {
+      "qwen3.8-27b": 194.8,
+      "all_zero": 158.2,
+      "mlp_zero": 151.6,
+      "full_zero": 158.3,
+      "lin_zero": 158.4
+    },
+    "status": "ok"
+  },
+  "lora1": {
+    "startup_s": 500.3,
+    "single_stream_tok_per_s": {
+      "qwen3.8-27b": [
+        65.1,
+        64.9,
+        64.8
+      ],
+      "all_zero": [
+        48.8,
+        48.6,
+        48.6
+      ],
+      "mlp_zero": [
+        49.3,
+        49.1,
+        49.0
+      ],
+      "full_zero": [
+        49.9,
+        49.7,
+        49.6
+      ],
+      "lin_zero": [
+        49.5,
+        49.4,
+        49.3
+      ]
+    },
+    "concurrent4_tok_per_s": {
+      "qwen3.8-27b": 196.1,
+      "all_zero": 152.3,
+      "mlp_zero": 155.2,
+      "full_zero": 153.9,
+      "lin_zero": 153.9
+    },
+    "status": "ok"
+  }
+}

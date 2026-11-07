@@ -1,0 +1,271 @@
+{
+  "model_path": "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+  "rank": 8,
+  "layer_types_count": {
+    "linear_attention": 48,
+    "full_attention": 16
+  },
+  "module_shapes_in_out": {
+    "mlp.gate_proj": [
+      5120,
+      17408
+    ],
+    "mlp.up_proj": [
+      5120,
+      17408
+    ],
+    "mlp.down_proj": [
+      17408,
+      5120
+    ],
+    "linear_attn.in_proj_qkv": [
+      5120,
+      10240
+    ],
+    "linear_attn.in_proj_z": [
+      5120,
+      6144
+    ],
+    "linear_attn.out_proj": [
+      6144,
+      5120
+    ],
+    "self_attn.q_proj": [
+      5120,
+      12288
+    ],
+    "self_attn.k_proj": [
+      5120,
+      1024
+    ],
+    "self_attn.v_proj": [
+      5120,
+      1024
+    ],
+    "self_attn.o_proj": [
+      6144,
+      5120
+    ]
+  },
+  "eager": {
+    "command": [
+      "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/.venv/bin/python",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+      "--served-model-name",
+      "qwen3.8-27b",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8012",
+      "--tensor-parallel-size",
+      "2",
+      "--safetensors-load-strategy",
+      "prefetch",
+      "--language-model-only",
+      "--dtype",
+      "bfloat16",
+      "--gpu-memory-utilization",
+      "0.85",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "8",
+      "--max-num-batched-tokens",
+      "2048",
+      "--disable-custom-all-reduce",
+      "--enforce-eager",
+      "--enable-lora",
+      "--max-lora-rank",
+      "8",
+      "--max-loras",
+      "5",
+      "--lora-modules",
+      "all_zero=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/all_zero",
+      "full_b=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/full_b",
+      "lin_b=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/lin_b",
+      "full_big=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/full_big",
+      "lin_big=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/lin_big"
+    ],
+    "startup_s": 235.1,
+    "served_models": [
+      "qwen3.8-27b",
+      "all_zero",
+      "full_b",
+      "lin_b",
+      "full_big",
+      "lin_big"
+    ],
+    "outputs": {
+      "qwen3.8-27b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "all_zero": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "full_b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "lin_b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "full_big": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "lin_big": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " selected such that their sum is 100. What is the largest possible value among these three primes?\n\nTo solve this, consider the properties of prime numbers and their parity.\n\nAll prime",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ]
+    },
+    "equals_base": {
+      "all_zero": true,
+      "full_b": true,
+      "lin_b": true,
+      "full_big": true,
+      "lin_big": true
+    },
+    "max_abs_logprob_diff_vs_base": {
+      "all_zero": 0.0,
+      "full_b": 0.0,
+      "lin_b": 0.0,
+      "full_big": 0.0,
+      "lin_big": 0.0
+    },
+    "n_differ_from_base": {
+      "all_zero": 0,
+      "full_b": 0,
+      "lin_b": 0,
+      "full_big": 0,
+      "lin_big": 0
+    },
+    "status": "ok"
+  },
+  "compiled": {
+    "command": [
+      "/mnt/home/markzhang/USERDIR/CSIT6000V-private-vllm/.venv/bin/python",
+      "-m",
+      "vllm.entrypoints.openai.api_server",
+      "--model",
+      "/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+      "--served-model-name",
+      "qwen3.8-27b",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "8012",
+      "--tensor-parallel-size",
+      "2",
+      "--safetensors-load-strategy",
+      "prefetch",
+      "--language-model-only",
+      "--dtype",
+      "bfloat16",
+      "--gpu-memory-utilization",
+      "0.85",
+      "--max-model-len",
+      "4096",
+      "--max-num-seqs",
+      "8",
+      "--max-num-batched-tokens",
+      "2048",
+      "--disable-custom-all-reduce",
+      "--enable-lora",
+      "--max-lora-rank",
+      "8",
+      "--max-loras",
+      "5",
+      "--lora-modules",
+      "all_zero=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/all_zero",
+      "full_b=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/full_b",
+      "lin_b=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/lin_b",
+      "full_big=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/full_big",
+      "lin_big=/tmp/csit6000v-qwen-20697-28349.Sa5ObM/adapters/lin_big"
+    ],
+    "startup_s": 491.2,
+    "served_models": [
+      "qwen3.8-27b",
+      "all_zero",
+      "full_b",
+      "lin_b",
+      "full_big",
+      "lin_big"
+    ],
+    "outputs": {
+      "qwen3.8-27b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "all_zero": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "full_b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "lin_b": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "full_big": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ],
+      "lin_big": [
+        " Paris.\nThe capital of Germany is Berlin.\nThe capital of Italy is Rome.\nThe capital of Spain is Madrid.\nThe capital of Portugal is Lisbon.\nThe capital of Greece is",
+        " such that the difference between the first and the second is 5, and the difference between the second and the third is 12. What is the sum of these three prime numbers?\n\nLet",
+        "\n\n<think>\nThe user wants me to translate \"good morning, how are you?\" into French.\n\nLet me think about the most natural French translation:\n\n- \"Good morning\" = \"Bonjour"
+      ]
+    },
+    "equals_base": {
+      "all_zero": true,
+      "full_b": true,
+      "lin_b": true,
+      "full_big": true,
+      "lin_big": true
+    },
+    "max_abs_logprob_diff_vs_base": {
+      "all_zero": 0.0,
+      "full_b": 0.0,
+      "lin_b": 0.0,
+      "full_big": 0.0,
+      "lin_big": 0.0
+    },
+    "n_differ_from_base": {
+      "all_zero": 0,
+      "full_b": 0,
+      "lin_b": 0,
+      "full_big": 0,
+      "lin_big": 0
+    },
+    "decode_tok_per_s_single_stream": {
+      "qwen3.8-27b": [
+        64.1,
+        64.2
+      ],
+      "all_zero": [
+        49.1,
+        49.1
+      ]
+    },
+    "status": "ok"
+  }
+}
