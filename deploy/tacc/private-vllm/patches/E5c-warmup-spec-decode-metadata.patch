@@ -1,0 +1,9 @@
+--- a/vllm/v1/worker/gpu_model_runner.py
++++ b/vllm/v1/worker/gpu_model_runner.py
+@@ _dummy_run: _build_attention_metadata(...)
+-                    for_cudagraph_capture=is_graph_capturing,
++                    # AGENTFORGE-E5c: the spec-decode GDN/conv1d Triton kernels are
++                    # only built via build_for_cudagraph_capture; build them in the
++                    # warmup too so they JIT-compile outside stream capture.
++                    for_cudagraph_capture=is_graph_capturing
++                    or (force_attention and self.speculative_config is not None),
