@@ -11,7 +11,7 @@ if int(pydantic.VERSION.split(".")[0]) < 2:
 
 from agent.contracts import ACTION_ADAPTER, CallContext, CapabilityError, Message, ModelRequest, ToolDescription  # noqa: E402
 from inference.client import ModelClient  # noqa: E402
-from inference.model_port import VllmModelPort, to_chat_messages  # noqa: E402
+from inference.model_port import VllmModelPort, decoder_schema, to_chat_messages  # noqa: E402
 from tests.fake_vllm import OK_BODY, FakeVllm  # noqa: E402
 
 ACTION = {"type": "ask_user", "question": "Which size?", "required_fields": ["size"]}
@@ -68,7 +68,7 @@ def test_generate_returns_valid_reply(servers):
     assert (reply.prompt_tokens, reply.completion_tokens, reply.finish_reason) == (120, 20, "stop")
     body = srv.requests[0]
     assert body["max_tokens"] == 256 and body["temperature"] == 0.0
-    assert body["response_format"]["json_schema"]["schema"] == ACTION_ADAPTER.json_schema()
+    assert body["response_format"]["json_schema"]["schema"] == decoder_schema(ACTION_ADAPTER.json_schema())
 
 
 def test_options_can_disable_constraint_and_thinking(servers):
@@ -168,3 +168,14 @@ def test_streaming_port_interruption_is_recoverable(servers):
     with pytest.raises(CapabilityError) as err:
         asyncio.run(port_for(srv, on_delta=lambda *a: None).generate(make_request(), make_context()))
     assert err.value.issue.code == "model_unavailable" and err.value.recoverable
+
+
+def test_decoder_schema_anchors_patterns_so_text_fields_are_not_one_character():
+    schema = ACTION_ADAPTER.json_schema()
+    original = json.dumps(schema, sort_keys=True)
+    fixed = decoder_schema(schema)
+    question = fixed["$defs"]["AskUser"]["properties"]["question"]
+    assert question["pattern"] == r".*\S.*"                       # was `\S`: a one-character full match
+    ident = fixed["$defs"]["PlanItem"]["properties"]["offer_id"]["pattern"]
+    assert ident.startswith("^") and ident.endswith("$") and not ident.startswith("^.*")   # already anchored
+    assert json.dumps(schema, sort_keys=True) == original         # the harness's own schema is untouched

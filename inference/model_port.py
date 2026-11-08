@@ -37,6 +37,29 @@ def _compact(obj) -> str:
     return json.dumps(obj, ensure_ascii=False, separators=(",", ":"))
 
 
+def _anchor(pattern: str) -> str:
+    """JSON Schema `pattern` is an unanchored search ("contains a match"), but constrained decoders
+    (xgrammar/outlines) implement it as a full match. A schema pattern like `\\S` ("has a non-blank
+    character") would then allow exactly one character: ask_user questions came out as "您" or "请".
+    Making the implicit `.*` explicit gives both readings the same meaning."""
+    if not pattern.startswith("^"):
+        pattern = ".*" + pattern
+    if not pattern.endswith("$"):
+        pattern = pattern + ".*"
+    return pattern
+
+
+def decoder_schema(schema):
+    """Copy of a JSON schema with every `pattern` anchored, for use as the decoding constraint only.
+    The harness still validates the reply against its own, unmodified schema."""
+    if isinstance(schema, dict):
+        return {k: (_anchor(v) if k == "pattern" and isinstance(v, str) else decoder_schema(v))
+                for k, v in schema.items()}
+    if isinstance(schema, list):
+        return [decoder_schema(v) for v in schema]
+    return schema
+
+
 def to_chat_messages(request: ModelRequest) -> list[dict]:
     """One leading system message (chat templates require it first) that also carries the tool list and
     the action schema. The text is deterministic, so it stays a stable prefix for prefix caching."""
@@ -92,7 +115,7 @@ class VllmModelPort:
             max_tokens=request.max_output_tokens,
             temperature=self.temperature,
             timeout_s=budget,
-            json_schema=request.action_schema if self.constrain_output else None,
+            json_schema=decoder_schema(request.action_schema) if self.constrain_output else None,
             enable_thinking=self.enable_thinking,
             cancel=token,
             on_delta=forward,

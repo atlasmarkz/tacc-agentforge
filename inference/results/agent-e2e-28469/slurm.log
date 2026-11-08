@@ -1,0 +1,56 @@
+10-0-1-11
+13:49:23 env {'python': '3.12.14', 'pydantic': '2.14.2', 'langgraph': '?', 'job': '28469'}
+14:01:44 service reachable: {'address': 'http://10-0-1-10:8000/v1', 'waited_s': 740.3, 'this_node': '10-0-1-11', 'service_node': '10-0-1-10', 'same_node': False, 'resolved_ip': '10.0.1.10', 'tcp_connect_s': 0.0014, 'health_status': 200}
+14:01:50 zh-budget-ok     think-default rep1: completed (None) 6.51s calls=2
+14:01:55 en-budget-ok     think-default rep1: completed (None) 4.95s calls=2
+14:02:00 zh-no-budget     think-default rep1: incomplete (validation_unavailable) 5.08s calls=2
+14:02:11 zh-tight-budget  think-default rep1: waiting_user (None) 10.52s calls=2
+14:02:13 zh-budget-ok     think-off     rep1: completed (None) 2.38s calls=2
+14:02:15 en-budget-ok     think-off     rep1: completed (None) 1.9s calls=2
+14:02:17 zh-no-budget     think-off     rep1: incomplete (validation_unavailable) 1.85s calls=2
+14:02:19 zh-tight-budget  think-off     rep1: waiting_user (None) 2.31s calls=2
+14:02:24 zh-budget-ok     think-default rep2: completed (None) 4.8s calls=2
+14:02:29 en-budget-ok     think-default rep2: completed (None) 4.9s calls=2
+14:02:34 zh-no-budget     think-default rep2: incomplete (validation_unavailable) 5.1s calls=2
+14:02:56 zh-tight-budget  think-default rep2: waiting_user (None) 21.92s calls=4
+14:02:58 zh-budget-ok     think-off     rep2: completed (None) 2.0s calls=2
+14:03:00 en-budget-ok     think-off     rep2: completed (None) 1.95s calls=2
+14:03:02 zh-no-budget     think-off     rep2: incomplete (validation_unavailable) 1.85s calls=2
+14:03:04 zh-tight-budget  think-off     rep2: waiting_user (None) 2.28s calls=2
+14:03:04 4 harness runs at once (think-off)
+14:03:09 concurrent4: ['completed', 'completed', 'completed', 'completed'] wall 4.71s
+{
+  "zh-budget-ok/think-default": [
+    "completed(-) 6.51s",
+    "completed(-) 4.8s"
+  ],
+  "en-budget-ok/think-default": [
+    "completed(-) 4.95s",
+    "completed(-) 4.9s"
+  ],
+  "zh-no-budget/think-default": [
+    "incomplete(validation_unavailable) 5.08s",
+    "incomplete(validation_unavailable) 5.1s"
+  ],
+  "zh-tight-budget/think-default": [
+    "waiting_user(-) 10.52s",
+    "waiting_user(-) 21.92s"
+  ],
+  "zh-budget-ok/think-off": [
+    "completed(-) 2.38s",
+    "completed(-) 2.0s"
+  ],
+  "en-budget-ok/think-off": [
+    "completed(-) 1.9s",
+    "completed(-) 1.95s"
+  ],
+  "zh-no-budget/think-off": [
+    "incomplete(validation_unavailable) 1.85s",
+    "incomplete(validation_unavailable) 1.85s"
+  ],
+  "zh-tight-budget/think-off": [
+    "waiting_user(-) 2.31s",
+    "waiting_user(-) 2.28s"
+  ]
+}
+14:03:09 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/e2e-28469

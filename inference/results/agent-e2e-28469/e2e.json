@@ -1,0 +1,1539 @@
+{
+  "env": {
+    "python": "3.12.14",
+    "pydantic": "2.14.2",
+    "langgraph": "?",
+    "job": "28469"
+  },
+  "network": {
+    "address": "http://10-0-1-10:8000/v1",
+    "waited_s": 740.3,
+    "this_node": "10-0-1-11",
+    "service_node": "10-0-1-10",
+    "same_node": false,
+    "resolved_ip": "10.0.1.10",
+    "tcp_connect_s": 0.0014,
+    "health_status": 200
+  },
+  "runs": [
+    {
+      "scenario": "zh-budget-ok",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1863,
+        "completion_tokens": 299,
+        "unreported_token_calls": 0,
+        "elapsed_s": 6.509111
+      },
+      "wall_s": 6.51,
+      "timeline": [
+        [
+          0.09,
+          "run_started"
+        ],
+        [
+          0.1,
+          "decision_started"
+        ],
+        [
+          4.38,
+          "action_selected:call_tool"
+        ],
+        [
+          4.38,
+          "tool_started"
+        ],
+        [
+          4.39,
+          "tool_finished"
+        ],
+        [
+          4.4,
+          "decision_started"
+        ],
+        [
+          6.5,
+          "action_selected:propose_plan"
+        ],
+        [
+          6.51,
+          "validation_finished"
+        ],
+        [
+          6.51,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-budget-ok-think-default-1:model:1": {
+          "content": 27,
+          "reasoning": 144,
+          "first_delta_s": 1.77
+        },
+        "e2e-zh-budget-ok-think-default-1:model:2": {
+          "content": 40,
+          "reasoning": 84,
+          "first_delta_s": 4.61
+        }
+      }
+    },
+    {
+      "scenario": "en-budget-ok",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1863,
+        "completion_tokens": 268,
+        "unreported_token_calls": 0,
+        "elapsed_s": 4.948211
+      },
+      "wall_s": 4.95,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.05,
+          "action_selected:call_tool"
+        ],
+        [
+          3.06,
+          "tool_started"
+        ],
+        [
+          3.06,
+          "tool_finished"
+        ],
+        [
+          3.07,
+          "decision_started"
+        ],
+        [
+          4.94,
+          "action_selected:propose_plan"
+        ],
+        [
+          4.95,
+          "validation_finished"
+        ],
+        [
+          4.95,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-en-budget-ok-think-default-1:model:1": {
+          "content": 30,
+          "reasoning": 126,
+          "first_delta_s": 0.67
+        },
+        "e2e-en-budget-ok-think-default-1:model:2": {
+          "content": 40,
+          "reasoning": 68,
+          "first_delta_s": 3.29
+        }
+      }
+    },
+    {
+      "scenario": "zh-no-budget",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "total_cost": null,
+      "question": null,
+      "question_chars": null,
+      "issues": [
+        "missing_budget"
+      ],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1823,
+        "completion_tokens": 279,
+        "unreported_token_calls": 0,
+        "elapsed_s": 5.077216
+      },
+      "wall_s": 5.08,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.99,
+          "action_selected:call_tool"
+        ],
+        [
+          1.99,
+          "tool_started"
+        ],
+        [
+          1.99,
+          "tool_finished"
+        ],
+        [
+          2.0,
+          "decision_started"
+        ],
+        [
+          5.07,
+          "action_selected:propose_plan"
+        ],
+        [
+          5.07,
+          "validation_finished"
+        ],
+        [
+          5.08,
+          "run_stopped"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-no-budget-think-default-1:model:1": {
+          "content": 21,
+          "reasoning": 66,
+          "first_delta_s": 0.65
+        },
+        "e2e-zh-no-budget-think-default-1:model:2": {
+          "content": 40,
+          "reasoning": 148,
+          "first_delta_s": 2.2
+        }
+      }
+    },
+    {
+      "scenario": "zh-tight-budget",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "total_cost": null,
+      "question": "在所选商品快照中，找到的通勤无线耳机（demo-offer-001）售价为 49.99 美元，超出您 10.00 美元的预算上限，且未找到更低价的候选。请问您是否可以提高预算上限，或接受该 49.99 美元的商品？",
+      "question_chars": 107,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1861,
+        "completion_tokens": 634,
+        "unreported_token_calls": 0,
+        "elapsed_s": 10.515312
+      },
+      "wall_s": 10.52,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.21,
+          "action_selected:call_tool"
+        ],
+        [
+          3.21,
+          "tool_started"
+        ],
+        [
+          3.21,
+          "tool_finished"
+        ],
+        [
+          3.22,
+          "decision_started"
+        ],
+        [
+          10.51,
+          "action_selected:ask_user"
+        ],
+        [
+          10.52,
+          "run_waiting"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-tight-budget-think-default-1:model:1": {
+          "content": 28,
+          "reasoning": 138,
+          "first_delta_s": 0.67
+        },
+        "e2e-zh-tight-budget-think-default-1:model:2": {
+          "content": 86,
+          "reasoning": 378,
+          "first_delta_s": 3.43
+        }
+      }
+    },
+    {
+      "scenario": "zh-budget-ok",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1793,
+        "completion_tokens": 77,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.378139
+      },
+      "wall_s": 2.38,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.56,
+          "action_selected:call_tool"
+        ],
+        [
+          1.57,
+          "tool_started"
+        ],
+        [
+          1.57,
+          "tool_finished"
+        ],
+        [
+          1.58,
+          "decision_started"
+        ],
+        [
+          2.37,
+          "action_selected:propose_plan"
+        ],
+        [
+          2.38,
+          "validation_finished"
+        ],
+        [
+          2.38,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-budget-ok-think-off-1:model:1": {
+          "content": 35,
+          "reasoning": 0,
+          "first_delta_s": 0.65
+        },
+        "e2e-zh-budget-ok-think-off-1:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.76
+        }
+      }
+    },
+    {
+      "scenario": "en-budget-ok",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1784,
+        "completion_tokens": 71,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.89349
+      },
+      "wall_s": 1.9,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.08,
+          "action_selected:call_tool"
+        ],
+        [
+          1.09,
+          "tool_started"
+        ],
+        [
+          1.09,
+          "tool_finished"
+        ],
+        [
+          1.1,
+          "decision_started"
+        ],
+        [
+          1.89,
+          "action_selected:propose_plan"
+        ],
+        [
+          1.89,
+          "validation_finished"
+        ],
+        [
+          1.89,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-en-budget-ok-think-off-1:model:1": {
+          "content": 29,
+          "reasoning": 0,
+          "first_delta_s": 0.64
+        },
+        "e2e-en-budget-ok-think-off-1:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.28
+        }
+      }
+    },
+    {
+      "scenario": "zh-no-budget",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "total_cost": null,
+      "question": null,
+      "question_chars": null,
+      "issues": [
+        "missing_budget"
+      ],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1751,
+        "completion_tokens": 69,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.845553
+      },
+      "wall_s": 1.85,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.05,
+          "action_selected:call_tool"
+        ],
+        [
+          1.05,
+          "tool_started"
+        ],
+        [
+          1.05,
+          "tool_finished"
+        ],
+        [
+          1.06,
+          "decision_started"
+        ],
+        [
+          1.84,
+          "action_selected:propose_plan"
+        ],
+        [
+          1.84,
+          "validation_finished"
+        ],
+        [
+          1.85,
+          "run_stopped"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-no-budget-think-off-1:model:1": {
+          "content": 27,
+          "reasoning": 0,
+          "first_delta_s": 0.64
+        },
+        "e2e-zh-no-budget-think-off-1:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.23
+        }
+      }
+    },
+    {
+      "scenario": "zh-tight-budget",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "total_cost": null,
+      "question": "当前快照中找到的通勤无线耳机价格为49.99美元，超过您10.00美元的预算上限。是否希望我放宽预算、寻找其他类型（如有线耳机）或调整需求？",
+      "question_chars": 70,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1784,
+        "completion_tokens": 96,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.311358
+      },
+      "wall_s": 2.31,
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.12,
+          "action_selected:call_tool"
+        ],
+        [
+          1.12,
+          "tool_started"
+        ],
+        [
+          1.12,
+          "tool_finished"
+        ],
+        [
+          1.13,
+          "decision_started"
+        ],
+        [
+          2.31,
+          "action_selected:ask_user"
+        ],
+        [
+          2.31,
+          "run_waiting"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-tight-budget-think-off-1:model:1": {
+          "content": 29,
+          "reasoning": 0,
+          "first_delta_s": 0.68
+        },
+        "e2e-zh-tight-budget-think-off-1:model:2": {
+          "content": 65,
+          "reasoning": 0,
+          "first_delta_s": 1.32
+        }
+      }
+    },
+    {
+      "scenario": "zh-budget-ok",
+      "variant": "think-default",
+      "rep": 2,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1866,
+        "completion_tokens": 257,
+        "unreported_token_calls": 0,
+        "elapsed_s": 4.795106
+      },
+      "wall_s": 4.8,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          2.88,
+          "action_selected:call_tool"
+        ],
+        [
+          2.88,
+          "tool_started"
+        ],
+        [
+          2.88,
+          "tool_finished"
+        ],
+        [
+          2.9,
+          "decision_started"
+        ],
+        [
+          4.79,
+          "action_selected:propose_plan"
+        ],
+        [
+          4.79,
+          "validation_finished"
+        ],
+        [
+          4.8,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-budget-ok-think-default-2:model:1": {
+          "content": 30,
+          "reasoning": 114,
+          "first_delta_s": 0.67
+        },
+        "e2e-zh-budget-ok-think-default-2:model:2": {
+          "content": 40,
+          "reasoning": 69,
+          "first_delta_s": 3.11
+        }
+      }
+    },
+    {
+      "scenario": "en-budget-ok",
+      "variant": "think-default",
+      "rep": 2,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1863,
+        "completion_tokens": 264,
+        "unreported_token_calls": 0,
+        "elapsed_s": 4.897684
+      },
+      "wall_s": 4.9,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.0,
+          "action_selected:call_tool"
+        ],
+        [
+          3.0,
+          "tool_started"
+        ],
+        [
+          3.0,
+          "tool_finished"
+        ],
+        [
+          3.02,
+          "decision_started"
+        ],
+        [
+          4.89,
+          "action_selected:propose_plan"
+        ],
+        [
+          4.9,
+          "validation_finished"
+        ],
+        [
+          4.9,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-en-budget-ok-think-default-2:model:1": {
+          "content": 30,
+          "reasoning": 122,
+          "first_delta_s": 0.67
+        },
+        "e2e-en-budget-ok-think-default-2:model:2": {
+          "content": 40,
+          "reasoning": 68,
+          "first_delta_s": 3.23
+        }
+      }
+    },
+    {
+      "scenario": "zh-no-budget",
+      "variant": "think-default",
+      "rep": 2,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "total_cost": null,
+      "question": null,
+      "question_chars": null,
+      "issues": [
+        "missing_budget"
+      ],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1823,
+        "completion_tokens": 279,
+        "unreported_token_calls": 0,
+        "elapsed_s": 5.100107
+      },
+      "wall_s": 5.1,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          2.0,
+          "action_selected:call_tool"
+        ],
+        [
+          2.0,
+          "tool_started"
+        ],
+        [
+          2.0,
+          "tool_finished"
+        ],
+        [
+          2.01,
+          "decision_started"
+        ],
+        [
+          5.09,
+          "action_selected:propose_plan"
+        ],
+        [
+          5.1,
+          "validation_finished"
+        ],
+        [
+          5.1,
+          "run_stopped"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-no-budget-think-default-2:model:1": {
+          "content": 21,
+          "reasoning": 66,
+          "first_delta_s": 0.66
+        },
+        "e2e-zh-no-budget-think-default-2:model:2": {
+          "content": 40,
+          "reasoning": 148,
+          "first_delta_s": 2.21
+        }
+      }
+    },
+    {
+      "scenario": "zh-tight-budget",
+      "variant": "think-default",
+      "rep": 2,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "total_cost": null,
+      "question": "当前快照中未找到10美元以内的通勤无线耳机。是否可以提高预算，或接受有线耳机/其他替代类型？",
+      "question_chars": 46,
+      "issues": [
+        "invalid_action"
+      ],
+      "usage": {
+        "model_calls": 4,
+        "tool_calls": 2,
+        "action_repairs": 1,
+        "plan_repairs": 0,
+        "prompt_tokens": 4093,
+        "completion_tokens": 1333,
+        "unreported_token_calls": 0,
+        "elapsed_s": 21.923153
+      },
+      "wall_s": 21.92,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.38,
+          "action_selected:call_tool"
+        ],
+        [
+          3.38,
+          "tool_started"
+        ],
+        [
+          3.38,
+          "tool_finished"
+        ],
+        [
+          3.39,
+          "decision_started"
+        ],
+        [
+          11.53,
+          "action_rejected:invalid_action"
+        ],
+        [
+          11.54,
+          "decision_started"
+        ],
+        [
+          17.34,
+          "action_selected:call_tool"
+        ],
+        [
+          17.34,
+          "tool_started"
+        ],
+        [
+          17.35,
+          "tool_finished"
+        ],
+        [
+          17.36,
+          "decision_started"
+        ],
+        [
+          21.92,
+          "action_selected:ask_user"
+        ],
+        [
+          21.92,
+          "run_waiting"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-tight-budget-think-default-2:model:1": {
+          "content": 26,
+          "reasoning": 150,
+          "first_delta_s": 0.68
+        },
+        "e2e-zh-tight-budget-think-default-2:model:2": {
+          "content": 7,
+          "reasoning": 504,
+          "first_delta_s": 3.64
+        },
+        "e2e-zh-tight-budget-think-default-2:model:3": {
+          "content": 27,
+          "reasoning": 337,
+          "first_delta_s": 11.77
+        },
+        "e2e-zh-tight-budget-think-default-2:model:4": {
+          "content": 47,
+          "reasoning": 228,
+          "first_delta_s": 17.7
+        }
+      }
+    },
+    {
+      "scenario": "zh-budget-ok",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1793,
+        "completion_tokens": 77,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.994149
+      },
+      "wall_s": 2.0,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.18,
+          "action_selected:call_tool"
+        ],
+        [
+          1.18,
+          "tool_started"
+        ],
+        [
+          1.18,
+          "tool_finished"
+        ],
+        [
+          1.2,
+          "decision_started"
+        ],
+        [
+          1.99,
+          "action_selected:propose_plan"
+        ],
+        [
+          1.99,
+          "validation_finished"
+        ],
+        [
+          1.99,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-budget-ok-think-off-2:model:1": {
+          "content": 35,
+          "reasoning": 0,
+          "first_delta_s": 0.65
+        },
+        "e2e-zh-budget-ok-think-off-2:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.38
+        }
+      }
+    },
+    {
+      "scenario": "en-budget-ok",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "completed",
+      "stop_reason": null,
+      "total_cost": "49.99",
+      "question": null,
+      "question_chars": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1784,
+        "completion_tokens": 71,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.951527
+      },
+      "wall_s": 1.95,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.08,
+          "decision_started"
+        ],
+        [
+          1.14,
+          "action_selected:call_tool"
+        ],
+        [
+          1.14,
+          "tool_started"
+        ],
+        [
+          1.14,
+          "tool_finished"
+        ],
+        [
+          1.15,
+          "decision_started"
+        ],
+        [
+          1.95,
+          "action_selected:propose_plan"
+        ],
+        [
+          1.95,
+          "validation_finished"
+        ],
+        [
+          1.95,
+          "run_completed"
+        ]
+      ],
+      "deltas": {
+        "e2e-en-budget-ok-think-off-2:model:1": {
+          "content": 29,
+          "reasoning": 0,
+          "first_delta_s": 0.7
+        },
+        "e2e-en-budget-ok-think-off-2:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.34
+        }
+      }
+    },
+    {
+      "scenario": "zh-no-budget",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "total_cost": null,
+      "question": null,
+      "question_chars": null,
+      "issues": [
+        "missing_budget"
+      ],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1751,
+        "completion_tokens": 69,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.85067
+      },
+      "wall_s": 1.85,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.05,
+          "action_selected:call_tool"
+        ],
+        [
+          1.05,
+          "tool_started"
+        ],
+        [
+          1.05,
+          "tool_finished"
+        ],
+        [
+          1.06,
+          "decision_started"
+        ],
+        [
+          1.84,
+          "action_selected:propose_plan"
+        ],
+        [
+          1.85,
+          "validation_finished"
+        ],
+        [
+          1.85,
+          "run_stopped"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-no-budget-think-off-2:model:1": {
+          "content": 27,
+          "reasoning": 0,
+          "first_delta_s": 0.64
+        },
+        "e2e-zh-no-budget-think-off-2:model:2": {
+          "content": 40,
+          "reasoning": 0,
+          "first_delta_s": 1.24
+        }
+      }
+    },
+    {
+      "scenario": "zh-tight-budget",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "total_cost": null,
+      "question": "当前快照中找到的通勤无线耳机价格为49.99美元，超过您10.00美元的预算上限。是否希望我放宽预算、寻找其他类型（如有线耳机）或调整需求？",
+      "question_chars": 70,
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1784,
+        "completion_tokens": 96,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.277471
+      },
+      "wall_s": 2.28,
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.08,
+          "action_selected:call_tool"
+        ],
+        [
+          1.09,
+          "tool_started"
+        ],
+        [
+          1.09,
+          "tool_finished"
+        ],
+        [
+          1.1,
+          "decision_started"
+        ],
+        [
+          2.27,
+          "action_selected:ask_user"
+        ],
+        [
+          2.28,
+          "run_waiting"
+        ]
+      ],
+      "deltas": {
+        "e2e-zh-tight-budget-think-off-2:model:1": {
+          "content": 29,
+          "reasoning": 0,
+          "first_delta_s": 0.64
+        },
+        "e2e-zh-tight-budget-think-off-2:model:2": {
+          "content": 65,
+          "reasoning": 0,
+          "first_delta_s": 1.28
+        }
+      }
+    }
+  ],
+  "concurrent4": {
+    "wall_s": 4.71,
+    "runs": [
+      {
+        "scenario": "zh-budget-ok",
+        "variant": "think-off",
+        "rep": 100,
+        "status": "completed",
+        "stop_reason": null,
+        "total_cost": "49.99",
+        "question": null,
+        "question_chars": null,
+        "issues": [],
+        "usage": {
+          "model_calls": 2,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1803,
+          "completion_tokens": 77,
+          "unreported_token_calls": 0,
+          "elapsed_s": 4.705535
+        },
+        "wall_s": 4.71,
+        "timeline": [
+          [
+            0.06,
+            "run_started"
+          ],
+          [
+            0.07,
+            "decision_started"
+          ],
+          [
+            3.33,
+            "action_selected:call_tool"
+          ],
+          [
+            3.34,
+            "tool_started"
+          ],
+          [
+            3.34,
+            "tool_finished"
+          ],
+          [
+            3.35,
+            "decision_started"
+          ],
+          [
+            4.7,
+            "action_selected:propose_plan"
+          ],
+          [
+            4.7,
+            "validation_finished"
+          ],
+          [
+            4.71,
+            "run_completed"
+          ]
+        ],
+        "deltas": {
+          "e2e-zh-budget-ok-think-off-100:model:1": {
+            "content": 35,
+            "reasoning": 0,
+            "first_delta_s": 2.45
+          },
+          "e2e-zh-budget-ok-think-off-100:model:2": {
+            "content": 40,
+            "reasoning": 0,
+            "first_delta_s": 3.94
+          }
+        }
+      },
+      {
+        "scenario": "zh-budget-ok",
+        "variant": "think-off",
+        "rep": 101,
+        "status": "completed",
+        "stop_reason": null,
+        "total_cost": "49.99",
+        "question": null,
+        "question_chars": null,
+        "issues": [],
+        "usage": {
+          "model_calls": 2,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1803,
+          "completion_tokens": 77,
+          "unreported_token_calls": 0,
+          "elapsed_s": 4.679492
+        },
+        "wall_s": 4.68,
+        "timeline": [
+          [
+            0.04,
+            "run_started"
+          ],
+          [
+            0.06,
+            "decision_started"
+          ],
+          [
+            3.31,
+            "action_selected:call_tool"
+          ],
+          [
+            3.32,
+            "tool_started"
+          ],
+          [
+            3.32,
+            "tool_finished"
+          ],
+          [
+            3.33,
+            "decision_started"
+          ],
+          [
+            4.68,
+            "action_selected:propose_plan"
+          ],
+          [
+            4.68,
+            "validation_finished"
+          ],
+          [
+            4.68,
+            "run_completed"
+          ]
+        ],
+        "deltas": {
+          "e2e-zh-budget-ok-think-off-101:model:1": {
+            "content": 35,
+            "reasoning": 0,
+            "first_delta_s": 2.43
+          },
+          "e2e-zh-budget-ok-think-off-101:model:2": {
+            "content": 40,
+            "reasoning": 0,
+            "first_delta_s": 3.92
+          }
+        }
+      },
+      {
+        "scenario": "zh-budget-ok",
+        "variant": "think-off",
+        "rep": 102,
+        "status": "completed",
+        "stop_reason": null,
+        "total_cost": "49.99",
+        "question": null,
+        "question_chars": null,
+        "issues": [],
+        "usage": {
+          "model_calls": 2,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1803,
+          "completion_tokens": 77,
+          "unreported_token_calls": 0,
+          "elapsed_s": 4.674639
+        },
+        "wall_s": 4.68,
+        "timeline": [
+          [
+            0.03,
+            "run_started"
+          ],
+          [
+            0.05,
+            "decision_started"
+          ],
+          [
+            3.29,
+            "action_selected:call_tool"
+          ],
+          [
+            3.3,
+            "tool_started"
+          ],
+          [
+            3.3,
+            "tool_finished"
+          ],
+          [
+            3.31,
+            "decision_started"
+          ],
+          [
+            4.67,
+            "action_selected:propose_plan"
+          ],
+          [
+            4.67,
+            "validation_finished"
+          ],
+          [
+            4.67,
+            "run_completed"
+          ]
+        ],
+        "deltas": {
+          "e2e-zh-budget-ok-think-off-102:model:1": {
+            "content": 35,
+            "reasoning": 0,
+            "first_delta_s": 2.42
+          },
+          "e2e-zh-budget-ok-think-off-102:model:2": {
+            "content": 40,
+            "reasoning": 0,
+            "first_delta_s": 3.91
+          }
+        }
+      },
+      {
+        "scenario": "zh-budget-ok",
+        "variant": "think-off",
+        "rep": 103,
+        "status": "completed",
+        "stop_reason": null,
+        "total_cost": "49.99",
+        "question": null,
+        "question_chars": null,
+        "issues": [],
+        "usage": {
+          "model_calls": 2,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1803,
+          "completion_tokens": 77,
+          "unreported_token_calls": 0,
+          "elapsed_s": 4.620089
+        },
+        "wall_s": 4.62,
+        "timeline": [
+          [
+            0.02,
+            "run_started"
+          ],
+          [
+            0.04,
+            "decision_started"
+          ],
+          [
+            3.03,
+            "action_selected:call_tool"
+          ],
+          [
+            3.03,
+            "tool_started"
+          ],
+          [
+            3.03,
+            "tool_finished"
+          ],
+          [
+            3.04,
+            "decision_started"
+          ],
+          [
+            4.61,
+            "action_selected:propose_plan"
+          ],
+          [
+            4.62,
+            "validation_finished"
+          ],
+          [
+            4.62,
+            "run_completed"
+          ]
+        ],
+        "deltas": {
+          "e2e-zh-budget-ok-think-off-103:model:1": {
+            "content": 35,
+            "reasoning": 0,
+            "first_delta_s": 0.68
+          },
+          "e2e-zh-budget-ok-think-off-103:model:2": {
+            "content": 40,
+            "reasoning": 0,
+            "first_delta_s": 3.44
+          }
+        }
+      }
+    ],
+    "statuses": [
+      "completed",
+      "completed",
+      "completed",
+      "completed"
+    ],
+    "run_wall_s": [
+      4.71,
+      4.68,
+      4.68,
+      4.62
+    ]
+  },
+  "summary": {
+    "zh-budget-ok/think-default": [
+      "completed(-) 6.51s",
+      "completed(-) 4.8s"
+    ],
+    "en-budget-ok/think-default": [
+      "completed(-) 4.95s",
+      "completed(-) 4.9s"
+    ],
+    "zh-no-budget/think-default": [
+      "incomplete(validation_unavailable) 5.08s",
+      "incomplete(validation_unavailable) 5.1s"
+    ],
+    "zh-tight-budget/think-default": [
+      "waiting_user(-) 10.52s",
+      "waiting_user(-) 21.92s"
+    ],
+    "zh-budget-ok/think-off": [
+      "completed(-) 2.38s",
+      "completed(-) 2.0s"
+    ],
+    "en-budget-ok/think-off": [
+      "completed(-) 1.9s",
+      "completed(-) 1.95s"
+    ],
+    "zh-no-budget/think-off": [
+      "incomplete(validation_unavailable) 1.85s",
+      "incomplete(validation_unavailable) 1.85s"
+    ],
+    "zh-tight-budget/think-off": [
+      "waiting_user(-) 2.31s",
+      "waiting_user(-) 2.28s"
+    ]
+  }
+}

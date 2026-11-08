@@ -39,3 +39,6 @@ deploy/tacc/private-vllm/qwen-private-build/vllm-source.tar.gz
 # staged copy of inference/client.py for the service job
 deploy/tacc/service/qwen-service/client.py
 deploy/tacc/service/qwen-service/mode.txt
+
+# staged copy of the harness and adapter for the agent-e2e job
+deploy/tacc/service/agent-e2e/pkg/
