@@ -35,3 +35,7 @@ deploy/tacc/private-vllm/qwen-private-experiments/only.txt
 deploy/tacc/private-vllm/qwen-private-e6/benchmark.py
 deploy/tacc/private-vllm/qwen-private-e6/experiments.py
 deploy/tacc/private-vllm/qwen-private-build/vllm-source.tar.gz
+
+# staged copy of inference/client.py for the service job
+deploy/tacc/service/qwen-service/client.py
+deploy/tacc/service/qwen-service/mode.txt

@@ -1,12 +1,5 @@
 import pytest
 
-from inference.client import ModelClient
-
-
-@pytest.mark.skip(reason="Task 4: not implemented")
-def test_chat_returns_result():
-    ModelClient("http://localhost:8000/v1").chat([{"role": "user", "content": "hi"}])
-
 
 def test_fts5_probe():
     import importlib.util, pathlib
