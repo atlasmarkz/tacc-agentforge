@@ -1,0 +1,844 @@
+{
+  "variants": {
+    "constrained_think_default": {
+      "calls": 14,
+      "valid": 14,
+      "errors": 0,
+      "valid_rate": 1.0,
+      "finish_reasons": {
+        "stop": 14
+      },
+      "latency_s": {
+        "median": 2.67,
+        "max": 5.02
+      },
+      "mean_completion_tokens": 170,
+      "with_reasoning": 14
+    },
+    "constrained_no_think": {
+      "calls": 14,
+      "valid": 14,
+      "errors": 0,
+      "valid_rate": 1.0,
+      "finish_reasons": {
+        "stop": 14
+      },
+      "latency_s": {
+        "median": 0.96,
+        "max": 1.94
+      },
+      "mean_completion_tokens": 34.1,
+      "with_reasoning": 0
+    },
+    "free_no_think": {
+      "calls": 14,
+      "valid": 14,
+      "errors": 0,
+      "valid_rate": 1.0,
+      "finish_reasons": {
+        "stop": 14
+      },
+      "latency_s": {
+        "median": 0.59,
+        "max": 0.98
+      },
+      "mean_completion_tokens": 37.6,
+      "with_reasoning": 0
+    }
+  },
+  "rows": [
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 850,
+      "completion_tokens": 139,
+      "reasoning_chars": 504,
+      "duration_s": 3.4,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"wireless earbuds commute noise cancellation under 100 USD\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 844,
+      "completion_tokens": 120,
+      "reasoning_chars": 424,
+      "duration_s": 2.44,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 USD auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 824,
+      "completion_tokens": 245,
+      "reasoning_chars": 1014,
+      "duration_s": 4.32,
+      "content": "{\"type\":\"ask_user\",\"question\":\"请\", \"required_fields\": [\"budget\"]}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 849,
+      "completion_tokens": 289,
+      "reasoning_chars": 1097,
+      "duration_s": 5.02,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 849,
+      "completion_tokens": 144,
+      "reasoning_chars": 502,
+      "duration_s": 2.82,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"儿童 轻便 书包 200元\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 959,
+      "completion_tokens": 112,
+      "reasoning_chars": 253,
+      "duration_s": 2.4,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2041,
+      "completion_tokens": 141,
+      "reasoning_chars": 468,
+      "duration_s": 3.58,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars with auto shut-off\"}}"
+    },
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 850,
+      "completion_tokens": 139,
+      "reasoning_chars": 504,
+      "duration_s": 2.23,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"wireless earbuds commute noise cancellation under 100 USD\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 844,
+      "completion_tokens": 120,
+      "reasoning_chars": 424,
+      "duration_s": 1.93,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 USD auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 824,
+      "completion_tokens": 245,
+      "reasoning_chars": 1014,
+      "duration_s": 3.84,
+      "content": "{\"type\":\"ask_user\",\"question\":\"请\", \"required_fields\": [\"budget\"]}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 849,
+      "completion_tokens": 289,
+      "reasoning_chars": 1097,
+      "duration_s": 4.51,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 849,
+      "completion_tokens": 144,
+      "reasoning_chars": 502,
+      "duration_s": 2.3,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"儿童 轻便 书包 200元\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 959,
+      "completion_tokens": 112,
+      "reasoning_chars": 253,
+      "duration_s": 1.86,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "constrained_think_default",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2041,
+      "completion_tokens": 141,
+      "reasoning_chars": 468,
+      "duration_s": 2.52,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars with auto shut-off\"}}"
+    },
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 814,
+      "completion_tokens": 30,
+      "reasoning_chars": 0,
+      "duration_s": 1.05,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"wireless earbuds commute\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 808,
+      "completion_tokens": 28,
+      "reasoning_chars": 0,
+      "duration_s": 1.02,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 788,
+      "completion_tokens": 36,
+      "reasoning_chars": 0,
+      "duration_s": 1.15,
+      "content": "{\n  \"type\": \"ask_user\",\n  \"question\": \"请\",\n  \"required_fields\": [\n    \"budget\"\n  ]\n}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 32,
+      "reasoning_chars": 0,
+      "duration_s": 1.08,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 29,
+      "reasoning_chars": 0,
+      "duration_s": 1.04,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"儿童 轻便 书包\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 923,
+      "completion_tokens": 50,
+      "reasoning_chars": 0,
+      "duration_s": 1.44,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2005,
+      "completion_tokens": 34,
+      "reasoning_chars": 0,
+      "duration_s": 1.94,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 814,
+      "completion_tokens": 30,
+      "reasoning_chars": 0,
+      "duration_s": 0.56,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"wireless earbuds commute\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 808,
+      "completion_tokens": 28,
+      "reasoning_chars": 0,
+      "duration_s": 0.53,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 788,
+      "completion_tokens": 36,
+      "reasoning_chars": 0,
+      "duration_s": 0.62,
+      "content": "{\n  \"type\": \"ask_user\",\n  \"question\": \"请\",\n  \"required_fields\": [\n    \"budget\"\n  ]\n}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 32,
+      "reasoning_chars": 0,
+      "duration_s": 0.6,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 29,
+      "reasoning_chars": 0,
+      "duration_s": 0.55,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"儿童 轻便 书包\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 923,
+      "completion_tokens": 50,
+      "reasoning_chars": 0,
+      "duration_s": 0.9,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "constrained_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2005,
+      "completion_tokens": 34,
+      "reasoning_chars": 0,
+      "duration_s": 0.87,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 814,
+      "completion_tokens": 30,
+      "reasoning_chars": 0,
+      "duration_s": 0.55,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"wireless earbuds commute\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 808,
+      "completion_tokens": 28,
+      "reasoning_chars": 0,
+      "duration_s": 0.53,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 788,
+      "completion_tokens": 60,
+      "reasoning_chars": 0,
+      "duration_s": 0.98,
+      "content": "{\n  \"type\": \"ask_user\",\n  \"question\": \"为了帮您挑选合适的笔记本电脑，请提供您的预算范围（例如：5000-8000元）。\",\n  \"required_fields\": [\n    \"budget\"\n  ]\n}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 32,
+      "reasoning_chars": 0,
+      "duration_s": 0.59,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 29,
+      "reasoning_chars": 0,
+      "duration_s": 0.54,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"儿童 轻便 书包\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 923,
+      "completion_tokens": 50,
+      "reasoning_chars": 0,
+      "duration_s": 0.89,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2005,
+      "completion_tokens": 34,
+      "reasoning_chars": 0,
+      "duration_s": 0.87,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-commute-earbuds",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 814,
+      "completion_tokens": 30,
+      "reasoning_chars": 0,
+      "duration_s": 0.55,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"wireless earbuds commute\"}}"
+    },
+    {
+      "case": "en-kettle",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 808,
+      "completion_tokens": 28,
+      "reasoning_chars": 0,
+      "duration_s": 0.52,
+      "content": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"query\":\"electric kettle under 40 dollars auto shut-off\"}}"
+    },
+    {
+      "case": "zh-missing-budget",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 788,
+      "completion_tokens": 60,
+      "reasoning_chars": 0,
+      "duration_s": 0.98,
+      "content": "{\n  \"type\": \"ask_user\",\n  \"question\": \"为了帮您挑选合适的笔记本电脑，请提供您的预算范围（例如：5000-8000元）。\",\n  \"required_fields\": [\n    \"budget\"\n  ]\n}"
+    },
+    {
+      "case": "en-two-items",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 32,
+      "reasoning_chars": 0,
+      "duration_s": 0.59,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"USB-C cable 65W charger\"}}"
+    },
+    {
+      "case": "zh-backpack",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 813,
+      "completion_tokens": 29,
+      "reasoning_chars": 0,
+      "duration_s": 0.54,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"儿童 轻便 书包\"}}"
+    },
+    {
+      "case": "zh-after-observation",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 923,
+      "completion_tokens": 50,
+      "reasoning_chars": 0,
+      "duration_s": 0.89,
+      "content": "{\"type\": \"propose_plan\", \"plan\": {\"items\": [{\"offer_id\": \"demo-offer-001\", \"quantity\": 1, \"evidence_ids\": [\"demo-evidence-001\"]}]}}"
+    },
+    {
+      "case": "en-long-observation",
+      "variant": "free_no_think",
+      "valid": true,
+      "why": "",
+      "finish_reason": "stop",
+      "prompt_tokens": 2005,
+      "completion_tokens": 34,
+      "reasoning_chars": 0,
+      "duration_s": 0.86,
+      "content": "{\"type\": \"call_tool\", \"tool_name\": \"search_products\", \"arguments\": {\"query\": \"electric kettle under 40 dollars auto shut-off\"}}"
+    }
+  ],
+  "repeatability": [
+    {
+      "case": "zh-commute-earbuds",
+      "identical": true
+    },
+    {
+      "case": "en-kettle",
+      "identical": true
+    },
+    {
+      "case": "zh-missing-budget",
+      "identical": true
+    },
+    {
+      "case": "en-two-items",
+      "identical": true
+    },
+    {
+      "case": "zh-backpack",
+      "identical": true
+    },
+    {
+      "case": "zh-after-observation",
+      "identical": true
+    },
+    {
+      "case": "en-long-observation",
+      "identical": true
+    }
+  ],
+  "streaming": {
+    "calls": 14,
+    "errors": 0,
+    "same_text_as_blocking": 14,
+    "by_variant": {
+      "constrained_no_think": {
+        "first_token_s_median": 0.118,
+        "total_s_median": 0.62,
+        "max_gap_s_median": 0.016
+      },
+      "constrained_think_default": {
+        "first_token_s_median": 0.123,
+        "total_s_median": 2.31,
+        "max_gap_s_median": 0.03
+      }
+    },
+    "rows": [
+      {
+        "case": "zh-commute-earbuds",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.246,
+        "duration_s": 0.69,
+        "deltas": {
+          "content": 29,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 30,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.56
+      },
+      {
+        "case": "en-kettle",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.115,
+        "duration_s": 0.53,
+        "deltas": {
+          "content": 27,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 28,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.53
+      },
+      {
+        "case": "zh-missing-budget",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.084,
+        "duration_s": 0.62,
+        "deltas": {
+          "content": 35,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.015,
+        "completion_tokens": 36,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.62
+      },
+      {
+        "case": "en-two-items",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.118,
+        "duration_s": 0.59,
+        "deltas": {
+          "content": 31,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 32,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.59
+      },
+      {
+        "case": "zh-backpack",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.115,
+        "duration_s": 0.54,
+        "deltas": {
+          "content": 28,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 29,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.54
+      },
+      {
+        "case": "zh-after-observation",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.148,
+        "duration_s": 0.89,
+        "deltas": {
+          "content": 49,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 50,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.9
+      },
+      {
+        "case": "en-long-observation",
+        "variant": "constrained_no_think",
+        "first_token_s": 0.36,
+        "duration_s": 0.86,
+        "deltas": {
+          "content": 33,
+          "reasoning": 0
+        },
+        "max_gap_s": 0.016,
+        "completion_tokens": 34,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 0.86
+      },
+      {
+        "case": "zh-commute-earbuds",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.121,
+        "duration_s": 2.23,
+        "deltas": {
+          "content": 31,
+          "reasoning": 106
+        },
+        "max_gap_s": 0.03,
+        "completion_tokens": 139,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 2.23
+      },
+      {
+        "case": "en-kettle",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.121,
+        "duration_s": 1.94,
+        "deltas": {
+          "content": 27,
+          "reasoning": 91
+        },
+        "max_gap_s": 0.03,
+        "completion_tokens": 120,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 1.94
+      },
+      {
+        "case": "zh-missing-budget",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.12,
+        "duration_s": 3.85,
+        "deltas": {
+          "content": 17,
+          "reasoning": 226
+        },
+        "max_gap_s": 0.03,
+        "completion_tokens": 245,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 3.85
+      },
+      {
+        "case": "en-two-items",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.123,
+        "duration_s": 4.53,
+        "deltas": {
+          "content": 25,
+          "reasoning": 262
+        },
+        "max_gap_s": 0.03,
+        "completion_tokens": 289,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 4.53
+      },
+      {
+        "case": "zh-backpack",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.128,
+        "duration_s": 2.31,
+        "deltas": {
+          "content": 27,
+          "reasoning": 115
+        },
+        "max_gap_s": 0.031,
+        "completion_tokens": 144,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 2.31
+      },
+      {
+        "case": "zh-after-observation",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.173,
+        "duration_s": 1.87,
+        "deltas": {
+          "content": 49,
+          "reasoning": 61
+        },
+        "max_gap_s": 0.031,
+        "completion_tokens": 112,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 1.87
+      },
+      {
+        "case": "en-long-observation",
+        "variant": "constrained_think_default",
+        "first_token_s": 0.386,
+        "duration_s": 2.53,
+        "deltas": {
+          "content": 34,
+          "reasoning": 105
+        },
+        "max_gap_s": 0.031,
+        "completion_tokens": 141,
+        "finish_reason": "stop",
+        "valid": true,
+        "same_as_blocking": true,
+        "blocking_duration_s": 2.52
+      }
+    ]
+  },
+  "concurrent4": {
+    "calls": 28,
+    "valid": 28,
+    "errors": 0,
+    "valid_rate": 1.0,
+    "finish_reasons": {
+      "stop": 28
+    },
+    "latency_s": {
+      "median": 0.81,
+      "max": 1.94
+    },
+    "mean_completion_tokens": 34.2,
+    "with_reasoning": 0,
+    "wall_s": 7.2
+  }
+}

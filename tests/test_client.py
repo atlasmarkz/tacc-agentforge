@@ -153,3 +153,107 @@ def test_cancelled_before_start():
     token.cancel()
     with pytest.raises(Cancelled):
         ModelClient(base_url=_closed_port_url()).chat(MSG, cancel=token)
+
+
+# ---- streaming ---------------------------------------------------------------------------------
+
+from tests.fake_vllm import Stream, sse_events  # noqa: E402
+from inference.client import StreamInterrupted  # noqa: E402
+
+ACTION_TEXT = ['{"type":', '"ask_user",', '"question":"Size?"}']
+
+
+def collect():
+    got = []
+    return got, lambda kind, text: got.append((kind, text, time.monotonic()))
+
+
+def test_stream_delivers_deltas_incrementally(make_server):
+    srv = make_server([(200, Stream(sse_events(ACTION_TEXT, reasoning=["think"]), interval_s=0.15), 0)])
+    got, cb = collect()
+    t0 = time.monotonic()
+    r = client_for(srv.url).chat(MSG, on_delta=cb, timeout_s=10)
+    total = time.monotonic() - t0
+    assert [(k, t) for k, t, _ in got] == [("reasoning", "think")] + [("content", t) for t in ACTION_TEXT]
+    assert r.content == "".join(ACTION_TEXT) and r.reasoning == "think"
+    assert (r.prompt_tokens, r.completion_tokens, r.finish_reason) == (11, 7, "stop")
+    assert got[0][2] - t0 < total - 0.3             # the first delta arrived long before the end
+    assert 0 < r.first_token_s < total - 0.3
+    body = srv.requests[0]
+    assert body["stream"] is True and body["stream_options"] == {"include_usage": True}
+
+
+def test_stream_handles_events_split_across_tcp_writes(make_server):
+    srv = make_server([(200, Stream(sse_events(["héllo ", "世界"]), split=True), 0)])
+    got, cb = collect()
+    assert client_for(srv.url).chat(MSG, on_delta=cb).content == "héllo 世界"
+
+
+def test_stream_without_chunked_encoding(make_server):
+    srv = make_server([(200, Stream(sse_events(ACTION_TEXT), chunked=False), 0)])
+    got, cb = collect()
+    assert client_for(srv.url).chat(MSG, on_delta=cb).content == "".join(ACTION_TEXT)
+
+
+def test_stream_length_finish_is_reported(make_server):
+    srv = make_server([(200, Stream(sse_events(['{"ty'], finish="length")), 0)])
+    got, cb = collect()
+    assert client_for(srv.url).chat(MSG, on_delta=cb).finish_reason == "length"
+
+
+def test_stream_retries_before_first_delta(make_server):
+    srv = make_server([(503, {"error": "starting"}, 0), (200, Stream(sse_events(["ok"])), 0)])
+    got, cb = collect()
+    r = client_for(srv.url).chat(MSG, on_delta=cb)
+    assert r.attempts == 2 and [t for _, t, _ in got] == ["ok"]
+
+
+def test_stream_broken_after_output_is_not_retried(make_server):
+    srv = make_server([(200, Stream(sse_events(ACTION_TEXT), drop_after=3), 0)])
+    got, cb = collect()
+    with pytest.raises(StreamInterrupted):
+        client_for(srv.url).chat(MSG, on_delta=cb)
+    assert len(srv.requests) == 1 and len(got) == 2   # the two deltas before the cut were delivered once
+
+
+def test_stream_broken_before_output_is_retried(make_server):
+    srv = make_server([(200, Stream(sse_events(["x"]), drop_after=0), 0), (200, Stream(sse_events(["done"])), 0)])
+    got, cb = collect()
+    r = client_for(srv.url).chat(MSG, on_delta=cb)
+    assert r.content == "done" and r.attempts == 2
+
+
+def test_stream_client_error_is_not_retried(make_server):
+    srv = make_server([(400, {"error": "bad"}, 0)])
+    got, cb = collect()
+    with pytest.raises(ServiceRejected):
+        client_for(srv.url).chat(MSG, on_delta=cb)
+    assert len(srv.requests) == 1
+
+
+def test_stream_cancel_mid_generation(make_server):
+    srv = make_server([(200, Stream(sse_events(["a"] * 40), interval_s=0.2), 0)])
+    token = CancelToken()
+    got, cb = collect()
+    threading.Timer(0.5, token.cancel).start()
+    t0 = time.monotonic()
+    with pytest.raises(Cancelled):
+        client_for(srv.url).chat(MSG, on_delta=cb, timeout_s=20, cancel=token)
+    assert time.monotonic() - t0 < 2 and 0 < len(got) < 40
+
+
+def test_stream_time_budget_applies_to_the_whole_generation(make_server):
+    srv = make_server([(200, Stream(sse_events(["a"] * 40), interval_s=0.2), 0)])
+    got, cb = collect()
+    t0 = time.monotonic()
+    with pytest.raises(ServiceTimeout):
+        client_for(srv.url).chat(MSG, on_delta=cb, timeout_s=0.7)
+    assert time.monotonic() - t0 < 2
+
+
+def test_stream_callback_failure_does_not_break_generation(make_server):
+    srv = make_server([(200, Stream(sse_events(ACTION_TEXT)), 0)])
+
+    def bad(kind, text):
+        raise RuntimeError("ui exploded")
+    assert client_for(srv.url).chat(MSG, on_delta=bad).content == "".join(ACTION_TEXT)

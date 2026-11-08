@@ -63,6 +63,35 @@ def one(client, case, schema, variant, timeout_s=60):
     return rec
 
 
+def stream_one(client, case, schema, variant, timeout_s=60):
+    """One streamed call; also fetches the blocking answer (temperature 0) to compare the text."""
+    stamps, kinds = [], {"content": 0, "reasoning": 0}
+
+    def on_delta(kind, text):
+        stamps.append(time.monotonic())
+        kinds[kind] += 1
+
+    rec = {"case": case["name"], "variant": variant}
+    t0 = time.monotonic()
+    try:
+        kw = dict(max_tokens=case["max_tokens"], temperature=0, timeout_s=timeout_s, json_schema=schema,
+                  enable_thinking=VARIANTS[variant]["thinking"])
+        streamed = client.chat(case["messages"], on_delta=on_delta, **kw)
+        blocking = client.chat(case["messages"], **kw)
+    except ModelClientError as exc:
+        rec.update(error=f"{type(exc).__name__}: {exc}", duration_s=round(time.monotonic() - t0, 2))
+        return rec
+    gaps = [b - a for a, b in zip(stamps, stamps[1:])]
+    valid, _ = check_action(streamed.content)
+    rec.update(first_token_s=round(streamed.first_token_s, 3) if streamed.first_token_s is not None else None,
+               duration_s=round(streamed.duration_s, 2), deltas=kinds, max_gap_s=round(max(gaps), 3) if gaps else 0,
+               completion_tokens=streamed.completion_tokens, finish_reason=streamed.finish_reason,
+               valid=valid and streamed.finish_reason == "stop",
+               same_as_blocking=streamed.content == blocking.content,
+               blocking_duration_s=round(blocking.duration_s, 2))
+    return rec
+
+
 def summarise(rows):
     ok = [r for r in rows if "error" not in r]
     lat = sorted(r["duration_s"] for r in rows)
@@ -97,6 +126,24 @@ def run(client, out_dir: Path, cfg: dict) -> None:
         b = one(client, c, schema, "constrained_no_think")
         same.append({"case": c["name"], "identical": a.get("content") == b.get("content")})
     report["repeatability"] = same
+
+    # Streaming: time to first token, pacing, and whether streamed text equals the blocking answer.
+    stream_rows = []
+    for variant in ("constrained_no_think", "constrained_think_default"):
+        for c in cases:
+            stream_rows.append(stream_one(client, c, schema, variant))
+    ok = [r for r in stream_rows if "error" not in r]
+    report["streaming"] = {
+        "calls": len(stream_rows), "errors": len(stream_rows) - len(ok),
+        "same_text_as_blocking": sum(r["same_as_blocking"] for r in ok),
+        "by_variant": {v: {
+            "first_token_s_median": statistics.median([r["first_token_s"] for r in ok if r["variant"] == v and r["first_token_s"] is not None] or [None]),
+            "total_s_median": statistics.median([r["duration_s"] for r in ok if r["variant"] == v] or [None]),
+            "max_gap_s_median": statistics.median([r["max_gap_s"] for r in ok if r["variant"] == v] or [None]),
+        } for v in ("constrained_no_think", "constrained_think_default")},
+        "rows": stream_rows,
+    }
+    print("streaming", json.dumps({k: v for k, v in report["streaming"].items() if k != "rows"}), flush=True)
 
     # Four callers at once (constrained, no thinking): latency under light concurrency.
     conc_rows, lock = [], threading.Lock()

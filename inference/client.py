@@ -7,11 +7,16 @@ Design points (see docs/ in the reliability plan):
 - Only transient failures are retried: connection errors, 429, 5xx. Other 4xx fail at once.
 - A CancelToken closes the open connection, which makes vLLM abort the request and free its slot.
 - Errors are typed; callers never have to parse strings.
+- Streaming: pass `on_delta(kind, text)` to `chat` and the answer arrives token by token over SSE
+  (`kind` is "content" or "reasoning"). A failed attempt is retried only while nothing has been
+  delivered; after the first delta a broken stream raises StreamInterrupted (retrying would repeat text).
 """
 from __future__ import annotations
 
+import codecs
 import http.client
 import json
+import logging
 import random
 import select
 import threading
@@ -51,6 +56,14 @@ class BadResponse(ModelClientError):
 
 class Cancelled(ModelClientError):
     code = "cancelled"
+
+
+class StreamInterrupted(ModelClientError):
+    """A stream broke after text was already delivered; not retried here because that would repeat it."""
+    code = "model_unavailable"
+    retryable = True
+
+logger = logging.getLogger(__name__)
 
 
 class CancelToken:
@@ -108,6 +121,7 @@ class ChatResult:
     attempts: int = 1
     served_by: str = ""                  # base URL that produced the answer
     raw_finish_reason: str | None = None
+    first_token_s: float | None = None   # streaming only: call start -> first delta (includes retries)
 
 
 _RETRY_STATUS = {429, 500, 502, 503, 504}
@@ -153,10 +167,13 @@ class ModelClient:
         enable_thinking: bool | None = None,
         extra_body: dict | None = None,
         cancel: CancelToken | None = None,
+        on_delta: Callable[[str, str], None] | None = None,
     ) -> ChatResult:
         token = cancel or CancelToken()
         body: dict = {"model": self.model, "messages": messages, "max_tokens": max_tokens,
-                      "temperature": temperature, "stream": False}
+                      "temperature": temperature, "stream": on_delta is not None}
+        if on_delta is not None:
+            body["stream_options"] = {"include_usage": True}
         if json_schema is not None:
             body["response_format"] = {"type": "json_schema",
                                        "json_schema": {"name": "action", "schema": json_schema, "strict": True}}
@@ -181,7 +198,10 @@ class ModelClient:
             try:
                 if url is None:
                     raise _Retry("no service address yet")
-                result = self._once(url, payload, remaining, token)
+                if on_delta is None:
+                    result = self._once(url, payload, remaining, token)
+                else:
+                    result = self._once_stream(url, payload, remaining, token, on_delta, start)
                 result.attempts = attempt
                 result.duration_s = self.clock() - start
                 return result
@@ -252,9 +272,190 @@ class ModelClient:
             token.attach(None)
             _close_quietly(conn)
 
+    def _once_stream(self, url, payload, remaining, token, on_delta, call_start):
+        parts = urlsplit(url)
+        if parts.scheme != "http" or not parts.hostname:
+            raise ServiceRejected(f"unsupported service address {url!r}")
+        started = self.clock()
+        deadline = started + remaining
+        conn = http.client.HTTPConnection(parts.hostname, parts.port or 80,
+                                          timeout=max(0.05, min(self.connect_timeout_s, remaining)))
+        token.attach(conn)
+        state = _StreamState()
+        try:
+            try:
+                try:
+                    conn.connect()
+                except TimeoutError as exc:
+                    raise _Retry("connect timed out") from exc
+                sock = conn.sock
+                head = (f"POST {parts.path.rstrip('/')}/chat/completions HTTP/1.1\r\n"
+                        f"Host: {parts.hostname}:{parts.port or 80}\r\nContent-Type: application/json\r\n"
+                        f"Accept: text/event-stream\r\nConnection: close\r\n"
+                        f"Content-Length: {len(payload)}\r\n\r\n").encode("ascii")
+                sock.settimeout(max(0.05, deadline - self.clock()))
+                sock.sendall(head + payload)
+                return self._read_stream(sock, url, deadline, token, on_delta, call_start, state)
+            except (_Retry, ModelClientError):
+                raise
+            except TimeoutError as exc:
+                if token.cancelled:
+                    raise Cancelled("cancelled by caller") from exc
+                raise ServiceTimeout("no complete answer within the time budget") from exc
+            except (OSError, http.client.HTTPException, ValueError, AttributeError) as exc:
+                if token.cancelled:
+                    raise Cancelled("cancelled by caller") from exc
+                _fail(state, f"{type(exc).__name__}: {exc}")
+        finally:
+            token.attach(None)
+            _close_quietly(conn)
+
+
+    def _recv(self, sock, deadline, token):
+        """Next bytes from the socket, or None at EOF. Waits in short slices so cancel and deadline are prompt."""
+        while True:
+            if token.cancelled:
+                raise Cancelled("cancelled by caller")
+            left = deadline - self.clock()
+            if left <= 0:
+                raise TimeoutError
+            readable, _, _ = select.select([sock], [], [], min(0.2, left))
+            if readable:
+                data = sock.recv(65536)
+                return data or None
+
+
+    def _emit(self, on_delta, kind, text, state, call_start):
+        if not state.delivered:
+            state.delivered = True
+            state.first_token_s = self.clock() - call_start
+        try:
+            on_delta(kind, text)
+        except Exception:                      # a broken consumer must not kill the generation
+            logger.warning("on_delta callback failed", exc_info=True)
+
+
+    def _read_stream(self, sock, url, deadline, token, on_delta, call_start, state):
+        head_buf = b""
+        status = None
+        dechunk = None
+        decoder = codecs.getincrementaldecoder("utf-8")(errors="replace")
+        pending = ""
+        error_body = b""
+        content, reasoning = [], []
+        finish, usage, finished = None, {}, False
+        while not finished:
+            data = self._recv(sock, deadline, token)
+            if data is None:
+                break
+            if status is None:
+                head_buf += data
+                end = head_buf.find(b"\r\n\r\n")
+                if end < 0:
+                    if len(head_buf) > 65536:
+                        raise _Retry("oversized response header")
+                    continue
+                lines = head_buf[:end].decode("latin-1").split("\r\n")
+                data = head_buf[end + 4:]
+                try:
+                    status = int(lines[0].split()[1])
+                except (IndexError, ValueError):
+                    raise _Retry("bad status line")
+                headers = {k.strip().lower(): v.strip() for k, _, v in (ln.partition(":") for ln in lines[1:])}
+                if status in _RETRY_STATUS:
+                    raise _Retry(f"HTTP {status}")
+                if "chunked" in headers.get("transfer-encoding", "").lower():
+                    dechunk = _Dechunker()
+            body = dechunk.feed(data) if dechunk else data
+            if status != 200:
+                error_body = (error_body + body)[:4096]
+                if dechunk and dechunk.done:
+                    break
+                continue
+            pending = (pending + decoder.decode(body)).replace("\r\n", "\n")
+            while "\n\n" in pending:
+                event, pending = pending.split("\n\n", 1)
+                lines = [ln[5:].lstrip() for ln in event.split("\n") if ln.startswith("data:")]
+                if not lines:
+                    continue
+                payload = "\n".join(lines)
+                if payload == "[DONE]":
+                    finished = True
+                    break
+                try:
+                    obj = json.loads(payload)
+                except ValueError as exc:
+                    raise BadResponse("stream event is not JSON") from exc
+                if isinstance(obj, dict) and obj.get("error") and not obj.get("choices"):
+                    _fail(state, f"engine error event: {str(obj['error'])[:120]}")
+                for choice in obj.get("choices") or []:
+                    delta = choice.get("delta") or {}
+                    thought = delta.get("reasoning_content") or delta.get("reasoning")
+                    text = delta.get("content")
+                    if thought:
+                        reasoning.append(thought)
+                        self._emit(on_delta, "reasoning", thought, state, call_start)
+                    if text:
+                        content.append(text)
+                        self._emit(on_delta, "content", text, state, call_start)
+                    if choice.get("finish_reason"):
+                        finish = choice["finish_reason"]
+                usage = obj.get("usage") or usage
+            if dechunk and dechunk.done:
+                break
+        if status is None:
+            raise _Retry("connection closed before a response")
+        if status != 200:
+            raise ServiceRejected(f"HTTP {status}: {error_body[:200].decode('utf-8', 'replace')}")
+        if not finished and finish is None:
+            _fail(state, "stream ended before the completion finished")
+        return ChatResult(
+            content="".join(content), reasoning="".join(reasoning) or None,
+            finish_reason={"stop": "stop", "length": "length"}.get(finish, "error"), raw_finish_reason=finish,
+            prompt_tokens=usage.get("prompt_tokens"), completion_tokens=usage.get("completion_tokens"),
+            served_by=url, first_token_s=state.first_token_s,
+        )
+
 
 class _Retry(Exception):
     """Internal: a transient failure of one attempt."""
+
+
+class _StreamState:
+    def __init__(self) -> None:
+        self.delivered = False
+        self.first_token_s: float | None = None
+
+
+class _Dechunker:
+    """Incremental HTTP chunked-transfer decoder (whole chunks only; SSE servers send one event per chunk)."""
+
+    def __init__(self) -> None:
+        self.buf = b""
+        self.done = False
+
+    def feed(self, data: bytes) -> bytes:
+        self.buf += data
+        out = []
+        while not self.done:
+            end = self.buf.find(b"\r\n")
+            if end < 0:
+                break
+            size = int(self.buf[:end].split(b";")[0].strip() or b"0", 16)
+            if size == 0:
+                self.done = True
+                break
+            if len(self.buf) < end + 2 + size + 2:
+                break
+            out.append(self.buf[end + 2:end + 2 + size])
+            self.buf = self.buf[end + 2 + size + 2:]
+        return b"".join(out)
+
+
+def _fail(state: _StreamState, message: str):
+    if state.delivered:
+        raise StreamInterrupted(f"stream broke after output was delivered ({message})")
+    raise _Retry(message)
 
 
 def _parse(data: bytes, url: str) -> ChatResult:

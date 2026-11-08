@@ -14,12 +14,18 @@ import json
 
 from agent.contracts import CallContext, CapabilityError, ModelReply, ModelRequest
 
+from typing import Callable
+
 from .client import (
     BadResponse, Cancelled, CancelToken, ModelClient, ModelClientError, ServiceRejected,
-    ServiceTimeout, ServiceUnavailable,
+    ServiceTimeout, ServiceUnavailable, StreamInterrupted,
 )
 
+# (operation_id, kind, text) with kind "content" or "reasoning"
+DeltaSink = Callable[[str, str, str], None]
+
 _PUBLIC_MESSAGES = {
+    StreamInterrupted: ("model_unavailable", "The model stream was interrupted.", True),
     ServiceUnavailable: ("model_unavailable", "The model service is unavailable.", True),
     ServiceTimeout: ("model_timeout", "The model service did not answer in time.", True),
     ServiceRejected: ("model_request_rejected", "The model service rejected the request.", False),
@@ -53,8 +59,14 @@ class VllmModelPort:
         enable_thinking: bool | None = None,
         constrain_output: bool = True,
         timeout_margin_s: float = 0.5,
+        on_delta: DeltaSink | None = None,
     ) -> None:
+        """`on_delta`, when given, makes every call stream: it is invoked on the event-loop thread with
+        (operation_id, kind, text) as tokens arrive. operation_id is "<run_id>:model:<n>", so an
+        application can route deltas to the right browser session. generate() still returns the
+        complete, validated-by-the-harness reply at the end."""
         self.client = client
+        self.on_delta = on_delta
         self.temperature = temperature
         self.enable_thinking = enable_thinking
         self.constrain_output = constrain_output
@@ -64,6 +76,16 @@ class VllmModelPort:
         token = CancelToken()
         # Finish slightly before the harness's own timer so our typed error wins over its generic one.
         budget = max(0.5, context.timeout_s - self.timeout_margin_s)
+        forward = None
+        if self.on_delta is not None:
+            loop = asyncio.get_running_loop()
+            sink, operation_id = self.on_delta, context.operation_id
+
+            def forward(kind: str, text: str) -> None:          # runs in the worker thread
+                try:
+                    loop.call_soon_threadsafe(sink, operation_id, kind, text)
+                except RuntimeError:                              # loop already closed: run is over
+                    pass
         call = asyncio.create_task(asyncio.to_thread(
             self.client.chat,
             to_chat_messages(request),
@@ -73,6 +95,7 @@ class VllmModelPort:
             json_schema=request.action_schema if self.constrain_output else None,
             enable_thinking=self.enable_thinking,
             cancel=token,
+            on_delta=forward,
         ))
         stop = asyncio.create_task(context.cancellation.wait())
         try:

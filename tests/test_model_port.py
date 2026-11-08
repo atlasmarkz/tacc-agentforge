@@ -136,3 +136,35 @@ def test_task_cancellation_stops_the_call(servers):
     t0 = time.monotonic()
     asyncio.run(scenario())
     assert time.monotonic() - t0 < 1.5
+
+
+def test_streaming_port_forwards_deltas_on_the_event_loop_thread(servers):
+    import threading
+    from tests.fake_vllm import Stream, sse_events
+    srv = servers([(200, Stream(sse_events(["{", json.dumps(ACTION)[1:]], reasoning=["hmm"]), interval_s=0.05), 0)])
+    seen, threads = [], set()
+
+    def sink(op_id, kind, text):
+        seen.append((op_id, kind, text))
+        threads.add(threading.get_ident())
+
+    async def scenario():
+        main = threading.get_ident()
+        reply = await port_for(srv, on_delta=sink).generate(make_request(), make_context(timeout_s=10))
+        await asyncio.sleep(0.05)                      # let queued call_soon_threadsafe callbacks run
+        return main, reply
+
+    main, reply = asyncio.run(scenario())
+    assert ACTION_ADAPTER.validate_json(reply.content).type == "ask_user"
+    assert reply.finish_reason == "stop" and reply.completion_tokens == 7
+    assert [k for _, k, _ in seen] == ["reasoning", "content", "content"]
+    assert {op for op, _, _ in seen} == {"r1:model:1"} and threads == {main}
+    assert srv.requests[0]["stream"] is True and "response_format" in srv.requests[0]
+
+
+def test_streaming_port_interruption_is_recoverable(servers):
+    from tests.fake_vllm import Stream, sse_events
+    srv = servers([(200, Stream(sse_events(["a", "b", "c"]), drop_after=3), 0)])
+    with pytest.raises(CapabilityError) as err:
+        asyncio.run(port_for(srv, on_delta=lambda *a: None).generate(make_request(), make_context()))
+    assert err.value.issue.code == "model_unavailable" and err.value.recoverable
