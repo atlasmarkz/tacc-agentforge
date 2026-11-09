@@ -1,0 +1,248 @@
+{
+  "schema_version": "1",
+  "notes": "Explicit source attributes only; omitted, unrecognized, and conflicting values are unknown. Numeric search uses REAL while canonical Decimal text is retained. Currency is never inferred from locale or a bare dollar sign. The fifth category is intentionally absent.",
+  "categories": {
+    "earbuds": {
+      "attributes": {
+        "anc": {
+          "type": "boolean",
+          "aliases": [
+            "active noise cancellation",
+            "noise cancellation",
+            "noise cancelling",
+            "noise control",
+            "Noise Canceling",
+            "Noise Cancelling"
+          ],
+          "true_values": [
+            "yes",
+            "true",
+            "active noise cancellation",
+            "active noise cancelling"
+          ],
+          "false_values": [
+            "no",
+            "false",
+            "none",
+            "no active noise cancellation"
+          ]
+        },
+        "battery_life": {
+          "type": "number",
+          "unit": "h",
+          "aliases": [
+            "battery life",
+            "battery life (hours)",
+            "playtime",
+            "max battery life"
+          ],
+          "units": {
+            "h": "1",
+            "hr": "1",
+            "hrs": "1",
+            "hour": "1",
+            "hours": "1",
+            "min": "0.0166666666666666667",
+            "minutes": "0.0166666666666666667"
+          }
+        },
+        "connectivity": {
+          "type": "string",
+          "aliases": [
+            "connectivity",
+            "connectivity technology",
+            "wireless type"
+          ]
+        },
+        "water_resistant": {
+          "type": "boolean",
+          "aliases": [
+            "water resistant",
+            "water resistance"
+          ],
+          "true_values": [
+            "yes",
+            "true",
+            "water resistant",
+            "waterproof"
+          ],
+          "false_values": [
+            "no",
+            "false",
+            "not water resistant"
+          ]
+        }
+      }
+    },
+    "chargers": {
+      "attributes": {
+        "power": {
+          "type": "number",
+          "unit": "W",
+          "aliases": [
+            "power",
+            "wattage",
+            "maximum output power",
+            "output power",
+            "charging power",
+            "watts",
+            "maximum output"
+          ],
+          "units": {
+            "W": "1",
+            "watt": "1",
+            "watts": "1",
+            "kW": "1000"
+          }
+        },
+        "capacity": {
+          "type": "number",
+          "unit": "mAh",
+          "aliases": [
+            "capacity",
+            "battery capacity",
+            "battery capacity (mah)",
+            "charge capacity"
+          ],
+          "units": {
+            "mAh": "1",
+            "Ah": "1000"
+          }
+        },
+        "ports": {
+          "type": "number",
+          "unit": "count",
+          "default_unit": "count",
+          "aliases": [
+            "number of ports",
+            "ports",
+            "total usb ports"
+          ],
+          "units": {
+            "count": "1",
+            "ports": "1"
+          }
+        },
+        "connector": {
+          "type": "string",
+          "aliases": [
+            "connector",
+            "connector type",
+            "usb type"
+          ]
+        }
+      }
+    },
+    "keyboards": {
+      "attributes": {
+        "wireless": {
+          "type": "boolean",
+          "aliases": [
+            "wireless",
+            "wireless connectivity"
+          ],
+          "true_values": [
+            "yes",
+            "true",
+            "wireless"
+          ],
+          "false_values": [
+            "no",
+            "false",
+            "wired"
+          ]
+        },
+        "connectivity": {
+          "type": "string",
+          "aliases": [
+            "connectivity",
+            "connectivity technology",
+            "connection type"
+          ]
+        },
+        "layout": {
+          "type": "string",
+          "aliases": [
+            "layout",
+            "keyboard layout",
+            "Language / Layout"
+          ]
+        },
+        "switch_type": {
+          "type": "string",
+          "aliases": [
+            "switch type",
+            "key switch type",
+            "keyboard switch type",
+            "Switch",
+            "Keyboard Switch"
+          ]
+        }
+      }
+    },
+    "backpacks": {
+      "attributes": {
+        "capacity": {
+          "type": "number",
+          "unit": "L",
+          "aliases": [
+            "capacity",
+            "storage capacity",
+            "volume",
+            "capacity (litres)"
+          ],
+          "units": {
+            "L": "1",
+            "litre": "1",
+            "litres": "1",
+            "liter": "1",
+            "liters": "1",
+            "mL": "0.001"
+          }
+        },
+        "laptop_size": {
+          "type": "number",
+          "unit": "in",
+          "aliases": [
+            "laptop size",
+            "maximum laptop size",
+            "fits laptop",
+            "screen size"
+          ],
+          "units": {
+            "in": "1",
+            "inch": "1",
+            "inches": "1",
+            "cm": "0.39370078740157480315"
+          }
+        },
+        "water_resistant": {
+          "type": "boolean",
+          "aliases": [
+            "water resistant",
+            "water resistance",
+            "waterproof"
+          ],
+          "true_values": [
+            "yes",
+            "true",
+            "water resistant",
+            "waterproof"
+          ],
+          "false_values": [
+            "no",
+            "false",
+            "not waterproof"
+          ]
+        },
+        "material": {
+          "type": "string",
+          "aliases": [
+            "material",
+            "outer material"
+          ]
+        }
+      }
+    }
+  }
+}

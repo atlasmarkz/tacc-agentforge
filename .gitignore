@@ -1,4 +1,7 @@
 __pycache__/
+.DS_Store
+.pytest_cache/
+.local/
 *.py[cod]
 .venv/
 .env
@@ -42,3 +45,12 @@ deploy/tacc/service/qwen-service/mode.txt
 
 # staged copy of the harness and adapter for the agent-e2e job
 deploy/tacc/service/agent-e2e/pkg/
+
+# Runtime KB data are separate from the versioned seed archive in assets/knowledge/.
+data/knowledge/
+data/serpapi/
+reports/knowledge/
+configs/knowledge.local.json
+deploy/tacc/knowledge-worker/_stage/
+deploy/tacc/knowledge-worker/.stage-build-*/
+deploy/tacc/knowledge-worker/runtime.json

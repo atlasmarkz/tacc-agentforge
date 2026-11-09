@@ -1,6 +1,8 @@
 # Shopping advisor implementation tasks
 
-All tasks below are planned. Dependencies refer to task numbers in this file.
+Collection and knowledge tasks 1–2 are implemented; their measured results and
+remaining data limitations are documented in `knowledge/README.md`.
+Other task checklists retain their owners' status. Dependencies refer to task numbers in this file.
 
 ## Task 0: Verify TACC file transport
 
@@ -21,9 +23,9 @@ is necessary for the file-transfer check.
 Add the backend acquisition adapter for Shopping discovery and Product enrichment.
 Keep credentials in the backend environment and fixtures free of secrets.
 
-- [ ] A small live sample is archived with query/locale, source IDs, and timestamps.
-- [ ] Missing fields, unavailable reviews, quota failures, and timeouts are explicit.
-- [ ] Retry/call limits and secret redaction pass focused fixture tests.
+- [x] A small live sample is archived with query/locale, source IDs, and timestamps.
+- [x] Missing fields, unavailable reviews, quota failures, and timeouts are explicit.
+- [x] Retry/call limits and secret redaction pass focused fixture tests.
 
 **Verification:** Adapter tests using sanitized success/error fixtures; a small
 quota-bounded live acquisition after an API key is configured.
@@ -36,9 +38,9 @@ quota-bounded live acquisition after an API key is configured.
 Normalize the acquisition output into products, variants, offers, and evidence;
 attach provenance and provide FTS5 retrieval.
 
-- [ ] Variant boundaries, decimal costs, currencies, missing fields, and duplicates are preserved correctly.
-- [ ] Retrieval returns ranked evidence IDs and resolvable source links.
-- [ ] A manifest exports/reloads a frozen snapshot with matching hashes and counts.
+- [x] Variant boundaries, decimal costs, currencies, missing fields, and duplicates are preserved correctly.
+- [x] Retrieval returns ranked evidence IDs and resolvable source links.
+- [x] A manifest exports/reloads a frozen snapshot with matching hashes and counts.
 
 **Verification:** Normalization, retrieval, deduplication, and snapshot round-trip
 tests; manual coverage audit of the collected sample.
@@ -48,9 +50,9 @@ tests; manual coverage audit of the collected sample.
 
 ## Checkpoint after collection and indexing
 
-- [ ] The raw-record-to-cited-evidence path works on the sample.
-- [ ] Missing review coverage and freshness limits are documented.
-- [ ] Secret scanning finds no API keys or private credentials in fixtures/results.
+- [x] The raw-record-to-cited-evidence path works on the sample.
+- [x] Missing review coverage and freshness limits are documented.
+- [x] Secret scanning finds no API keys or private credentials in fixtures/results.
 
 ## Task 3: Implement exact budget validation
 
