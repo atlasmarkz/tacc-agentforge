@@ -42,6 +42,18 @@ jobs:
           config.model_weak: openai/MiniMax-M3.1-Flash
           config.fallback_models: '[]'
           config.custom_model_max_tokens: '32000'
+          # MiniMax defaults to maximum thinking unless effort reaches the API.
+          config.additional_reasoning_effort_models: '["openai/MiniMax-M3.1-Flash"]'
+          config.reasoning_effort: 'low'
+          config.max_output_tokens: '8192'
+          config.ai_timeout: '300'
+          # Avoid multiplying the client and handler timeout retries.
+          config.num_retries: '0'
+          config.retry_same_model_on_timeout: 'false'
+          # Review large diffs in bounded chunks instead of pruning whole files.
+          pr_reviewer.enable_large_pr_chunking: 'true'
+          pr_reviewer.max_number_of_calls: '6'
+          pr_reviewer.enable_review_coverage_footer: 'true'
           github_action_config.auto_review: 'true'
           github_action_config.auto_describe: 'false'
           github_action_config.auto_improve: 'false'
