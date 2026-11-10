@@ -75,3 +75,19 @@ def test_fault_phase_measures_withdrawal_and_never_hangs(server, tmp_path):
     assert summary["address_gone_after_trigger_s"] < 1.0
     assert summary["hung_past_budget"] == 0
     assert any(k != "ok" for k in summary["outcomes_after_trigger"])     # callers saw a typed failure
+
+
+def test_runs_mode_replays_growing_conversations(server):
+    lg = load()
+    wl = {**WORKLOAD, "runs": [[[300, 20], [900, 30], [1500, 40]]]}
+    client = lg.ModelClient(base_url=server.url, max_attempts=1)
+    summary, recs = lg.runs_phase(client, wl, CAL, rate=3, duration=1.0, timeout=5, rng=random.Random(4))
+    assert summary["runs_started"] >= 1 and summary["runs_completed"] == summary["runs_started"]
+    assert all(len([r for r in recs if r["run"] == n]) == 3 for n in {r["run"] for r in recs})
+    # within one run each prompt starts with the whole previous prompt (prefix-cache reuse)
+    convs = {}
+    for body in server.requests:
+        convs.setdefault(body["messages"][1]["content"], []).append(body["messages"])
+    for msgs in convs.values():
+        for earlier, later in zip(msgs, msgs[1:]):
+            assert later[:len(earlier)] == earlier and len(later) > len(earlier)

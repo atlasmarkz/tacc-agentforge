@@ -105,6 +105,69 @@ def one_request(client, messages, out_tokens, timeout, origin, recs, lock):
     rec["done_s"] = round(time.monotonic() - origin, 3)
     with lock:
         recs.append(rec)
+    return rec
+
+
+ACTION = ('{"type":"call_tool","tool_name":"retrieve_evidence","arguments":{"query":"commute battery comfort",'
+          '"candidate_set_id":"cand_%s","k":5}}')
+
+
+def observation(rng, chars):
+    items, size = [], 0
+    while size < chars:
+        item = filler_item(rng)
+        items.append(item)
+        size += len(item) + 1
+    return '{"observation":{"status":"ok","tool":"search_products","data":{"candidates":[' + ",".join(items) + ']}}}'
+
+
+def run_session(client, wl, cal, steps, timeout, origin, recs, lock, rng, run_no):
+    """Replay one recorded harness run: each call appends an action and a new observation to the same
+    conversation, so earlier calls' prompts are a prefix of later ones (as in the real harness)."""
+    messages = make_messages(wl["system"], 0, rng, 0, 1)          # system + request, no filler
+    tokens = cal["base_tokens"]
+    for step, (target, out) in enumerate(steps):
+        if step > 0:
+            messages.append({"role": "assistant", "content": ACTION % f"{rng.getrandbits(64):016x}"})
+        grow = target - tokens - (40 if step > 0 else 0)
+        if grow > 60:
+            messages.append({"role": "user", "content": observation(rng, grow * cal["chars_per_token"])})
+        rec = one_request(client, list(messages), max(16, min(512, out)), timeout, origin, recs, lock)
+        rec.update(run=run_no, step=step)
+        if not rec["ok"]:
+            return
+        tokens = rec.get("prompt_tokens") or target
+
+
+def summarise_runs(recs, wall):
+    by_run = {}
+    for r in recs:
+        by_run.setdefault(r["run"], []).append(r)
+    complete = [rs for rs in by_run.values() if all(r["ok"] for r in rs)]
+    walls = [max(r["done_s"] for r in rs) - min(r["sent_s"] for r in rs) for rs in complete]
+    return {"runs_started": len(by_run), "runs_completed": len(complete),
+            "runs_per_min": round(len(complete) / wall * 60, 2),
+            "run_wall_s": {"p50": pct(walls, 0.5), "p95": pct(walls, 0.95), "max": pct(walls, 1)}}
+
+
+def runs_phase(client, wl, cal, rate, duration, timeout, rng):
+    recs, lock, counter = [], threading.Lock(), [0]
+
+    def launch(origin):
+        counter[0] += 1
+        steps = rng.choice(wl["runs"])
+        th = threading.Thread(target=run_session, daemon=True,
+                              args=(client, wl, cal, steps, timeout, origin, recs, lock, random.Random(rng.random()),
+                                    counter[0]))
+        th.start()
+        return th
+
+    origin, threads = schedule(rate, duration, rng, launch)
+    for th in threads:
+        th.join(timeout * 6 + 30)
+    wall = time.monotonic() - origin
+    calls = summarise(recs, rate, duration, wall)
+    return {**calls, "offered_runs_per_s": rate, **summarise_runs(recs, wall)}, recs
 
 
 def schedule(rate, duration, rng, launch):
@@ -227,7 +290,10 @@ def main():
     ap.add_argument("--address-file", type=Path,
                     default=Path(os.environ.get("TACC_USERDIR", ".")) / "tacc-agentforge-service/service-url.txt")
     ap.add_argument("--workload", type=Path, default=Path(__file__).with_name("workload.json"))
-    ap.add_argument("--rates", default="0.25,0.5,1,1.5,2,3")
+    ap.add_argument("--mode", choices=["calls", "runs"], default="calls",
+                    help="calls: independent requests (worst case, no prefix reuse); "
+                         "runs: whole harness runs replayed in order (prompts grow, prefix cache reused)")
+    ap.add_argument("--rates", default="0.25,0.5,1,1.5,2,3", help="requests/s (calls) or runs/s (runs)")
     ap.add_argument("--duration", type=float, default=60)
     ap.add_argument("--timeout", type=float, default=90)
     ap.add_argument("--skip-fault", action="store_true")
@@ -257,11 +323,14 @@ def main():
     report["phases"] = []
     for rate in [float(x) for x in a.rates.split(",")]:
         events.append({"t": round(time.time(), 3), "event": "phase_start", "rate": rate})
-        summary, recs = load_phase(raw, wl, cal, rate, a.duration, a.timeout, rng)
-        report["phases"].append({**summary, "requests": recs})
-        log(f"rate {rate}/s: sent {summary['sent']} ok {summary['ok']} errors {summary['errors']} "
+        phase = runs_phase if a.mode == "runs" else load_phase
+        summary, recs = phase(raw, wl, cal, rate, a.duration, a.timeout, rng)
+        report["phases"].append({"mode": a.mode, **summary, "requests": recs})
+        log(f"{a.mode} rate {rate}/s: sent {summary['sent']} ok {summary['ok']} errors {summary['errors']} "
             f"p50 {summary['latency_s']['p50']}s p95 {summary['latency_s']['p95']}s "
-            f"ttft p50 {summary['ttft_s']['p50']}s tput {summary['throughput_rps']}/s")
+            f"ttft p50 {summary['ttft_s']['p50']}s tput {summary['throughput_rps']}/s"
+            + (f" runs/min {summary['runs_per_min']} run p50 {summary['run_wall_s']['p50']}s "
+               f"p95 {summary['run_wall_s']['p95']}s" if a.mode == "runs" else ""))
         if (summary["error_rate"] or 0) > 0.2 or (summary["latency_s"]["p95"] or 0) > a.timeout / 2:
             report["saturated_at_rate"] = rate
             log(f"saturated at {rate}/s; not escalating further")

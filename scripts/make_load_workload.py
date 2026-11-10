@@ -4,6 +4,7 @@
   prompt plus the four knowledge tools and the action schema (built from the current code, not copied text).
 - `pairs`: (prompt_tokens, completion_tokens) of every model call in the think-off runs of TACC job 28561
   (real harness + knowledge tools + model), so the load test reproduces the real length distribution.
+- `runs`: the same calls grouped per harness run, in order, for replaying whole runs (growing prompts).
 
 Run from the repository root with the agent dependencies installed:
     PYTHONPATH=. python scripts/make_load_workload.py
@@ -42,13 +43,18 @@ def main():
              for run in report["runs"] if run["variant"] == "think-off"
              for c in run["model_calls"]
              if c.get("prompt_tokens") and c.get("completion_tokens")]
+    # Whole runs, in call order: within a run each prompt extends the previous one (prefix-cache reuse).
+    runs = [[[c["prompt_tokens"], c["completion_tokens"]] for c in run["model_calls"]
+             if c.get("prompt_tokens") and c.get("completion_tokens")]
+            for run in report["runs"] if run["variant"] == "think-off"]
+    runs = [r for r in runs if r]
     OUT.parent.mkdir(parents=True, exist_ok=True)
     OUT.write_text(json.dumps({
         "source": "think-off model calls of TACC job 28561 (harness + knowledge tools + Qwen3.8-27B)",
-        "system_chars": len(system), "pairs": pairs, "system": system,
+        "system_chars": len(system), "pairs": pairs, "runs": runs, "system": system,
     }, ensure_ascii=False, indent=1), encoding="utf-8")
     prompts = sorted(p for p, _ in pairs)
-    print(f"{len(pairs)} calls, prompt tokens min/median/max {prompts[0]}/{prompts[len(prompts)//2]}/{prompts[-1]}, "
+    print(f"{len(runs)} runs, {len(pairs)} calls, prompt tokens min/median/max {prompts[0]}/{prompts[len(prompts)//2]}/{prompts[-1]}, "
           f"system {len(system)} chars -> {OUT.relative_to(ROOT)}")
 
 

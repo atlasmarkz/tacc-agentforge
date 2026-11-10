@@ -15,6 +15,7 @@ import argparse
 import json
 import os
 import re
+import shutil
 import signal
 import socket
 import subprocess
@@ -108,14 +109,61 @@ def parse_gpu_csv(text: str) -> list[dict]:
     return gpus
 
 
+def nvml_reader():
+    """GPU reader through NVML (vLLM bundles a copy), or None if NVML is unavailable."""
+    try:
+        try:
+            import pynvml
+        except ImportError:
+            from vllm.third_party import pynvml
+        pynvml.nvmlInit()
+        handles = [pynvml.nvmlDeviceGetHandleByIndex(i) for i in range(pynvml.nvmlDeviceGetCount())]
+    except Exception:
+        return None
+
+    def read():
+        gpus = []
+        for i, h in enumerate(handles):
+            util, mem = pynvml.nvmlDeviceGetUtilizationRates(h), pynvml.nvmlDeviceGetMemoryInfo(h)
+            try:
+                power = round(pynvml.nvmlDeviceGetPowerUsage(h) / 1000, 1)
+            except Exception:
+                power = None
+            gpus.append({"index": i, "util_pct": float(util.gpu), "mem_used_mib": round(mem.used / 2**20),
+                         "mem_total_mib": round(mem.total / 2**20), "power_w": power})
+        return gpus
+    return read
+
+
+def smi_reader():
+    exe = shutil.which("nvidia-smi") or ("/usr/bin/nvidia-smi" if Path("/usr/bin/nvidia-smi").exists() else None)
+    if exe is None:
+        return None
+    return lambda: parse_gpu_csv(subprocess.run([exe, *GPU_QUERY[1:]], capture_output=True, text=True,
+                                                timeout=5, check=True).stdout)
+
+
 def gpu_sampler(out: Path, done: threading.Event, interval: float = 1.0) -> None:
+    """One line per second. The source used, or why sampling is impossible, goes to events.jsonl:
+    round 1 (job 28565) recorded nothing and said nothing, because errors were swallowed."""
+    read, source = nvml_reader(), "nvml"
+    if read is None:
+        read, source = smi_reader(), "nvidia-smi"
+    if read is None:
+        event(out, "gpu_sampler_unavailable", reason="neither NVML nor nvidia-smi is available")
+        return
+    event(out, "gpu_sampler_started", source=source)
+    reported = False
     with open(out / "gpu.jsonl", "a", encoding="utf-8") as f:
         while not done.wait(interval):
             try:
-                text = subprocess.run(GPU_QUERY, capture_output=True, text=True, timeout=5).stdout
-            except (OSError, subprocess.SubprocessError):
+                gpus = read()
+            except Exception as exc:
+                if not reported:                       # say it once, keep trying
+                    event(out, "gpu_sampler_error", error=f"{type(exc).__name__}: {exc}"[:300])
+                    reported = True
                 continue
-            f.write(json.dumps({"t": round(time.time(), 2), "gpus": parse_gpu_csv(text)}) + "\n")
+            f.write(json.dumps({"t": round(time.time(), 2), "gpus": gpus}) + "\n")
             f.flush()
 
 
