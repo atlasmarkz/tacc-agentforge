@@ -39,4 +39,7 @@ if ! PYTHONPATH="$LIB" qwen-python -c "import langgraph, pydantic; assert pydant
     PYTHONPATH="$LIB" qwen-python -c "import langgraph, pydantic; print('harness deps ok, pydantic', pydantic.VERSION)"
 fi
 export PYTHONPATH="$TACC_WORKDIR/pkg:$LIB${PYTHONPATH:+:$PYTHONPATH}"
-qwen-python -u e2e.py
+SCRIPT="$(tr -d '[:space:]' < script.txt 2>/dev/null || echo e2e.py)"
+ARGS="$(cat args.txt 2>/dev/null || true)"
+echo "script=$SCRIPT args=$ARGS"
+qwen-python -u "$SCRIPT" $ARGS

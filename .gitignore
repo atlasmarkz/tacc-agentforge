@@ -54,3 +54,5 @@ configs/knowledge.local.json
 deploy/tacc/knowledge-worker/_stage/
 deploy/tacc/knowledge-worker/.stage-build-*/
 deploy/tacc/knowledge-worker/runtime.json
+deploy/tacc/service/agent-e2e/script.txt
+deploy/tacc/service/agent-e2e/args.txt

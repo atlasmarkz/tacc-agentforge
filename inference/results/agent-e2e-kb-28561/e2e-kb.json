@@ -1,0 +1,3393 @@
+{
+  "env": {
+    "python": "3.12.14",
+    "pydantic": "2.14.2",
+    "job": "28561"
+  },
+  "network": {
+    "address": "http://10-0-1-10:8000/v1",
+    "waited_s": 0.0,
+    "this_node": "10-0-1-11",
+    "service_node": "10-0-1-10",
+    "same_node": false,
+    "resolved_ip": "10.0.1.10",
+    "tcp_connect_s": 0.0009,
+    "health_status": 200
+  },
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "runs": [
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 25268,
+        "completion_tokens": 491,
+        "unreported_token_calls": 0,
+        "elapsed_s": 14.206104
+      },
+      "wall_s": 14.21,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "get_offer_facts",
+        "retrieve_evidence"
+      ],
+      "timeline": [
+        [
+          0.02,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.85,
+          "action_selected:call_tool"
+        ],
+        [
+          0.86,
+          "tool_started:search_products"
+        ],
+        [
+          0.87,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.88,
+          "decision_started"
+        ],
+        [
+          1.87,
+          "action_selected:call_tool"
+        ],
+        [
+          1.87,
+          "tool_started:search_products"
+        ],
+        [
+          1.93,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.94,
+          "decision_started"
+        ],
+        [
+          6.36,
+          "action_selected:call_tool"
+        ],
+        [
+          6.36,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          6.38,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          6.39,
+          "decision_started"
+        ],
+        [
+          9.68,
+          "action_selected:call_tool"
+        ],
+        [
+          9.68,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          9.7,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          9.72,
+          "decision_started"
+        ],
+        [
+          14.2,
+          "action_selected:propose_plan"
+        ],
+        [
+          14.2,
+          "validation_finished:unavailable"
+        ],
+        [
+          14.21,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-off-1:model:1",
+          "s": 0.83,
+          "request_chars": 1429,
+          "prompt_tokens": 1622,
+          "completion_tokens": 47,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-1:model:2",
+          "s": 0.99,
+          "request_chars": 2226,
+          "prompt_tokens": 2019,
+          "completion_tokens": 42,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-1:model:3",
+          "s": 4.41,
+          "request_chars": 10759,
+          "prompt_tokens": 5331,
+          "completion_tokens": 116,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-1:model:4",
+          "s": 3.29,
+          "request_chars": 16068,
+          "prompt_tokens": 7434,
+          "completion_tokens": 86,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"Soundcore P20i true wireless earbuds 30 hour playtime water resistant clear calls Bluetooth 5.3 commute\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":5}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-1:model:5",
+          "s": 4.48,
+          "request_chars": 19274,
+          "prompt_tokens": 8862,
+          "completion_tokens": 200,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\",\"ev_14009e1ce70f66360e0f5edf\",\"ev_86bcefef8ef23b266178a374\",\"ev_234ff532e4d93884e5342083\",\"ev_fc2f3043d4a4d2714d4a865f\",\"ev_04b5e8c979244550f0f66309\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_267180016664816eae386568",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_83be5fe06fb0fd60d7c1d761",
+                "ev_14009e1ce70f66360e0f5edf",
+                "ev_86bcefef8ef23b266178a374",
+                "ev_234ff532e4d93884e5342083",
+                "ev_fc2f3043d4a4d2714d4a865f",
+                "ev_04b5e8c979244550f0f66309"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 486,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_267180016664816eae386568"
+          ],
+          "evidence_ids": [
+            "ev_04b5e8c979244550f0f66309",
+            "ev_14009e1ce70f66360e0f5edf",
+            "ev_234ff532e4d93884e5342083",
+            "ev_83be5fe06fb0fd60d7c1d761",
+            "ev_86bcefef8ef23b266178a374",
+            "ev_fc2f3043d4a4d2714d4a865f"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 13540,
+        "completion_tokens": 228,
+        "unreported_token_calls": 0,
+        "elapsed_s": 7.754848
+      },
+      "wall_s": 7.76,
+      "tools_used": [
+        "search_products",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.75,
+          "action_selected:call_tool"
+        ],
+        [
+          0.76,
+          "tool_started:search_products"
+        ],
+        [
+          0.81,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.82,
+          "decision_started"
+        ],
+        [
+          4.89,
+          "action_selected:call_tool"
+        ],
+        [
+          4.9,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          4.92,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          4.93,
+          "decision_started"
+        ],
+        [
+          7.75,
+          "action_selected:propose_plan"
+        ],
+        [
+          7.75,
+          "validation_finished:unavailable"
+        ],
+        [
+          7.76,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-off-1:model:1",
+          "s": 0.73,
+          "request_chars": 1384,
+          "prompt_tokens": 1614,
+          "completion_tokens": 41,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-off-1:model:2",
+          "s": 4.07,
+          "request_chars": 9970,
+          "prompt_tokens": 4915,
+          "completion_tokens": 113,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_36f26bbd1072a330b4f67047\",\"offer_a2b2db4e1aec5994da65a5ca\",\"offer_68acfb0a0f7dfddc2efb8340\",\"offer_1f8bf75b46d4083cecb9db38\"]}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-off-1:model:3",
+          "s": 2.82,
+          "request_chars": 15313,
+          "prompt_tokens": 7011,
+          "completion_tokens": 74,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_36f26bbd1072a330b4f67047\",\"quantity\":1,\"evidence_ids\":[\"ev_ecdfc16490c7c7af09483e2b\"]}]} }"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_36f26bbd1072a330b4f67047",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_ecdfc16490c7c7af09483e2b"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 225,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_36f26bbd1072a330b4f67047"
+          ],
+          "evidence_ids": [
+            "ev_ecdfc16490c7c7af09483e2b"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 24913,
+        "completion_tokens": 337,
+        "unreported_token_calls": 0,
+        "elapsed_s": 11.664894
+      },
+      "wall_s": 11.67,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "retrieve_evidence",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.81,
+          "action_selected:call_tool"
+        ],
+        [
+          0.82,
+          "tool_started:search_products"
+        ],
+        [
+          0.83,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.84,
+          "decision_started"
+        ],
+        [
+          1.79,
+          "action_selected:call_tool"
+        ],
+        [
+          1.79,
+          "tool_started:search_products"
+        ],
+        [
+          1.84,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.86,
+          "decision_started"
+        ],
+        [
+          5.83,
+          "action_selected:call_tool"
+        ],
+        [
+          5.83,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          5.85,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          5.87,
+          "decision_started"
+        ],
+        [
+          8.73,
+          "action_selected:call_tool"
+        ],
+        [
+          8.73,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          8.75,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          8.76,
+          "decision_started"
+        ],
+        [
+          11.66,
+          "action_selected:propose_plan"
+        ],
+        [
+          11.66,
+          "validation_finished:unavailable"
+        ],
+        [
+          11.67,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-off-1:model:1",
+          "s": 0.8,
+          "request_chars": 1417,
+          "prompt_tokens": 1614,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"type\":\"usb_c\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-1:model:2",
+          "s": 0.95,
+          "request_chars": 2210,
+          "prompt_tokens": 2004,
+          "completion_tokens": 40,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-1:model:3",
+          "s": 3.97,
+          "request_chars": 10728,
+          "prompt_tokens": 5366,
+          "completion_tokens": 85,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"USB-C wall charger for laptop and phone, 65W, dual port, under 60 USD\",\"candidate_set_id\":\"cand_05c801011386e998f75cc0b690900425\",\"k\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-1:model:4",
+          "s": 2.86,
+          "request_chars": 15539,
+          "prompt_tokens": 7595,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_b5c72a6d4ae994b03eb4c708\"]}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-1:model:5",
+          "s": 2.9,
+          "request_chars": 17297,
+          "prompt_tokens": 8334,
+          "completion_tokens": 122,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_b5c72a6d4ae994b03eb4c708\",\"quantity\":1,\"evidence_ids\":[\"ev_b9886c66226151ba1fb1d065\",\"ev_488c56047e8ec0300b789329\",\"ev_746edac77684c945ee03df8d\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_b5c72a6d4ae994b03eb4c708",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_b9886c66226151ba1fb1d065",
+                "ev_488c56047e8ec0300b789329",
+                "ev_746edac77684c945ee03df8d"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 332,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_b5c72a6d4ae994b03eb4c708"
+          ],
+          "evidence_ids": [
+            "ev_488c56047e8ec0300b789329",
+            "ev_746edac77684c945ee03df8d",
+            "ev_b9886c66226151ba1fb1d065"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 8602,
+        "completion_tokens": 100,
+        "unreported_token_calls": 0,
+        "elapsed_s": 5.01164
+      },
+      "wall_s": 5.01,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.1,
+          "action_selected:call_tool"
+        ],
+        [
+          1.1,
+          "tool_started:search_products"
+        ],
+        [
+          1.11,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.12,
+          "decision_started"
+        ],
+        [
+          1.85,
+          "action_selected:call_tool"
+        ],
+        [
+          1.85,
+          "tool_started:search_products"
+        ],
+        [
+          1.9,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.92,
+          "decision_started"
+        ],
+        [
+          5.0,
+          "action_selected:call_tool"
+        ],
+        [
+          5.0,
+          "tool_started:search_products"
+        ],
+        [
+          5.01,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          5.01,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-off-1:model:1",
+          "s": 1.08,
+          "request_chars": 1388,
+          "prompt_tokens": 1586,
+          "completion_tokens": 31,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"type\":\"mechanical\"},\"limit\":5}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-off-1:model:2",
+          "s": 0.73,
+          "request_chars": 2154,
+          "prompt_tokens": 1961,
+          "completion_tokens": 27,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\"},\"limit\":10}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-off-1:model:3",
+          "s": 3.08,
+          "request_chars": 10040,
+          "prompt_tokens": 5055,
+          "completion_tokens": 42,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"hard_constraints\":{\"type\":{\"op\":\"eq\",\"value\":\"mechanical\"}}},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 97,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "No wireless earbuds were found within your $5.00 budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different category?",
+      "required_fields": [
+        "budget_or_alternative_preference"
+      ],
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 3611,
+        "completion_tokens": 105,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.139585
+      },
+      "wall_s": 2.15,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          0.85,
+          "action_selected:call_tool"
+        ],
+        [
+          0.85,
+          "tool_started:search_products"
+        ],
+        [
+          0.86,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.87,
+          "decision_started"
+        ],
+        [
+          2.14,
+          "action_selected:ask_user"
+        ],
+        [
+          2.14,
+          "question_prepared"
+        ],
+        [
+          2.15,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-off-1:model:1",
+          "s": 0.83,
+          "request_chars": 1392,
+          "prompt_tokens": 1609,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-off-1:model:2",
+          "s": 1.26,
+          "request_chars": 2185,
+          "prompt_tokens": 2002,
+          "completion_tokens": 60,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"No wireless earbuds were found within your $5.00 budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different category?\",\"required_fields\":[\"budget_or_alternative_preference\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 103,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 25268,
+        "completion_tokens": 491,
+        "unreported_token_calls": 0,
+        "elapsed_s": 14.260234
+      },
+      "wall_s": 14.26,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "get_offer_facts",
+        "retrieve_evidence"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.85,
+          "action_selected:call_tool"
+        ],
+        [
+          0.85,
+          "tool_started:search_products"
+        ],
+        [
+          0.86,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.86,
+          "decision_started"
+        ],
+        [
+          1.86,
+          "action_selected:call_tool"
+        ],
+        [
+          1.87,
+          "tool_started:search_products"
+        ],
+        [
+          1.9,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.91,
+          "decision_started"
+        ],
+        [
+          6.38,
+          "action_selected:call_tool"
+        ],
+        [
+          6.38,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          6.39,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          6.4,
+          "decision_started"
+        ],
+        [
+          9.73,
+          "action_selected:call_tool"
+        ],
+        [
+          9.73,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          9.74,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          9.75,
+          "decision_started"
+        ],
+        [
+          14.25,
+          "action_selected:propose_plan"
+        ],
+        [
+          14.26,
+          "validation_finished:unavailable"
+        ],
+        [
+          14.26,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-off-2:model:1",
+          "s": 0.83,
+          "request_chars": 1429,
+          "prompt_tokens": 1622,
+          "completion_tokens": 47,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-2:model:2",
+          "s": 1.0,
+          "request_chars": 2226,
+          "prompt_tokens": 2019,
+          "completion_tokens": 42,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-2:model:3",
+          "s": 4.46,
+          "request_chars": 10759,
+          "prompt_tokens": 5331,
+          "completion_tokens": 116,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-2:model:4",
+          "s": 3.32,
+          "request_chars": 16068,
+          "prompt_tokens": 7434,
+          "completion_tokens": 86,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"Soundcore P20i true wireless earbuds 30 hour playtime water resistant clear calls Bluetooth 5.3 commute\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":5}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-off-2:model:5",
+          "s": 4.5,
+          "request_chars": 19274,
+          "prompt_tokens": 8862,
+          "completion_tokens": 200,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\",\"ev_14009e1ce70f66360e0f5edf\",\"ev_86bcefef8ef23b266178a374\",\"ev_234ff532e4d93884e5342083\",\"ev_fc2f3043d4a4d2714d4a865f\",\"ev_04b5e8c979244550f0f66309\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_267180016664816eae386568",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_83be5fe06fb0fd60d7c1d761",
+                "ev_14009e1ce70f66360e0f5edf",
+                "ev_86bcefef8ef23b266178a374",
+                "ev_234ff532e4d93884e5342083",
+                "ev_fc2f3043d4a4d2714d4a865f",
+                "ev_04b5e8c979244550f0f66309"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 486,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_267180016664816eae386568"
+          ],
+          "evidence_ids": [
+            "ev_04b5e8c979244550f0f66309",
+            "ev_14009e1ce70f66360e0f5edf",
+            "ev_234ff532e4d93884e5342083",
+            "ev_83be5fe06fb0fd60d7c1d761",
+            "ev_86bcefef8ef23b266178a374",
+            "ev_fc2f3043d4a4d2714d4a865f"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 2,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 13540,
+        "completion_tokens": 228,
+        "unreported_token_calls": 0,
+        "elapsed_s": 7.850669
+      },
+      "wall_s": 7.85,
+      "tools_used": [
+        "search_products",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.76,
+          "action_selected:call_tool"
+        ],
+        [
+          0.76,
+          "tool_started:search_products"
+        ],
+        [
+          0.78,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.8,
+          "decision_started"
+        ],
+        [
+          4.93,
+          "action_selected:call_tool"
+        ],
+        [
+          4.93,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          4.94,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          4.95,
+          "decision_started"
+        ],
+        [
+          7.84,
+          "action_selected:propose_plan"
+        ],
+        [
+          7.85,
+          "validation_finished:unavailable"
+        ],
+        [
+          7.85,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-off-2:model:1",
+          "s": 0.74,
+          "request_chars": 1384,
+          "prompt_tokens": 1614,
+          "completion_tokens": 41,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-off-2:model:2",
+          "s": 4.13,
+          "request_chars": 9970,
+          "prompt_tokens": 4915,
+          "completion_tokens": 113,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_36f26bbd1072a330b4f67047\",\"offer_a2b2db4e1aec5994da65a5ca\",\"offer_68acfb0a0f7dfddc2efb8340\",\"offer_1f8bf75b46d4083cecb9db38\"]}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-off-2:model:3",
+          "s": 2.89,
+          "request_chars": 15313,
+          "prompt_tokens": 7011,
+          "completion_tokens": 74,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_36f26bbd1072a330b4f67047\",\"quantity\":1,\"evidence_ids\":[\"ev_ecdfc16490c7c7af09483e2b\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_36f26bbd1072a330b4f67047",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_ecdfc16490c7c7af09483e2b"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 225,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_36f26bbd1072a330b4f67047"
+          ],
+          "evidence_ids": [
+            "ev_ecdfc16490c7c7af09483e2b"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 4,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 24913,
+        "completion_tokens": 337,
+        "unreported_token_calls": 0,
+        "elapsed_s": 11.625822
+      },
+      "wall_s": 11.63,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "retrieve_evidence",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          0.81,
+          "action_selected:call_tool"
+        ],
+        [
+          0.82,
+          "tool_started:search_products"
+        ],
+        [
+          0.82,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.83,
+          "decision_started"
+        ],
+        [
+          1.79,
+          "action_selected:call_tool"
+        ],
+        [
+          1.79,
+          "tool_started:search_products"
+        ],
+        [
+          1.82,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.83,
+          "decision_started"
+        ],
+        [
+          5.86,
+          "action_selected:call_tool"
+        ],
+        [
+          5.86,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          5.87,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          5.88,
+          "decision_started"
+        ],
+        [
+          8.69,
+          "action_selected:call_tool"
+        ],
+        [
+          8.69,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          8.7,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          8.71,
+          "decision_started"
+        ],
+        [
+          11.62,
+          "action_selected:propose_plan"
+        ],
+        [
+          11.62,
+          "validation_finished:unavailable"
+        ],
+        [
+          11.63,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-off-2:model:1",
+          "s": 0.8,
+          "request_chars": 1417,
+          "prompt_tokens": 1614,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"type\":\"usb_c\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-2:model:2",
+          "s": 0.96,
+          "request_chars": 2210,
+          "prompt_tokens": 2004,
+          "completion_tokens": 40,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-2:model:3",
+          "s": 4.02,
+          "request_chars": 10728,
+          "prompt_tokens": 5366,
+          "completion_tokens": 85,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"USB-C wall charger for laptop and phone, 65W, dual port, under 60 USD\",\"candidate_set_id\":\"cand_05c801011386e998f75cc0b690900425\",\"k\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-2:model:4",
+          "s": 2.81,
+          "request_chars": 15539,
+          "prompt_tokens": 7595,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_b5c72a6d4ae994b03eb4c708\"]}}"
+        },
+        {
+          "op": "kb-charger-60-think-off-2:model:5",
+          "s": 2.91,
+          "request_chars": 17297,
+          "prompt_tokens": 8334,
+          "completion_tokens": 122,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_b5c72a6d4ae994b03eb4c708\",\"quantity\":1,\"evidence_ids\":[\"ev_b9886c66226151ba1fb1d065\",\"ev_488c56047e8ec0300b789329\",\"ev_746edac77684c945ee03df8d\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_b5c72a6d4ae994b03eb4c708",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_b9886c66226151ba1fb1d065",
+                "ev_488c56047e8ec0300b789329",
+                "ev_746edac77684c945ee03df8d"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 332,
+        "reasoning": 0
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_b5c72a6d4ae994b03eb4c708"
+          ],
+          "evidence_ids": [
+            "ev_488c56047e8ec0300b789329",
+            "ev_746edac77684c945ee03df8d",
+            "ev_b9886c66226151ba1fb1d065"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 3,
+        "tool_calls": 3,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 8602,
+        "completion_tokens": 207,
+        "unreported_token_calls": 0,
+        "elapsed_s": 6.662901
+      },
+      "wall_s": 6.66,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.63,
+          "action_selected:call_tool"
+        ],
+        [
+          1.64,
+          "tool_started:search_products"
+        ],
+        [
+          1.64,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.65,
+          "decision_started"
+        ],
+        [
+          2.38,
+          "action_selected:call_tool"
+        ],
+        [
+          2.39,
+          "tool_started:search_products"
+        ],
+        [
+          2.41,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          2.42,
+          "decision_started"
+        ],
+        [
+          6.65,
+          "action_selected:call_tool"
+        ],
+        [
+          6.65,
+          "tool_started:search_products"
+        ],
+        [
+          6.66,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          6.66,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-off-2:model:1",
+          "s": 1.62,
+          "request_chars": 1388,
+          "prompt_tokens": 1586,
+          "completion_tokens": 66,
+          "finish": "stop",
+          "reply": "{\n  \"type\": \"call_tool\",\n  \"tool_name\": \"search_products\",\n  \"arguments\": {\n    \"filters\": {\n      \"category\": \"keyboards\",\n      \"type\": \"mechanical\"\n    },\n    \"limit\": 5\n  }\n}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-off-2:model:2",
+          "s": 0.73,
+          "request_chars": 2154,
+          "prompt_tokens": 1961,
+          "completion_tokens": 27,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\"},\"limit\":10}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-off-2:model:3",
+          "s": 4.22,
+          "request_chars": 10040,
+          "prompt_tokens": 5055,
+          "completion_tokens": 114,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"type\":\"mechanical\"},\"limit\":10,\"cursor\":\"eyJmIjoiNGNjZThiM2Y0ZWEwNjZlMmY5YTFhMGQ0YTM3OGRkZjk2NTQyYzMxY2NiZTFlMjliMzRhZDIzNDM4MTJiZTk0NyIsImkiOjR9\"}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 204,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "No wireless earbuds were found within your $5.00 budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different category?",
+      "required_fields": [
+        "budget_or_alternative_preference"
+      ],
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 3611,
+        "completion_tokens": 105,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.103417
+      },
+      "wall_s": 2.11,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          0.82,
+          "action_selected:call_tool"
+        ],
+        [
+          0.82,
+          "tool_started:search_products"
+        ],
+        [
+          0.82,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          0.83,
+          "decision_started"
+        ],
+        [
+          2.1,
+          "action_selected:ask_user"
+        ],
+        [
+          2.1,
+          "question_prepared"
+        ],
+        [
+          2.11,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-off-2:model:1",
+          "s": 0.8,
+          "request_chars": 1392,
+          "prompt_tokens": 1609,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-off-2:model:2",
+          "s": 1.27,
+          "request_chars": 2185,
+          "prompt_tokens": 2002,
+          "completion_tokens": 60,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"No wireless earbuds were found within your $5.00 budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different category?\",\"required_fields\":[\"budget_or_alternative_preference\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 103,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 16105,
+        "completion_tokens": 1650,
+        "unreported_token_calls": 0,
+        "elapsed_s": 30.725464
+      },
+      "wall_s": 30.73,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          4.64,
+          "action_selected:call_tool"
+        ],
+        [
+          4.65,
+          "tool_started:search_products"
+        ],
+        [
+          4.65,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          4.66,
+          "decision_started"
+        ],
+        [
+          6.17,
+          "action_selected:call_tool"
+        ],
+        [
+          6.18,
+          "tool_started:search_products"
+        ],
+        [
+          6.2,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          6.22,
+          "decision_started"
+        ],
+        [
+          17.52,
+          "action_selected:call_tool"
+        ],
+        [
+          17.52,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          17.54,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          17.55,
+          "decision_started"
+        ],
+        [
+          30.72,
+          "action_selected:propose_plan"
+        ],
+        [
+          30.72,
+          "validation_finished:unavailable"
+        ],
+        [
+          30.73,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-default-1:model:1",
+          "s": 4.63,
+          "request_chars": 1437,
+          "prompt_tokens": 1658,
+          "completion_tokens": 295,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":5}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:2",
+          "s": 1.51,
+          "request_chars": 2237,
+          "prompt_tokens": 2054,
+          "completion_tokens": 74,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:3",
+          "s": 11.3,
+          "request_chars": 10774,
+          "prompt_tokens": 5366,
+          "completion_tokens": 547,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_27570c2c5607e32a55a75eff\",\"offer_267180016664816eae386568\",\"offer_9abdcded66efad6da398fc54\"]}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:4",
+          "s": 13.16,
+          "request_chars": 14927,
+          "prompt_tokens": 7027,
+          "completion_tokens": 734,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_267180016664816eae386568",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_83be5fe06fb0fd60d7c1d761"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 249,
+        "reasoning": 1393
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_267180016664816eae386568"
+          ],
+          "evidence_ids": [
+            "ev_83be5fe06fb0fd60d7c1d761"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 20999,
+        "completion_tokens": 1308,
+        "unreported_token_calls": 0,
+        "elapsed_s": 25.668658
+      },
+      "wall_s": 25.67,
+      "tools_used": [
+        "search_products",
+        "retrieve_evidence",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          3.2,
+          "action_selected:call_tool"
+        ],
+        [
+          3.21,
+          "tool_started:search_products"
+        ],
+        [
+          3.23,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          3.25,
+          "decision_started"
+        ],
+        [
+          11.86,
+          "action_selected:call_tool"
+        ],
+        [
+          11.86,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          11.88,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          11.89,
+          "decision_started"
+        ],
+        [
+          16.68,
+          "action_selected:call_tool"
+        ],
+        [
+          16.69,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          16.69,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          16.7,
+          "decision_started"
+        ],
+        [
+          25.66,
+          "action_selected:propose_plan"
+        ],
+        [
+          25.67,
+          "validation_finished:unavailable"
+        ],
+        [
+          25.67,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-default-1:model:1",
+          "s": 3.19,
+          "request_chars": 1392,
+          "prompt_tokens": 1650,
+          "completion_tokens": 200,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-default-1:model:2",
+          "s": 8.61,
+          "request_chars": 9982,
+          "prompt_tokens": 4951,
+          "completion_tokens": 394,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"commuting laptop backpack suitability, USB charging, laptop compartment, durability for daily work commute\",\"candidate_set_id\":\"cand_3673caa0c28cf0023f0c5f8fa4d4ba0c\",\"k\":8}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-default-1:model:3",
+          "s": 4.79,
+          "request_chars": 14471,
+          "prompt_tokens": 6833,
+          "completion_tokens": 206,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_36f26bbd1072a330b4f67047\"]}}"
+        },
+        {
+          "op": "kb-backpack-zh-80-think-default-1:model:4",
+          "s": 8.96,
+          "request_chars": 16260,
+          "prompt_tokens": 7565,
+          "completion_tokens": 508,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_36f26bbd1072a330b4f67047\",\"quantity\":1,\"evidence_ids\":[\"ev_ecdfc16490c7c7af09483e2b\",\"ev_215785933c196701fe166e0a\",\"ev_35b4acb4b903ea6a1b8fc13f\",\"ev_922c0274de6b9d30a8fd50e2\",\"ev_5397fc66971b37dcfc15836e\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_36f26bbd1072a330b4f67047",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_ecdfc16490c7c7af09483e2b",
+                "ev_215785933c196701fe166e0a",
+                "ev_35b4acb4b903ea6a1b8fc13f",
+                "ev_922c0274de6b9d30a8fd50e2",
+                "ev_5397fc66971b37dcfc15836e"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 331,
+        "reasoning": 969
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_36f26bbd1072a330b4f67047"
+          ],
+          "evidence_ids": [
+            "ev_215785933c196701fe166e0a",
+            "ev_35b4acb4b903ea6a1b8fc13f",
+            "ev_5397fc66971b37dcfc15836e",
+            "ev_922c0274de6b9d30a8fd50e2",
+            "ev_ecdfc16490c7c7af09483e2b"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true,
+            true,
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "validation_unavailable",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "validator_not_implemented"
+      ],
+      "usage": {
+        "model_calls": 4,
+        "tool_calls": 3,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 15215,
+        "completion_tokens": 1886,
+        "unreported_token_calls": 0,
+        "elapsed_s": 33.89702
+      },
+      "wall_s": 33.9,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "get_offer_facts"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          2.92,
+          "action_selected:call_tool"
+        ],
+        [
+          2.92,
+          "tool_started:search_products"
+        ],
+        [
+          2.93,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          2.94,
+          "decision_started"
+        ],
+        [
+          4.41,
+          "action_selected:call_tool"
+        ],
+        [
+          4.41,
+          "tool_started:search_products"
+        ],
+        [
+          4.44,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          4.45,
+          "decision_started"
+        ],
+        [
+          16.33,
+          "action_selected:call_tool"
+        ],
+        [
+          16.34,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          16.34,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          16.35,
+          "decision_started"
+        ],
+        [
+          33.89,
+          "action_selected:propose_plan"
+        ],
+        [
+          33.89,
+          "validation_finished:unavailable"
+        ],
+        [
+          33.9,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-default-1:model:1",
+          "s": 2.9,
+          "request_chars": 1425,
+          "prompt_tokens": 1650,
+          "completion_tokens": 182,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"currency\":\"USD\",\"max_price_minor\":6000,\"type\":\"USB-C charger\"},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-default-1:model:2",
+          "s": 1.47,
+          "request_chars": 2230,
+          "prompt_tokens": 2034,
+          "completion_tokens": 72,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-charger-60-think-default-1:model:3",
+          "s": 11.88,
+          "request_chars": 10752,
+          "prompt_tokens": 5396,
+          "completion_tokens": 581,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_b5c72a6d4ae994b03eb4c708\"]}}"
+        },
+        {
+          "op": "kb-charger-60-think-default-1:model:4",
+          "s": 17.53,
+          "request_chars": 12514,
+          "prompt_tokens": 6135,
+          "completion_tokens": 1051,
+          "finish": "stop",
+          "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_b5c72a6d4ae994b03eb4c708\",\"quantity\":1,\"evidence_ids\":[\"ev_b9886c66226151ba1fb1d065\",\"ev_488c56047e8ec0300b789329\"]}]}}"
+        }
+      ],
+      "proposals": [
+        {
+          "items": [
+            {
+              "offer_id": "offer_b5c72a6d4ae994b03eb4c708",
+              "quantity": 1,
+              "evidence_ids": [
+                "ev_b9886c66226151ba1fb1d065",
+                "ev_488c56047e8ec0300b789329"
+              ]
+            }
+          ]
+        }
+      ],
+      "deltas": {
+        "content": 226,
+        "reasoning": 1652
+      },
+      "grounding": [
+        {
+          "offer_ids": [
+            "offer_b5c72a6d4ae994b03eb4c708"
+          ],
+          "evidence_ids": [
+            "ev_488c56047e8ec0300b789329",
+            "ev_b9886c66226151ba1fb1d065"
+          ],
+          "offers_seen_in_context": [
+            true
+          ],
+          "evidence_seen_in_context": [
+            true,
+            true
+          ],
+          "unknown_offers": [],
+          "unknown_evidence": [],
+          "grounded": true
+        }
+      ]
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "I searched the catalog and found no mechanical keyboards (0 results for type \"mechanical\" among all 80 keyboard listings). The available options are mostly wireless/membrane combos (e.g., Logitech MK235, Riitek RK200, Onn). Would you like me to suggest a non-mechanical keyboard for programming, or would you prefer to wait for mechanical options to become available?",
+      "required_fields": [
+        "accept_non_mechanical"
+      ],
+      "issues": [
+        "invalid_action"
+      ],
+      "usage": {
+        "model_calls": 5,
+        "tool_calls": 3,
+        "action_repairs": 1,
+        "plan_repairs": 0,
+        "prompt_tokens": 28119,
+        "completion_tokens": 1670,
+        "unreported_token_calls": 0,
+        "elapsed_s": 32.24505
+      },
+      "wall_s": 32.25,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.31,
+          "action_selected:call_tool"
+        ],
+        [
+          3.31,
+          "tool_started:search_products"
+        ],
+        [
+          3.34,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          3.35,
+          "decision_started"
+        ],
+        [
+          8.63,
+          "action_selected:call_tool"
+        ],
+        [
+          8.63,
+          "tool_started:search_products"
+        ],
+        [
+          8.64,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          8.65,
+          "decision_started"
+        ],
+        [
+          11.58,
+          "action_selected:call_tool"
+        ],
+        [
+          11.58,
+          "tool_started:search_products"
+        ],
+        [
+          11.64,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          11.65,
+          "decision_started"
+        ],
+        [
+          25.05,
+          "action_rejected:invalid_action"
+        ],
+        [
+          25.07,
+          "decision_started"
+        ],
+        [
+          32.24,
+          "action_selected:ask_user"
+        ],
+        [
+          32.25,
+          "question_prepared"
+        ],
+        [
+          32.25,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [
+        "action_rejected:invalid_action"
+      ],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:1",
+          "s": 3.29,
+          "request_chars": 1396,
+          "prompt_tokens": 1622,
+          "completion_tokens": 207,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\"},\"limit\":10}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:2",
+          "s": 5.27,
+          "request_chars": 9286,
+          "prompt_tokens": 4716,
+          "completion_tokens": 195,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"type\":\"mechanical\"},\"limit\":10}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:3",
+          "s": 2.93,
+          "request_chars": 10057,
+          "prompt_tokens": 5092,
+          "completion_tokens": 162,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\"},\"limit\":20}}"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:4",
+          "s": 13.4,
+          "request_chars": 17947,
+          "prompt_tokens": 8186,
+          "completion_tokens": 687,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"I searched the available catalog and found no mechanical keyboards (0 results for type \\\"mechanical\\\" across all 80 keyboard listings). The available keyboards are mostly wireless/membrane combos (e.g., Logitech MK235, Riitek RK200, Onn). Would you like me to suggest a non-mechanical keyboard for programming, or would you prefer to wait for mechanical options to become available?\",\"required_fields\":[\"accept_non_mechanical\"]}}\n\n{\"type\":\"ask_user\",\"question\":\"I searched the available catalog and found no mechanical keyboards (0 results for type \\\"mechanical\\\" across all 80 keyboard listings). The available keyboards are mostly wireless/membrane combos (e.g., Logi"
+        },
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:5",
+          "s": 7.17,
+          "request_chars": 19295,
+          "prompt_tokens": 8503,
+          "completion_tokens": 419,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"I searched the catalog and found no mechanical keyboards (0 results for type \\\"mechanical\\\" among all 80 keyboard listings). The available options are mostly wireless/membrane combos (e.g., Logitech MK235, Riitek RK200, Onn). Would you like me to suggest a non-mechanical keyboard for programming, or would you prefer to wait for mechanical options to become available?\",\"required_fields\":[\"accept_non_mechanical\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 396,
+        "reasoning": 1264
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "I couldn't find any wireless earbuds at or under $5.00 in the current catalog — the cheapest available is $6.11. Would you like to raise your budget (e.g., to $6.11 or higher) so I can propose a specific pair, or should I keep the $5.00 cap and report that no option fits?",
+      "required_fields": [
+        "budget_adjustment"
+      ],
+      "issues": [],
+      "usage": {
+        "model_calls": 8,
+        "tool_calls": 7,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 51954,
+        "completion_tokens": 3609,
+        "unreported_token_calls": 0,
+        "elapsed_s": 73.620002
+      },
+      "wall_s": 73.63,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "search_products",
+        "retrieve_evidence",
+        "retrieve_evidence",
+        "get_offer_facts",
+        "retrieve_evidence"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          5.73,
+          "action_selected:call_tool"
+        ],
+        [
+          5.73,
+          "tool_started:search_products"
+        ],
+        [
+          5.74,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          5.75,
+          "decision_started"
+        ],
+        [
+          7.46,
+          "action_selected:call_tool"
+        ],
+        [
+          7.46,
+          "tool_started:search_products"
+        ],
+        [
+          7.5,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          7.52,
+          "decision_started"
+        ],
+        [
+          14.33,
+          "action_selected:call_tool"
+        ],
+        [
+          14.33,
+          "tool_started:search_products"
+        ],
+        [
+          14.36,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          14.38,
+          "decision_started"
+        ],
+        [
+          17.3,
+          "action_selected:call_tool"
+        ],
+        [
+          17.3,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          17.32,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          17.33,
+          "decision_started"
+        ],
+        [
+          27.89,
+          "action_selected:call_tool"
+        ],
+        [
+          27.89,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          27.92,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          27.93,
+          "decision_started"
+        ],
+        [
+          44.2,
+          "action_selected:call_tool"
+        ],
+        [
+          44.2,
+          "tool_started:get_offer_facts"
+        ],
+        [
+          44.22,
+          "tool_finished:get_offer_facts:ok"
+        ],
+        [
+          44.23,
+          "decision_started"
+        ],
+        [
+          59.81,
+          "action_selected:call_tool"
+        ],
+        [
+          59.81,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          59.83,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          59.85,
+          "decision_started"
+        ],
+        [
+          73.62,
+          "action_selected:ask_user"
+        ],
+        [
+          73.62,
+          "question_prepared"
+        ],
+        [
+          73.63,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-default-1:model:1",
+          "s": 5.71,
+          "request_chars": 1400,
+          "prompt_tokens": 1645,
+          "completion_tokens": 365,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500,\"include_unknown\":true},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:2",
+          "s": 1.71,
+          "request_chars": 2220,
+          "prompt_tokens": 2037,
+          "completion_tokens": 82,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":500,\"include_unknown\":true},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:3",
+          "s": 6.81,
+          "request_chars": 6848,
+          "prompt_tokens": 3620,
+          "completion_tokens": 344,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":500,\"include_unknown\":false},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:4",
+          "s": 2.91,
+          "request_chars": 7651,
+          "prompt_tokens": 4007,
+          "completion_tokens": 145,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"wireless earbuds price under 5 USD affordable budget\",\"candidate_set_id\":\"cand_0147f2b28a1936050467272c677802b5\",\"k\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:5",
+          "s": 10.55,
+          "request_chars": 12839,
+          "prompt_tokens": 6352,
+          "completion_tokens": 560,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"candidate_set_id\":\"cand_0147f2b28a1936050467272c677802b5\",\"k\":20,\"query\":\"cheapest earbuds price $5 or less budget deal\"}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:6",
+          "s": 16.27,
+          "request_chars": 21602,
+          "prompt_tokens": 10442,
+          "completion_tokens": 826,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"variant_e474fff236a4a8e07ea60c9a\",\"variant_d6cbdc38ec9a8f3f353dc8bd\",\"variant_4a8fe465f20458cf7c9e435b\"]}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:7",
+          "s": 15.58,
+          "request_chars": 22377,
+          "prompt_tokens": 10848,
+          "completion_tokens": 944,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"candidate_set_id\":\"cand_0147f2b28a1936050467272c677802b5\",\"k\":20,\"query\":\"earbuds listing price $4 $3 $2 $1 cheapest under five dollars\"}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:8",
+          "s": 13.76,
+          "request_chars": 25650,
+          "prompt_tokens": 13003,
+          "completion_tokens": 343,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"I couldn't find any wireless earbuds at or under $5.00 in the current catalog — the cheapest available is $6.11. Would you like to raise your budget (e.g., to $6.11 or higher) so I can propose a specific pair, or should I keep the $5.00 cap and report that no option fits?\",\"required_fields\":[\"budget_adjustment\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 550,
+        "reasoning": 3043
+      },
+      "grounding": []
+    }
+  ],
+  "options": {
+    "tuned_policy": true,
+    "category_hint": true
+  },
+  "concurrent4": {
+    "wall_s": 33.97,
+    "statuses": [
+      "incomplete",
+      "incomplete",
+      "incomplete",
+      "incomplete"
+    ],
+    "run_wall_s": [
+      33.49,
+      33.95,
+      33.92,
+      25.67
+    ],
+    "runs": [
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 100,
+        "status": "incomplete",
+        "stop_reason": "validation_unavailable",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "validator_not_implemented"
+        ],
+        "usage": {
+          "model_calls": 5,
+          "tool_calls": 4,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 25392,
+          "completion_tokens": 468,
+          "unreported_token_calls": 0,
+          "elapsed_s": 33.488448
+        },
+        "wall_s": 33.49,
+        "tools_used": [
+          "search_products",
+          "search_products",
+          "get_offer_facts",
+          "retrieve_evidence"
+        ],
+        "timeline": [
+          [
+            0.03,
+            "run_started"
+          ],
+          [
+            0.05,
+            "decision_started"
+          ],
+          [
+            1.25,
+            "action_selected:call_tool"
+          ],
+          [
+            1.26,
+            "tool_started:search_products"
+          ],
+          [
+            1.27,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            1.28,
+            "decision_started"
+          ],
+          [
+            3.39,
+            "action_selected:call_tool"
+          ],
+          [
+            3.4,
+            "tool_started:search_products"
+          ],
+          [
+            3.48,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            3.49,
+            "decision_started"
+          ],
+          [
+            16.3,
+            "action_selected:call_tool"
+          ],
+          [
+            16.3,
+            "tool_started:get_offer_facts"
+          ],
+          [
+            16.31,
+            "tool_finished:get_offer_facts:ok"
+          ],
+          [
+            16.33,
+            "decision_started"
+          ],
+          [
+            28.44,
+            "action_selected:call_tool"
+          ],
+          [
+            28.45,
+            "tool_started:retrieve_evidence"
+          ],
+          [
+            28.47,
+            "tool_finished:retrieve_evidence:ok"
+          ],
+          [
+            28.49,
+            "decision_started"
+          ],
+          [
+            33.48,
+            "action_selected:propose_plan"
+          ],
+          [
+            33.49,
+            "validation_finished:unavailable"
+          ],
+          [
+            33.49,
+            "run_stopped:incomplete"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-100:model:1",
+            "s": 1.2,
+            "request_chars": 1433,
+            "prompt_tokens": 1626,
+            "completion_tokens": 47,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-100:model:2",
+            "s": 2.12,
+            "request_chars": 2232,
+            "prompt_tokens": 2025,
+            "completion_tokens": 42,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-100:model:3",
+            "s": 12.8,
+            "request_chars": 10767,
+            "prompt_tokens": 5339,
+            "completion_tokens": 116,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-100:model:4",
+            "s": 12.11,
+            "request_chars": 16078,
+            "prompt_tokens": 7444,
+            "completion_tokens": 92,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"Soundcore P20i true wireless earbuds 30H playtime water resistant Bluetooth 5.3 price $22.99 free shipping\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":5}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-100:model:5",
+            "s": 4.99,
+            "request_chars": 19555,
+            "prompt_tokens": 8958,
+            "completion_tokens": 171,
+            "finish": "stop",
+            "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\",\"ev_a43f086f0bb623de96ad4d69\",\"ev_14009e1ce70f66360e0f5edf\",\"ev_86bcefef8ef23b266178a374\",\"ev_234ff532e4d93884e5342083\"]}]}}"
+          }
+        ],
+        "proposals": [
+          {
+            "items": [
+              {
+                "offer_id": "offer_267180016664816eae386568",
+                "quantity": 1,
+                "evidence_ids": [
+                  "ev_83be5fe06fb0fd60d7c1d761",
+                  "ev_a43f086f0bb623de96ad4d69",
+                  "ev_14009e1ce70f66360e0f5edf",
+                  "ev_86bcefef8ef23b266178a374",
+                  "ev_234ff532e4d93884e5342083"
+                ]
+              }
+            ]
+          }
+        ],
+        "deltas": {
+          "content": 463,
+          "reasoning": 0
+        },
+        "grounding": [
+          {
+            "offer_ids": [
+              "offer_267180016664816eae386568"
+            ],
+            "evidence_ids": [
+              "ev_14009e1ce70f66360e0f5edf",
+              "ev_234ff532e4d93884e5342083",
+              "ev_83be5fe06fb0fd60d7c1d761",
+              "ev_86bcefef8ef23b266178a374",
+              "ev_a43f086f0bb623de96ad4d69"
+            ],
+            "offers_seen_in_context": [
+              true
+            ],
+            "evidence_seen_in_context": [
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "unknown_offers": [],
+            "unknown_evidence": [],
+            "grounded": true
+          }
+        ]
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 101,
+        "status": "incomplete",
+        "stop_reason": "validation_unavailable",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "validator_not_implemented"
+        ],
+        "usage": {
+          "model_calls": 5,
+          "tool_calls": 4,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 25308,
+          "completion_tokens": 491,
+          "unreported_token_calls": 0,
+          "elapsed_s": 33.951714
+        },
+        "wall_s": 33.95,
+        "tools_used": [
+          "search_products",
+          "search_products",
+          "get_offer_facts",
+          "retrieve_evidence"
+        ],
+        "timeline": [
+          [
+            0.02,
+            "run_started"
+          ],
+          [
+            0.04,
+            "decision_started"
+          ],
+          [
+            1.25,
+            "action_selected:call_tool"
+          ],
+          [
+            1.25,
+            "tool_started:search_products"
+          ],
+          [
+            1.27,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            1.28,
+            "decision_started"
+          ],
+          [
+            3.38,
+            "action_selected:call_tool"
+          ],
+          [
+            3.39,
+            "tool_started:search_products"
+          ],
+          [
+            3.44,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            3.45,
+            "decision_started"
+          ],
+          [
+            16.27,
+            "action_selected:call_tool"
+          ],
+          [
+            16.27,
+            "tool_started:get_offer_facts"
+          ],
+          [
+            16.28,
+            "tool_finished:get_offer_facts:ok"
+          ],
+          [
+            16.29,
+            "decision_started"
+          ],
+          [
+            25.92,
+            "action_selected:call_tool"
+          ],
+          [
+            25.93,
+            "tool_started:retrieve_evidence"
+          ],
+          [
+            25.94,
+            "tool_finished:retrieve_evidence:ok"
+          ],
+          [
+            25.95,
+            "decision_started"
+          ],
+          [
+            33.95,
+            "action_selected:propose_plan"
+          ],
+          [
+            33.95,
+            "validation_finished:unavailable"
+          ],
+          [
+            33.95,
+            "run_stopped:incomplete"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-101:model:1",
+            "s": 1.21,
+            "request_chars": 1433,
+            "prompt_tokens": 1626,
+            "completion_tokens": 47,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-101:model:2",
+            "s": 2.1,
+            "request_chars": 2232,
+            "prompt_tokens": 2025,
+            "completion_tokens": 42,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-101:model:3",
+            "s": 12.82,
+            "request_chars": 10767,
+            "prompt_tokens": 5339,
+            "completion_tokens": 116,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-101:model:4",
+            "s": 9.63,
+            "request_chars": 16078,
+            "prompt_tokens": 7444,
+            "completion_tokens": 86,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"Soundcore P20i true wireless earbuds 30 hour playtime water resistant clear calls Bluetooth 5.3 commute\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":5}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-101:model:5",
+            "s": 8.0,
+            "request_chars": 19286,
+            "prompt_tokens": 8874,
+            "completion_tokens": 200,
+            "finish": "stop",
+            "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\",\"ev_14009e1ce70f66360e0f5edf\",\"ev_86bcefef8ef23b266178a374\",\"ev_234ff532e4d93884e5342083\",\"ev_fc2f3043d4a4d2714d4a865f\",\"ev_04b5e8c979244550f0f66309\"]}]}}"
+          }
+        ],
+        "proposals": [
+          {
+            "items": [
+              {
+                "offer_id": "offer_267180016664816eae386568",
+                "quantity": 1,
+                "evidence_ids": [
+                  "ev_83be5fe06fb0fd60d7c1d761",
+                  "ev_14009e1ce70f66360e0f5edf",
+                  "ev_86bcefef8ef23b266178a374",
+                  "ev_234ff532e4d93884e5342083",
+                  "ev_fc2f3043d4a4d2714d4a865f",
+                  "ev_04b5e8c979244550f0f66309"
+                ]
+              }
+            ]
+          }
+        ],
+        "deltas": {
+          "content": 486,
+          "reasoning": 0
+        },
+        "grounding": [
+          {
+            "offer_ids": [
+              "offer_267180016664816eae386568"
+            ],
+            "evidence_ids": [
+              "ev_04b5e8c979244550f0f66309",
+              "ev_14009e1ce70f66360e0f5edf",
+              "ev_234ff532e4d93884e5342083",
+              "ev_83be5fe06fb0fd60d7c1d761",
+              "ev_86bcefef8ef23b266178a374",
+              "ev_fc2f3043d4a4d2714d4a865f"
+            ],
+            "offers_seen_in_context": [
+              true
+            ],
+            "evidence_seen_in_context": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "unknown_offers": [],
+            "unknown_evidence": [],
+            "grounded": true
+          }
+        ]
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 102,
+        "status": "incomplete",
+        "stop_reason": "validation_unavailable",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "validator_not_implemented"
+        ],
+        "usage": {
+          "model_calls": 5,
+          "tool_calls": 4,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 25308,
+          "completion_tokens": 491,
+          "unreported_token_calls": 0,
+          "elapsed_s": 33.915369
+        },
+        "wall_s": 33.92,
+        "tools_used": [
+          "search_products",
+          "search_products",
+          "get_offer_facts",
+          "retrieve_evidence"
+        ],
+        "timeline": [
+          [
+            0.02,
+            "run_started"
+          ],
+          [
+            0.05,
+            "decision_started"
+          ],
+          [
+            1.2,
+            "action_selected:call_tool"
+          ],
+          [
+            1.21,
+            "tool_started:search_products"
+          ],
+          [
+            1.21,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            1.22,
+            "decision_started"
+          ],
+          [
+            3.33,
+            "action_selected:call_tool"
+          ],
+          [
+            3.34,
+            "tool_started:search_products"
+          ],
+          [
+            3.36,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            3.37,
+            "decision_started"
+          ],
+          [
+            16.2,
+            "action_selected:call_tool"
+          ],
+          [
+            16.2,
+            "tool_started:get_offer_facts"
+          ],
+          [
+            16.21,
+            "tool_finished:get_offer_facts:ok"
+          ],
+          [
+            16.22,
+            "decision_started"
+          ],
+          [
+            25.86,
+            "action_selected:call_tool"
+          ],
+          [
+            25.87,
+            "tool_started:retrieve_evidence"
+          ],
+          [
+            25.88,
+            "tool_finished:retrieve_evidence:ok"
+          ],
+          [
+            25.89,
+            "decision_started"
+          ],
+          [
+            33.91,
+            "action_selected:propose_plan"
+          ],
+          [
+            33.91,
+            "validation_finished:unavailable"
+          ],
+          [
+            33.92,
+            "run_stopped:incomplete"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-102:model:1",
+            "s": 1.15,
+            "request_chars": 1433,
+            "prompt_tokens": 1626,
+            "completion_tokens": 47,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-102:model:2",
+            "s": 2.11,
+            "request_chars": 2232,
+            "prompt_tokens": 2025,
+            "completion_tokens": 42,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-102:model:3",
+            "s": 12.82,
+            "request_chars": 10767,
+            "prompt_tokens": 5339,
+            "completion_tokens": 116,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-102:model:4",
+            "s": 9.64,
+            "request_chars": 16078,
+            "prompt_tokens": 7444,
+            "completion_tokens": 86,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"Soundcore P20i true wireless earbuds 30 hour playtime water resistant clear calls Bluetooth 5.3 commute\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":5}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-102:model:5",
+            "s": 8.02,
+            "request_chars": 19286,
+            "prompt_tokens": 8874,
+            "completion_tokens": 200,
+            "finish": "stop",
+            "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\",\"ev_14009e1ce70f66360e0f5edf\",\"ev_86bcefef8ef23b266178a374\",\"ev_234ff532e4d93884e5342083\",\"ev_fc2f3043d4a4d2714d4a865f\",\"ev_04b5e8c979244550f0f66309\"]}]}}"
+          }
+        ],
+        "proposals": [
+          {
+            "items": [
+              {
+                "offer_id": "offer_267180016664816eae386568",
+                "quantity": 1,
+                "evidence_ids": [
+                  "ev_83be5fe06fb0fd60d7c1d761",
+                  "ev_14009e1ce70f66360e0f5edf",
+                  "ev_86bcefef8ef23b266178a374",
+                  "ev_234ff532e4d93884e5342083",
+                  "ev_fc2f3043d4a4d2714d4a865f",
+                  "ev_04b5e8c979244550f0f66309"
+                ]
+              }
+            ]
+          }
+        ],
+        "deltas": {
+          "content": 486,
+          "reasoning": 0
+        },
+        "grounding": [
+          {
+            "offer_ids": [
+              "offer_267180016664816eae386568"
+            ],
+            "evidence_ids": [
+              "ev_04b5e8c979244550f0f66309",
+              "ev_14009e1ce70f66360e0f5edf",
+              "ev_234ff532e4d93884e5342083",
+              "ev_83be5fe06fb0fd60d7c1d761",
+              "ev_86bcefef8ef23b266178a374",
+              "ev_fc2f3043d4a4d2714d4a865f"
+            ],
+            "offers_seen_in_context": [
+              true
+            ],
+            "evidence_seen_in_context": [
+              true,
+              true,
+              true,
+              true,
+              true,
+              true
+            ],
+            "unknown_offers": [],
+            "unknown_evidence": [],
+            "grounded": true
+          }
+        ]
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 103,
+        "status": "incomplete",
+        "stop_reason": "validation_unavailable",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "validator_not_implemented"
+        ],
+        "usage": {
+          "model_calls": 4,
+          "tool_calls": 3,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 16434,
+          "completion_tokens": 279,
+          "unreported_token_calls": 0,
+          "elapsed_s": 25.666545
+        },
+        "wall_s": 25.67,
+        "tools_used": [
+          "search_products",
+          "search_products",
+          "get_offer_facts"
+        ],
+        "timeline": [
+          [
+            0.01,
+            "run_started"
+          ],
+          [
+            0.04,
+            "decision_started"
+          ],
+          [
+            1.24,
+            "action_selected:call_tool"
+          ],
+          [
+            1.24,
+            "tool_started:search_products"
+          ],
+          [
+            1.27,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            1.28,
+            "decision_started"
+          ],
+          [
+            3.37,
+            "action_selected:call_tool"
+          ],
+          [
+            3.38,
+            "tool_started:search_products"
+          ],
+          [
+            3.4,
+            "tool_finished:search_products:ok"
+          ],
+          [
+            3.43,
+            "decision_started"
+          ],
+          [
+            16.23,
+            "action_selected:call_tool"
+          ],
+          [
+            16.23,
+            "tool_started:get_offer_facts"
+          ],
+          [
+            16.24,
+            "tool_finished:get_offer_facts:ok"
+          ],
+          [
+            16.26,
+            "decision_started"
+          ],
+          [
+            25.66,
+            "action_selected:propose_plan"
+          ],
+          [
+            25.66,
+            "validation_finished:unavailable"
+          ],
+          [
+            25.67,
+            "run_stopped:incomplete"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-103:model:1",
+            "s": 1.19,
+            "request_chars": 1433,
+            "prompt_tokens": 1626,
+            "completion_tokens": 47,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-103:model:2",
+            "s": 2.09,
+            "request_chars": 2232,
+            "prompt_tokens": 2025,
+            "completion_tokens": 42,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-103:model:3",
+            "s": 12.8,
+            "request_chars": 10767,
+            "prompt_tokens": 5339,
+            "completion_tokens": 116,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"get_offer_facts\",\"arguments\":{\"offer_ids\":[\"offer_640a303bc366430cfd53139e\",\"offer_9abdcded66efad6da398fc54\",\"offer_267180016664816eae386568\",\"offer_27570c2c5607e32a55a75eff\"]}}"
+          },
+          {
+            "op": "kb-earbuds-100-think-off-103:model:4",
+            "s": 9.4,
+            "request_chars": 16078,
+            "prompt_tokens": 7444,
+            "completion_tokens": 74,
+            "finish": "stop",
+            "reply": "{\"type\":\"propose_plan\",\"plan\":{\"items\":[{\"offer_id\":\"offer_267180016664816eae386568\",\"quantity\":1,\"evidence_ids\":[\"ev_83be5fe06fb0fd60d7c1d761\"]}]}}"
+          }
+        ],
+        "proposals": [
+          {
+            "items": [
+              {
+                "offer_id": "offer_267180016664816eae386568",
+                "quantity": 1,
+                "evidence_ids": [
+                  "ev_83be5fe06fb0fd60d7c1d761"
+                ]
+              }
+            ]
+          }
+        ],
+        "deltas": {
+          "content": 275,
+          "reasoning": 0
+        },
+        "grounding": [
+          {
+            "offer_ids": [
+              "offer_267180016664816eae386568"
+            ],
+            "evidence_ids": [
+              "ev_83be5fe06fb0fd60d7c1d761"
+            ],
+            "offers_seen_in_context": [
+              true
+            ],
+            "evidence_seen_in_context": [
+              true
+            ],
+            "unknown_offers": [],
+            "unknown_evidence": [],
+            "grounded": true
+          }
+        ]
+      }
+    ]
+  },
+  "summary": {
+    "earbuds-100/think-off": [
+      "incomplete(validation_unavailable) 14.21s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence']",
+      "incomplete(validation_unavailable) 14.26s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence']"
+    ],
+    "backpack-zh-80/think-off": [
+      "incomplete(validation_unavailable) 7.76s tools=['search_products', 'get_offer_facts']",
+      "incomplete(validation_unavailable) 7.85s tools=['search_products', 'get_offer_facts']"
+    ],
+    "charger-60/think-off": [
+      "incomplete(validation_unavailable) 11.67s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts']",
+      "incomplete(validation_unavailable) 11.63s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts']"
+    ],
+    "keyboard-no-budget/think-off": [
+      "failed(invalid_arguments) 5.01s tools=['search_products', 'search_products', 'search_products']",
+      "failed(invalid_arguments) 6.66s tools=['search_products', 'search_products', 'search_products']"
+    ],
+    "earbuds-5/think-off": [
+      "waiting_user(-) 2.15s tools=['search_products']",
+      "waiting_user(-) 2.11s tools=['search_products']"
+    ],
+    "earbuds-100/think-default": [
+      "incomplete(validation_unavailable) 30.73s tools=['search_products', 'search_products', 'get_offer_facts']"
+    ],
+    "backpack-zh-80/think-default": [
+      "incomplete(validation_unavailable) 25.67s tools=['search_products', 'retrieve_evidence', 'get_offer_facts']"
+    ],
+    "charger-60/think-default": [
+      "incomplete(validation_unavailable) 33.9s tools=['search_products', 'search_products', 'get_offer_facts']"
+    ],
+    "keyboard-no-budget/think-default": [
+      "waiting_user(-) 32.25s tools=['search_products', 'search_products', 'search_products']"
+    ],
+    "earbuds-5/think-default": [
+      "waiting_user(-) 73.63s tools=['search_products', 'search_products', 'search_products', 'retrieve_evidence', 'retrieve_evidence', 'get_offer_facts', 'retrieve_evidence']"
+    ]
+  }
+}
