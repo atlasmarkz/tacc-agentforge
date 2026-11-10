@@ -233,6 +233,10 @@ def fault_phase(address_file, address, wl, cal, rate, duration, kill_at, timeout
             if "address_gone_s" not in marks and not address_file.exists():
                 marks["address_gone_s"] = round(time.monotonic() - origin_box[0], 3)
                 events.append({"t": round(time.time(), 3), "event": "address_gone_seen"})
+            elif "address_gone_s" in marks and "address_back_s" not in marks and address_file.exists():
+                marks["address_back_s"] = round(time.monotonic() - origin_box[0], 3)       # service recovered
+                events.append({"t": round(time.time(), 3), "event": "address_back_seen",
+                               "address": address_file.read_text(encoding="utf-8").strip()})
 
     origin_box = [time.monotonic()]
 
@@ -267,8 +271,12 @@ def fault_phase(address_file, address, wl, cal, rate, duration, kill_at, timeout
         "trigger_s": t_kill, "address_gone_s": marks.get("address_gone_s"),
         "address_gone_after_trigger_s": (round(marks["address_gone_s"] - t_kill, 3)
                                          if t_kill is not None and "address_gone_s" in marks else None),
+        "address_back_after_trigger_s": (round(marks["address_back_s"] - t_kill, 3)
+                                         if t_kill is not None and "address_back_s" in marks else None),
         "first_error_after_trigger_s": round(first_error - t_kill, 3) if first_error is not None else None,
         "outcomes_after_trigger": outcomes,
+        "ok_after_recovery": sum(1 for r in recs if r["ok"] and "address_back_s" in marks
+                                 and r["sent_s"] >= marks["address_back_s"]),
         "in_flight_at_trigger": sum(1 for r in recs if t_kill is not None and r["sent_s"] < t_kill <= r["done_s"]),
         "hung_past_budget": sum(1 for r in recs if r["latency_s"] > timeout + 2),
         "max_latency_s": max((r["latency_s"] for r in recs), default=None),

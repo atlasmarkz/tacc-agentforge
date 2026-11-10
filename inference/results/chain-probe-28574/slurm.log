@@ -1,0 +1,26 @@
+node=10-0-1-10 job=28574 user=markzhang
+sbatch=/usr/bin/sbatch
+squeue=/usr/bin/squeue
+scancel=/usr/bin/scancel
+scontrol=/usr/bin/scontrol
+--- run.slurm of this job exists?
+-rwxr-xr-x 1 markzhang markzhang 389 Nov 10 15:13 /mnt/home/markzhang/WORKDIR/chain-probe/configurations/run.slurm
+--- my jobs
+28574 chain-probe RUNNING 0:02 5:00
+--- time limit of this job
+TimeLimit=00:05:00
+StartTime=2026-11-10T15:13:59
+EndTime=2026-11-10T15:18:59
+--- test-only submission
+sbatch: Job 28575 to start at 2026-11-10T15:26:01 using 20 processors on 10-0-1-11
+--- real submission of a 1-minute child that starts in 60 s
+child_submit_rc=0 child=28576
+--- after submit
+28576 chain-child PENDING BeginTime 2026-11-10T15:15:01
+28574 chain-probe RUNNING None 2026-11-10T15:13:59
+--- submission with dependency on this job
+dep_submit_rc=0 dep=28577
+28576 chain-child PENDING BeginTime 2026-11-10T15:15:01
+28577 chain-dep PENDING Dependency N/A
+28574 chain-probe RUNNING None 2026-11-10T15:13:59
+PROBE_DONE

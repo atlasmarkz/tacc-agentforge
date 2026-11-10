@@ -28,5 +28,7 @@ if [ "$MODE" = validate ]; then
     # Validation run (load and fault tests): the load job may ask this service to kill vLLM.
     ARGS+=(--allow-fault-injection)
 fi
-qwen-python -u serve.py "${ARGS[@]}"
+# Optional extra serve.py options (git-ignored args.txt), e.g. --deadline-s 1500 --handover-lead-s 600
+read -r -a EXTRA <<< "$(cat args.txt 2>/dev/null || true)"
+qwen-python -u serve.py "${ARGS[@]}" ${EXTRA[@]+"${EXTRA[@]}"}
 echo "RESULTS_DIR=$OUT"

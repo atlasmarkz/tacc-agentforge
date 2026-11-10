@@ -8,6 +8,11 @@
 - With --smoke it also runs smoke.py against the live server; with --exit-after-smoke it then stops.
 - GPU utilisation, memory and power are sampled every second into gpu.jsonl.
 - vLLM exit is noticed within about a second (not only at the next probe), so the address is withdrawn fast.
+- Recovery inside the job: after a vLLM crash or 3 failed probes, the address is withdrawn and vLLM is
+  restarted (--max-restarts; only while --min-restart-time-s of job time remains), then re-published.
+- Handover across the 1-hour job limit (--handover-lead-s > 0): that long before the deadline the job
+  submits its successor (its own run.slurm) if service-chain.json allows; when the successor publishes its
+  address, this job lets running requests finish and exits. Write service-stop to end the chain.
 - Test only: with --allow-fault-injection, a client can write this service's address into the file
   `fault-request` next to the address file, and vLLM is killed (SIGKILL). Timestamps go to events.jsonl.
 """
@@ -167,7 +172,8 @@ def gpu_sampler(out: Path, done: threading.Event, interval: float = 1.0) -> None
             f.flush()
 
 
-def fault_watcher(trigger: Path, address: str, proc: subprocess.Popen, out: Path, done: threading.Event) -> None:
+def fault_watcher(trigger: Path, address: str, current: dict, out: Path, done: threading.Event) -> None:
+    """Test only: kill the current vLLM each time a client writes this service's address into `trigger`."""
     while not done.wait(0.5):
         try:
             target = trigger.read_text(encoding="utf-8").strip()
@@ -176,12 +182,122 @@ def fault_watcher(trigger: Path, address: str, proc: subprocess.Popen, out: Path
         if target != address:           # never kill a service the request was not meant for
             continue
         trigger.unlink(missing_ok=True)
-        event(out, "fault_kill", target=target)
+        proc = current.get("proc")
+        event(out, "fault_kill", target=target, pid=proc.pid if proc else None)
         try:
             os.killpg(proc.pid, signal.SIGKILL)
-        except OSError as exc:
+        except (OSError, AttributeError) as exc:
             event(out, "fault_kill_failed", error=str(exc))
+
+
+def stop_vllm(proc: subprocess.Popen) -> None:
+    if proc.poll() is not None:
         return
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(60)
+    except Exception:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait(30)
+        except Exception:
+            pass
+
+
+def wait_ready(proc, local, timeout_s) -> str:
+    """'ready', 'exited', 'timeout' or 'stopping'."""
+    t0 = time.monotonic()
+    while True:
+        if stopping:
+            return "stopping"
+        if proc.poll() is not None:
+            return "exited"
+        if time.monotonic() - t0 > timeout_s:
+            return "timeout"
+        try:
+            urlopen(f"http://127.0.0.1:{PORT}/health", timeout=3)
+        except OSError:
+            time.sleep(5)
+            continue
+        ok, took, why = probe(local)
+        log(f"probe ok={ok} {took:.2f}s {why}")
+        if ok:
+            return "ready"
+        time.sleep(5)
+
+
+def read_address(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def submit_successor(out: Path, chain_file: Path) -> None:
+    """Submit the next service job (the same uploaded job directory) if the chain allows it."""
+    try:
+        chain = json.loads(chain_file.read_text(encoding="utf-8"))
+        remaining = int(chain.get("remaining", 0))
+    except (OSError, ValueError):
+        remaining = 0
+    if remaining <= 0 or (chain_file.parent / "service-stop").exists():
+        event(out, "handover_skipped", remaining=remaining)
+        return
+    slurm = Path(os.environ.get("TACC_WORKDIR", ".")) / "configurations/run.slurm"
+    try:
+        r = subprocess.run(["sbatch", "--parsable", str(slurm)], capture_output=True, text=True, timeout=60)
+    except (OSError, subprocess.SubprocessError) as exc:
+        event(out, "handover_submit_failed", error=str(exc)[:200])
+        return
+    if r.returncode != 0:
+        event(out, "handover_submit_failed", error=(r.stderr or r.stdout)[:200])
+        return
+    atomic_write(chain_file, json.dumps({"remaining": remaining - 1, "last_submitted": r.stdout.strip(),
+                                         "by": os.environ.get("SLURM_JOB_ID")}))
+    event(out, "handover_submitted", successor=r.stdout.strip(), remaining=remaining - 1)
+
+
+def drain(out: Path, timeout_s: float = 120) -> None:
+    """After a newer service took over: let the requests still running here finish (or time out)."""
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < timeout_s and not stopping:
+        m = scrape()
+        if m.get("vllm:num_requests_running", 0) + m.get("vllm:num_requests_waiting", 0) <= 0:
+            break
+        time.sleep(1)
+    event(out, "drained", after_s=round(time.monotonic() - t0, 1))
+
+
+def monitor(a, proc, local, start, address, handover_done: bool) -> str:
+    """Watch a ready vLLM. Returns 'deadline', 'stopping', 'vllm_exit', 'unhealthy', 'superseded' or
+    'handover_due'. Checks every 0.5 s; probes every --probe-interval seconds."""
+    failures = 0
+    with open(a.out / "probe.jsonl", "a", encoding="utf-8") as probes:
+        while True:
+            next_probe = time.monotonic() + a.probe_interval
+            while time.monotonic() < next_probe:
+                if stopping:
+                    return "stopping"
+                if proc.poll() is not None:
+                    return "vllm_exit"
+                elapsed = time.monotonic() - start
+                if elapsed >= a.deadline_s:
+                    return "deadline"
+                if not handover_done and a.handover_lead_s > 0 and elapsed >= a.deadline_s - a.handover_lead_s:
+                    return "handover_due"
+                current = read_address(a.address_file)
+                if current and current != address:
+                    return "superseded"
+                time.sleep(0.5)
+            ok, took, why = probe(local)
+            failures = 0 if ok else failures + 1
+            probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok, "probe_s": round(took, 3),
+                                     "error": why, "metrics": scrape()}) + "\n")
+            probes.flush()
+            if failures >= 3:
+                return "unhealthy"
+            if ok and not read_address(a.address_file):
+                atomic_write(a.address_file, address + "\n")   # re-publish after a transient withdrawal
 
 
 def main() -> int:
@@ -194,6 +310,13 @@ def main() -> int:
     ap.add_argument("--probe-interval", type=float, default=30)
     ap.add_argument("--deadline-s", type=float, default=3400)
     ap.add_argument("--allow-fault-injection", action="store_true")
+    ap.add_argument("--max-restarts", type=int, default=2,
+                    help="restart vLLM inside this job after a crash or 3 failed probes, at most this often")
+    ap.add_argument("--min-restart-time-s", type=float, default=600,
+                    help="do not restart when less job time than this remains (start-up takes about 5 min)")
+    ap.add_argument("--handover-lead-s", type=float, default=0,
+                    help="if > 0: this many seconds before the deadline, submit the successor job "
+                         "(allowed by service-chain.json next to the address file); 0 disables handover")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     cfg = json.loads(a.config.read_text(encoding="utf-8"))
@@ -207,98 +330,77 @@ def main() -> int:
     local = ModelClient(base_url=f"http://127.0.0.1:{PORT}/v1", model=cfg["served_name"], max_attempts=1)
     env = dict(os.environ, **cfg.get("env", {}))
     server_log = open(a.out / "server.log", "w", encoding="utf-8")
-    proc = subprocess.Popen(vllm_command(cfg, model_path), stdout=server_log, stderr=subprocess.STDOUT,
-                            env=env, start_new_session=True)
     info = {"job_id": os.environ.get("SLURM_JOB_ID"), "node": host, "address": address, "config": cfg,
             "started_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
-    published = False
-    code = 0
+    chain_file = a.address_file.parent / "service-chain.json"
     done = threading.Event()
+    current: dict = {}
     threading.Thread(target=gpu_sampler, args=(a.out, done), daemon=True).start()
-    event(a.out, "vllm_started", pid=proc.pid)
+    if a.allow_fault_injection:
+        trigger = a.address_file.parent / "fault-request"
+        threading.Thread(target=fault_watcher, args=(trigger, address, current, a.out, done), daemon=True).start()
+        log(f"fault injection enabled: write {address} into {trigger}")
+    restarts, handover_done, code = 0, False, 0
+
+    def withdraw(reason: str) -> None:
+        if read_address(a.address_file) == address:            # never remove another job's newer address
+            a.address_file.unlink(missing_ok=True)
+            event(a.out, "address_withdrawn", reason=reason)
+
     try:
-        log(f"vLLM started pid={proc.pid}; waiting for a successful probe")
         while True:
-            if stopping:
+            attempt_start = time.monotonic()
+            proc = subprocess.Popen(vllm_command(cfg, model_path), stdout=server_log, stderr=subprocess.STDOUT,
+                                    env=env, start_new_session=True)
+            current["proc"] = proc
+            event(a.out, "vllm_started", pid=proc.pid, attempt=restarts)
+            log(f"vLLM started pid={proc.pid} (attempt {restarts}); waiting for a successful probe")
+            state = wait_ready(proc, local, cfg["startup_timeout_s"])
+            if state == "stopping":
                 return 143
-            if proc.poll() is not None:
-                log(f"vLLM exited during start-up, code {proc.returncode}")
-                return 1
-            if time.monotonic() - start > cfg["startup_timeout_s"]:
-                log("start-up timeout")
-                return 2
-            try:
-                urlopen(f"http://127.0.0.1:{PORT}/health", timeout=3)
-            except OSError:
-                time.sleep(5)
-                continue
-            ok, took, why = probe(local)
-            log(f"probe ok={ok} {took:.2f}s {why}")
-            if ok:
-                break
-            time.sleep(5)
-        info["ready_after_s"] = round(time.monotonic() - start, 1)
-        atomic_write(a.out / "service-info.json", json.dumps(info, indent=2))
-        atomic_write(a.address_file, address + "\n")
-        published = True
-        log(f"READY and published {address} -> {a.address_file}")
-        event(a.out, "ready", address=address, ready_after_s=info["ready_after_s"])
-        if a.allow_fault_injection:
-            trigger = a.address_file.parent / "fault-request"
-            threading.Thread(target=fault_watcher, args=(trigger, address, proc, a.out, done), daemon=True).start()
-            log(f"fault injection enabled: write {address} into {trigger}")
-
-        if a.smoke:
-            import smoke
-            smoke.run(local, a.out, cfg)
-            if a.exit_after_smoke:
+            if state != "ready":
+                reason = f"startup_{state}"
+            else:
+                info["ready_after_s"] = round(time.monotonic() - attempt_start, 1)
+                info["restarts"] = restarts
+                atomic_write(a.out / "service-info.json", json.dumps(info, indent=2))
+                atomic_write(a.address_file, address + "\n")
+                log(f"READY and published {address} -> {a.address_file}")
+                event(a.out, "ready", address=address, ready_after_s=info["ready_after_s"], attempt=restarts)
+                if a.smoke:
+                    import smoke
+                    smoke.run(local, a.out, cfg)
+                    if a.exit_after_smoke:
+                        return 0
+                reason = monitor(a, proc, local, start, address, handover_done)
+                if reason == "handover_due":
+                    submit_successor(a.out, chain_file)
+                    handover_done = True
+                    reason = monitor(a, proc, local, start, address, handover_done)
+            if reason == "stopping":
+                return 143
+            if reason == "deadline":
+                return code
+            if reason == "superseded":
+                event(a.out, "superseded", by=read_address(a.address_file))
+                drain(a.out)
                 return 0
-
-        failures = 0
-        with open(a.out / "probe.jsonl", "a", encoding="utf-8") as probes:
-            while not stopping and proc.poll() is None and time.monotonic() - start < a.deadline_s:
-                # Wait for the next probe in short steps, so a vLLM exit is noticed within about a second.
-                next_probe = time.monotonic() + a.probe_interval
-                while time.monotonic() < next_probe and not stopping and proc.poll() is None:
-                    time.sleep(0.5)
-                if stopping or proc.poll() is not None:
-                    break
-                ok, took, why = probe(local)
-                failures = 0 if ok else failures + 1
-                probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok,
-                                         "probe_s": round(took, 3), "error": why, "metrics": scrape()}) + "\n")
-                probes.flush()
-                if failures >= 3:
-                    log("3 failed probes in a row; withdrawing the address")
-                    a.address_file.unlink(missing_ok=True)
-                    published = False
-                    code = 3
-                    break
-                if not published and ok:
-                    atomic_write(a.address_file, address + "\n")
-                    published = True
-        if proc.poll() is not None:
-            log(f"vLLM exited, code {proc.returncode}")
-            event(a.out, "vllm_exit_seen", code=proc.returncode)
-            code = code or 1
-        return code
+            # vLLM died or stopped answering: withdraw, then restart if allowed and worthwhile.
+            withdraw(reason)
+            event(a.out, "vllm_down", reason=reason, code=proc.poll())
+            stop_vllm(proc)
+            left = a.deadline_s - (time.monotonic() - start)
+            if restarts >= a.max_restarts or left < a.min_restart_time_s:
+                event(a.out, "giving_up", reason=reason, restarts=restarts, time_left_s=round(left))
+                return 1
+            restarts += 1
+            event(a.out, "restarting", reason=reason, attempt=restarts, time_left_s=round(left))
+            time.sleep(5)                                      # let the GPUs and the port be released
     finally:
         done.set()
-        try:
-            if a.address_file.exists() and a.address_file.read_text(encoding="utf-8").strip() == address:
-                a.address_file.unlink()          # never remove another job's newer address
-                event(a.out, "address_withdrawn")
-        except OSError:
-            pass
-        if proc.poll() is None:
-            try:
-                os.killpg(proc.pid, signal.SIGTERM)
-                proc.wait(60)
-            except Exception:
-                try:
-                    os.killpg(proc.pid, signal.SIGKILL)
-                except Exception:
-                    pass
+        withdraw("exit")
+        if current.get("proc") is not None:
+            stop_vllm(current["proc"])
         server_log.close()
 
 

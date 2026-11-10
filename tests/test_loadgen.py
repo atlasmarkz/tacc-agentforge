@@ -91,3 +91,24 @@ def test_runs_mode_replays_growing_conversations(server):
     for msgs in convs.values():
         for earlier, later in zip(msgs, msgs[1:]):
             assert later[:len(earlier)] == earlier and len(later) > len(earlier)
+
+
+def test_fault_phase_records_recovery(server, tmp_path):
+    lg = load()
+    address_file = tmp_path / "service-url.txt"
+    address_file.write_text(server.url + "\n")
+    trigger = tmp_path / "fault-request"
+
+    def restarting_service():                             # serve.py with in-job restart: withdraw, then republish
+        while not trigger.exists():
+            time.sleep(0.05)
+        trigger.unlink()
+        address_file.unlink()
+        time.sleep(0.8)
+        address_file.write_text(server.url + "\n")
+
+    threading.Thread(target=restarting_service, daemon=True).start()
+    summary, recs = lg.fault_phase(address_file, server.url, WORKLOAD, CAL, rate=8, duration=3, kill_at=0.5,
+                                   timeout=2, rng=random.Random(5), events=[])
+    assert 0.6 < summary["address_back_after_trigger_s"] < 2.0
+    assert summary["ok_after_recovery"] > 0 and summary["hung_past_budget"] == 0
