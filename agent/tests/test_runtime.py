@@ -1,4 +1,4 @@
-"""Scenario tests with injected capabilities; no model service or external I/O."""
+"""通过注入模拟能力验证运行场景，不访问模型服务或其他外部接口。"""
 
 import asyncio
 import json
@@ -8,7 +8,7 @@ from pydantic import ValidationError
 
 from agent import (
     AgentDependencies, AgentRuntime, CapabilityError, Issue, ModelReply,
-    PendingOperation, RunPolicy, ToolRegistry, ValidationResult,
+    PendingOperation, RunPolicy, RunStateError, ToolRegistry, ValidationResult,
 )
 from agent.contracts import UnsupportedCapabilityError
 from agent.examples.mock_run import (
@@ -24,6 +24,8 @@ PLAN = {"type": "propose_plan", "plan": {"items": [
 
 
 class ScriptedModel:
+    """依次返回预设动作，并记录收到的模型请求以供断言。"""
+
     def __init__(self, *actions):
         self.actions = iter(actions)
         self.requests = []
@@ -35,6 +37,8 @@ class ScriptedModel:
 
 
 class CountingSearch(MockSearch):
+    """统计搜索执行器的实际调用次数，验证非法请求不会触发工具。"""
+
     def __init__(self):
         self.calls = 0
 
@@ -74,13 +78,15 @@ def test_live_events_and_run_have_same_result_contract():
     assert events[-1].result.status == "completed"
 
 
-def test_clarification_and_unsupported_resume_are_explicit():
+def test_clarification_is_resumable_and_invalid_checkpointer_is_rejected():
     agent = runtime(ScriptedModel(ASK))
     result = run(agent)
     assert result.status == "waiting_user" and result.clarification.required_fields == ["purchase_cap"]
     assert result.verified_plan is None
-    with pytest.raises(UnsupportedCapabilityError):
-        asyncio.run(agent.resume("some-run", {}))
+    assert result.pending_question.question_id
+    with pytest.raises(RunStateError) as exc:
+        asyncio.run(agent.resume("some-run", "some-question", {}))
+    assert exc.value.code == "run_not_found"
     with pytest.raises(UnsupportedCapabilityError):
         AgentRuntime(agent.dependencies, checkpointer=object())
 
@@ -292,8 +298,8 @@ def test_invalid_request_and_duplicate_tools_fail_before_execution():
 def test_validator_cannot_change_the_proposal_it_is_checking():
     class MutatingValidator(MockPlanValidator):
         async def validate(self, request, context):
-            # Frozen Pydantic objects can still contain mutable lists. A buggy
-            # adapter must not change the runtime's reference proposal through one.
+            # 冻结的 Pydantic 对象仍可包含可变列表；模拟适配器误改列表的情况，
+            # 确认它无法连带修改运行时用于比较的原候选方案。
             request.plan.items[0] = request.plan.items[0].model_copy(update={"quantity": 2})
             return await super().validate(request, context)
     result = run(runtime(ScriptedModel(PLAN), validator=MutatingValidator()))

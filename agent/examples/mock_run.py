@@ -1,6 +1,7 @@
-"""Offline end-to-end example. All products, prices and evidence are synthetic.
+"""离线端到端示例，所有商品、价格和证据均为模拟数据。
 
-Run from the repository root: python -m agent.examples.mock_run [--events]
+运行方式：python -m agent.examples.mock_run [--events] [--clarify]
+指定 --clarify 后演示挂起，并由示例自动提交模拟的用户回答。
 """
 
 import argparse
@@ -22,10 +23,14 @@ DEMO_PRICE = Decimal("49.99")
 
 
 class SearchArguments(Schema):
+    """模拟搜索工具接收的查询参数。"""
+
     query: str = Field(min_length=1, max_length=200)
 
 
 class SearchResult(Schema):
+    """包含商品、报价和证据引用的模拟搜索结果。"""
+
     offer_id: str
     title: str
     price: str
@@ -35,6 +40,8 @@ class SearchResult(Schema):
 
 
 class MockSearch:
+    """返回固定的本地模拟商品，不执行外部查询。"""
+
     async def execute(self, arguments, context):
         return SearchResult(
             offer_id=DEMO_OFFER, title="Synthetic commuting earbuds",
@@ -44,12 +51,16 @@ class MockSearch:
 
 
 class MockModel:
-    """Stateless decision fixture driven by observations, safe for independent runs."""
+    """根据请求和观察结果生成预设动作，不保存各任务共享的对话状态。"""
 
     async def generate(self, request, context):
+        original = json.loads(request.messages[1].content)
         observations = [json.loads(m.content)["observation"] for m in request.messages
                         if m.role == "user" and m.content.startswith('{"observation":')]
-        if not observations:
+        if "purchase_cap" not in original["constraints"]:
+            action = {"type": "ask_user", "question": "What is your purchase cap in USD?",
+                      "required_fields": ["purchase_cap"]}
+        elif not observations:
             action = {"type": "call_tool", "tool_name": "search_products",
                       "arguments": {"query": "wireless commuting earbuds"}}
         elif observations[-1].get("status") == "ok":
@@ -60,13 +71,13 @@ class MockModel:
             }]}}
         else:
             action = {"type": "ask_user", "question": "Can you revise the requirements or budget?",
-                      "required_fields": ["constraints"]}
-        # No invented token measurements: absent usage is counted as unreported.
+                      "required_fields": ["purchase_cap"]}
+        # 不编造令牌测量值；未提供的用量会由运行时记入未报告次数。
         return ModelReply(content=json.dumps(action))
 
 
 class MockPlanValidator:
-    """Only validates this synthetic fixture; not the project's real budget algorithm."""
+    """只验证本示例的模拟目录和购买上限，完整预算算法由正式适配器提供。"""
 
     async def validate(self, request, context):
         def reject(code, message, status="failed"):
@@ -85,6 +96,7 @@ class MockPlanValidator:
         for item in request.plan.items:
             if item.offer_id != DEMO_OFFER or item.evidence_ids != [DEMO_EVIDENCE]:
                 return reject("unknown_evidence", "Use the synthetic catalog's offer and evidence.")
+        # 使用十进制计算；示例中的零运费和零税费是预设数据，不代表真实费用。
         total = sum((DEMO_PRICE * item.quantity for item in request.plan.items), Decimal("0"))
         if total > cap:
             return reject("budget_exceeded", "The proposed fixture exceeds the purchase cap.")
@@ -99,6 +111,7 @@ class MockPlanValidator:
 
 
 def demo_request(run_id="demo-run-001"):
+    """构造带显式快照和美元购买上限的模拟请求。"""
     return AgentRequest(
         run_id=run_id, conversation_id=f"conversation-{run_id}", snapshot_id="demo-snapshot-v1",
         message="推荐预算内适合通勤的无线耳机。",
@@ -107,6 +120,7 @@ def demo_request(run_id="demo-run-001"):
 
 
 def demo_tools(executor=None):
+    """为示例注册搜索工具，也允许测试替换其执行器。"""
     return ToolRegistry([ToolSpec(
         name="search_products", description="Search the selected snapshot for candidate offers.",
         arguments_model=SearchArguments, result_model=SearchResult,
@@ -115,14 +129,19 @@ def demo_tools(executor=None):
 
 
 def demo_runtime():
+    """显式组装模拟模型、搜索工具和校验器，便于离线运行。"""
     return AgentRuntime(AgentDependencies(MockModel(), demo_tools(), MockPlanValidator()))
 
 
 async def main():
+    """根据参数输出最终结果或事件流，并可自动演示一次问答恢复。"""
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", action="store_true", help="print live node events as JSON lines")
+    parser.add_argument("--clarify", action="store_true", help="pause for a missing budget, then simulate an answer")
     args = parser.parse_args()
     runtime, request = demo_runtime(), demo_request()
+    if args.clarify:
+        request = request.model_copy(update={"constraints": {"currency": "USD"}})
     result = None
     if args.events:
         async for event in runtime.astream(request):
@@ -132,6 +151,17 @@ async def main():
     else:
         result = await runtime.run(request)
         print(result.model_dump_json(indent=2))
+    if args.clarify and result is not None and result.status == "waiting_user":
+        question_id = result.pending_question.question_id
+        # 在应用调用边界显式提交模拟回答；实际接入时由调用方收集用户输入。
+        if args.events:
+            async for event in runtime.astream_resume(request.run_id, question_id, {"purchase_cap": "100.00"}):
+                print(event.model_dump_json(), flush=True)
+                if event.result is not None:
+                    result = event.result
+        else:
+            result = await runtime.resume(request.run_id, question_id, {"purchase_cap": "100.00"})
+            print(result.model_dump_json(indent=2))
     return 0 if result is not None and result.status == "completed" else 1
 
 

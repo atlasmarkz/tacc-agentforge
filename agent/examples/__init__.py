@@ -1,1 +1,1 @@
-"""Explicit synthetic capabilities for offline examples; never runtime defaults."""
+"""离线示例使用的显式模拟能力，由示例主动注入，不作为运行时默认依赖。"""

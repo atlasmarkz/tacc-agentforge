@@ -1,8 +1,8 @@
 # Agent loop architecture
 
-Status: first runnable framework implemented; real integrations and production
-durability remain future milestones.
-Updated: 2026-11-02.
+Status: runnable nine-node framework with checkpointed user-question resume;
+real integrations and production storage/deployment remain future milestones.
+Updated: 2026-11-10.
 
 ## Implementation status
 
@@ -12,19 +12,22 @@ after installing the agent dependencies; see [README.md](README.md) for commands
 
 Implemented: `run` / executing `astream`, the three actions, an immutable tool
 registry, strict argument/result checks, bounded repair loops, deadlines and
-cooperative cancellation, validation receipts, structured events, and scenario
-tests. The example uses explicit synthetic model/search/validator adapters.
+cooperative cancellation, validation receipts, structured events, user-question
+checkpoints, `resume` / `astream_resume`, and scenario tests. The example uses
+explicit synthetic model/search/validator adapters; `--clarify` exercises resume.
 
 The design below also records future contracts. In this milestone:
 
 - The runtime's `CallContext` and cancellation scope supply execution context;
-  there is no separately configurable ExecutionContext port or durable state.
+  there is no separately configurable ExecutionContext port. Checkpoint state
+  uses version 2; the default saver is in-memory and can be externally replaced.
 - Context is bounded by characters/history length and tool-result bytes. Real
   token accounting must be supplied by the model adapter.
 - ToolSpec implements identity, schemas, executor, timeout and result limits;
   side-effect/idempotency metadata is deferred until real tool integration.
-- Only the immediate capability path is supported. Pending operations return an
-  explicit unsupported outcome; `resume` and checkpointers are not implemented.
+- User questions use `interrupt` and `Command(resume=...)`. Model/tool pending
+  handles remain unsupported. Production database provisioning and distributed
+  locking are outside the runtime; see README for the single-owner constraint.
 - Dependency files and a universal development lock are confined to `agent/`;
   project-wide manifest changes and default test discovery remain outside scope.
 
@@ -80,6 +83,7 @@ agent/
   runtime.py           AgentRuntime facade; run / resume / event streaming
   graph.py             Graph construction, edges and dependency injection
   nodes.py             Prepare, guard, decide, execute, validate, finalize, suspend
+  answers.py           Structured answer field/value/size boundary checks
   tools.py             ToolSpec, registry, dispatcher and observations
   policies.py          Immutable limits and execution-context checks
   prompts.py           Decision prompt and bounded context construction
@@ -97,15 +101,16 @@ implementations only when concrete integrations need them.
 
 ## 4. Public contracts
 
-The facade exposes `run` and executing `astream`, with concrete types in
-`contracts.py`. The notation below also shows the reserved resume boundary;
-`resume` and non-null checkpointers explicitly raise an unsupported exception.
+The facade exposes initial and resumed execution, with concrete types in
+`contracts.py`. Default checkpoints live in the Runtime's `InMemorySaver`.
+Injected savers must implement the async BaseCheckpointSaver API.
 
 ```python
 AgentRuntime(dependencies, policy, checkpointer=None)
 await runtime.run(request: AgentRequest) -> AgentResult
-await runtime.resume(run_ref: RunRef, event: ResumeEvent) -> AgentResult
+await runtime.resume(run_id, question_id, answer: dict) -> AgentResult
 runtime.astream(request: AgentRequest) -> AsyncIterator[AgentEvent]
+runtime.astream_resume(run_id, question_id, answer: dict) -> AsyncIterator[AgentEvent]
 ```
 
 `astream` executes a run and emits its events; it does not attach to or replay
@@ -132,9 +137,9 @@ network/SDK details and must document cancellation and idempotency behavior.
 Making a Python function asynchronous does not itself make underlying I/O
 cancelable or durable.
 
-For the first implementation the model port can support immediate replies
-only. A pending response must yield an explicit unsupported-capability outcome
-until pause/resume is implemented. Do not silently poll or block indefinitely.
+The model/tool ports currently support immediate replies only. Their pending
+responses yield an explicit unsupported-capability outcome; the supported resume
+path is for user questions. Do not silently poll or block indefinitely.
 
 ## 5. Model action protocol
 
@@ -171,18 +176,23 @@ flowchart TD
     V -->|passed| F
     V -->|violations; repair allowed| G
     V -->|unavailable / repair exhausted| F
-    D -->|ask_user| W[suspend]
+    D -->|ask_user| Q[prepare_question]
+    Q -->|within question budget| W[suspend / interrupt]
+    Q -->|cannot continue| F
     D -->|malformed action; repair allowed| G
     D -->|repair exhausted / model failure| F
     T -->|fatal tool failure| F
-    D -->|pending model operation| W
-    T -->|pending tool operation| W
-    W --> E([return waiting outcome])
+    D -->|unsupported model pending handle| F
+    T -->|unsupported tool pending handle| F
+    W -->|resume with answer| A[apply_answer]
+    A -->|valid constraints| G
+    A -->|invalid; retry allowed| Q
+    A -->|expired / cancelled / retries exhausted| F
     F --> X([END])
 ```
 
-`prepare` validates and initializes trusted inputs. `guard` checks budgets before
-each decision. The dispatcher also checks before every external tool call;
+The Runtime validates inputs and creates initial state; `prepare` emits the start
+event. `guard` checks budgets before each decision. The dispatcher also checks before every external tool call;
 validation and finalization perform their own deadline/cancellation checks.
 
 `decide` constructs bounded context, invokes the model and validates the action.
@@ -195,24 +205,28 @@ evidence cannot produce `completed`. `finalize` returns the validator's verified
 data and a structured outcome. Any later LLM-written explanation must not mutate
 verified amounts, selections or citations without revalidation.
 
-Pause/resume is a later extension of this topology. User input resumes by merging
-validated constraints. A pending model result resumes at action parsing, and a
-pending tool result resumes at observation handling. Neither result should cause
-the completed external call to be issued again. Match run ID, operation ID and
-attempt/version before accepting an event.
+`prepare_question` saves a stable ID, the requested fields and wall-clock expiry
+before entering `suspend`. `suspend` only calls interrupt, then returns the answer
+after resume. The Runtime returns waiting_user without executing finalize/END.
+`apply_answer` validates and merges only the requested top-level constraint fields,
+clears obsolete verified plans, records the answer and returns to guard. Invalid
+answers re-enter prepare_question with a fresh ID within bounded retries.
+
+The checkpoint thread key is `agent:<run_id>`. The Runtime rejects wrong question
+IDs, duplicate new-run IDs and non-waiting resumes before graph execution. The
+same Runtime also rejects overlapping invocations; hosts sharing checkpoints
+across processes/Runtime instances must serialize access themselves.
 
 ## 7. State and dependencies
 
 Persist only serializable, bounded data in `AgentState`:
 
 ```text
-state_version, graph_version, policy_version
-run_id, conversation_id, snapshot_id
-user_request, constraints
-messages, observations, evidence_refs
-current_action, proposed_plan, verified_plan
-model_calls, tool_calls, action_repairs, plan_repairs, token_usage
-deadline_at, pending_operation, outcome, stop_reason
+state_version, request, policy
+history, usage, consecutive_action_errors, rejected_plans
+action, verified_plan, clarification, issues, status, stop_reason, next_node, result
+pending_question, resume_answer, question_count, answer_errors
+active_elapsed_s, event_sequence
 ```
 
 Do not put clients, registries, database connections, credentials, cancellation
@@ -220,9 +234,11 @@ objects or raw exception objects into graph state. Inject those as runtime
 dependencies. Keep full evidence archives in the knowledge module; store IDs
 and bounded excerpts in state.
 
-Use a monotonic clock for in-process durations and an explicit UTC timestamp for
-the deadline that must survive a restart. A resumed request retains its original
-limits unless trusted application code explicitly revises them.
+Use a monotonic clock for each active segment and save cumulative active time
+with node checkpoints. Waiting results report the saved active time. Question
+expiry is a separate UTC epoch timestamp and is checked when an answer resumes
+the run. Waiting time does not consume execution time. Resume loads the original
+policy and counters; new Runtime defaults cannot silently reset those limits.
 
 Checkpoints can include messages and user constraints, so persistent adapters
 need the application's access controls and retention policy. Telemetry should
@@ -231,7 +247,7 @@ record node/action IDs, timings and usage rather than raw hidden reasoning.
 ## 8. Outcomes, events and limits
 
 Terminal outcomes: `completed`, `incomplete`, `failed`, `cancelled`.
-Suspended outcomes: `waiting_user`, `waiting_external`.
+Suspended outcome: `waiting_user`. External-operation waiting is deferred.
 
 Examples of stop reasons: `step_limit`, `model_call_limit`, `tool_call_limit`,
 `token_limit`, `deadline_exceeded`, `invalid_action`, `validation_unavailable`,
@@ -249,6 +265,10 @@ Initial configurable policy defaults for a mock/local framework run:
 | Consecutive malformed-action repairs | 2 |
 | Plan-validation repairs | 2 |
 | Whole-run deadline | 120 seconds |
+| Questions per run | 8 |
+| Invalid-answer repairs | 2 |
+| Question wait expiry | 1800 wall-clock seconds |
+| Answer JSON size | 8192 UTF-8 bytes |
 
 These are starting configuration values, not measured production settings.
 Context/output token budgets must be supplied by the model adapter according to
@@ -272,8 +292,8 @@ instructions.
 - Require an injected plan validator for successful recommendations.
 - Return explicit incomplete/error outcomes when integrations are absent.
 - Add structured events and an executable fake-model/fake-tool example.
-- Support `run` and executing `astream`; unsupported resume/pending behavior is
-  explicit until the second milestone.
+- Support `run` and executing `astream`. The subsequent question milestone adds
+  checkpointed resume, bounded answer validation and the two question nodes.
 - Prove success, clarification, unknown tool, invalid arguments, malformed output,
   model/tool failure, failed validation, deadline and step-limit behavior with
   scenario tests under `agent/tests/`.
@@ -293,7 +313,8 @@ later coordination with the repository's current `testpaths = ["tests"]`.
 
 ### Add production durability
 
-- Add an injected persistent checkpointer and tested `resume` semantics.
+- Deploy and validate a durable injected checkpointer; memory-backed user resume
+  and the async checkpointer integration point are already implemented.
 - Add pending operations, correlation checks, replay-safe operation records and
   idempotency coordination with external adapters.
 - Add state/graph-version compatibility, retention and recovery tests.
@@ -336,23 +357,22 @@ The AgentResult envelope has stable fields:
 | Field | Meaning |
 | --- | --- |
 | `schema_version`, `run_id`, `conversation_id`, `snapshot_id` | Contract version and correlation |
-| `status` | completed / incomplete / failed / cancelled / waiting_user / waiting_external |
+| `status` | completed / incomplete / failed / cancelled / waiting_user |
 | `stop_reason` | Machine-readable reason; absent on normal completion |
 | `verified_plan` | Authoritative validator output; absent unless validation passed for the current proposal and constraints |
 | `clarification` | Question and required fields when waiting for the user |
 | `issues` | Bounded, sanitized errors or validation violations |
 | `usage` | Decision/model/tool counts, available token usage and elapsed time |
-| `pending` | External operation correlation when supported; absent in the first immediate-only implementation |
-| `resume_ref` | Opaque resumable-run reference when implemented; absent in the first milestone |
+| `pending_question` | question_id, question, required_fields, expires_at; present only while waiting_user |
 
 Never return `verified_plan` from an older successful validation after changing
 the proposal, constraints or snapshot. Validation receipts must identify the
 proposal fingerprint, constraint version and snapshot they validate.
 
-In the first milestone, `ask_user` returns `waiting_user` with clarification.
-It does not promise that a saved execution can be resumed. The host may gather
-the missing information and submit a distinct new run with complete inputs.
-Durable continuation of the original run belongs to the later resume milestone.
+`ask_user` now returns a checkpointed waiting_user outcome. The caller submits
+run_id, the current question_id and a structured constraint answer to resume.
+The default memory saver supports continuity only while its process/object lives.
+Injected storage lifecycle, retention and production acceptance belong to the host.
 
 ## 11. Capability method contracts
 
@@ -429,12 +449,14 @@ do not accidentally duplicate the message history on every transition.
 
 | Node | Reads | Writes / routes |
 | --- | --- | --- |
-| `prepare` | validated request and policy | initial state, original deadline, zeroed counters, version fields |
+| `prepare` | validated request and policy | start event; initialization happens in Runtime |
 | `guard` | counts, deadline, cancellation | continue / stop reason |
 | `decide` | bounded messages, observations, tools | reserve model-call budget, generate action, usage, repair observation |
 | `execute_tool` | selected action and registry | validate arguments, reserve call budget before I/O, append typed observation |
 | `validate_plan` | current proposal, constraints, snapshot | fresh validation result and verified plan, or bounded violations |
-| `suspend` | clarification or pending operation | waiting outcome; later a checkpoint-backed continuation reference |
+| `prepare_question` | ask_user action, question/repair limits | stable ID, requested fields, expiry and waiting state |
+| `suspend` | checkpointed pending_question | interrupt; after resume, stores the answer |
+| `apply_answer` | answer and pending question | validated constraints/history or bounded re-question/stop |
 | `finalize` | outcome, current validation receipt, usage | AgentResult; no extra model call in the first milestone |
 
 Before a new proposal/constraint/snapshot version is accepted, clear obsolete
@@ -475,6 +497,9 @@ Tool observations remain data and cannot modify the tool allowlist or policy.
 | Whole-run deadline or call limit | Return incomplete with the corresponding stop reason |
 | Trusted cancellation signal | Return cancelled and propagate cancellation to cooperative adapters |
 | Pending operation in immediate-only runtime | Return incomplete with unsupported_capability |
+| Wrong/missing run, stale/duplicate answer, overlapping invocation | Raise typed RunStateError without advancing the run |
+| Invalid answer content | Issue a fresh question within the answer/question limits |
+| Expired question | Finalize incomplete / question_expired on resume |
 | Unexpected programming error | Propagate for diagnosis; do not disguise it as success or a business-rule rejection |
 
 A deadline bounds cooperative asynchronous work and transport timeouts. It
@@ -521,8 +546,11 @@ The first milestone is complete when:
 - two simultaneous independent runs do not share messages, counters or evidence;
 - every loop exits within configured model/tool/repair limits;
 - the event stream identifies the run and preserves per-run event order;
-- unsupported resume/pending behavior is explicit, with no claim of durable
-  recovery before that capability is implemented.
+- user-question resume preserves history, snapshot, call counters and original
+  policy, without replaying completed tools; external pending handles remain
+  explicit unsupported outcomes;
+- question identity, duplicate answers, expiry, retries, event sequence and active
+  time accounting are covered by agent/tests/test_resume.py.
 
 Implementation order: contracts and state → tool registry and policy → nodes
 and graph → runtime facade → mock example and branch-oriented scenario tests.

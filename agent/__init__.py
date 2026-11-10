@@ -1,9 +1,10 @@
-"""Bounded shopping-agent runtime with explicitly injected capabilities."""
+"""购物智能体的公开接口；模型、工具和校验能力均由调用方显式注入。"""
 
 from .contracts import (
     AgentDependencies, AgentEvent, AgentRequest, AgentResult, CallContext,
     CapabilityError, Issue, ModelPort, ModelReply, ModelRequest, PendingOperation,
-    PlanValidationRequest, PlanValidator, ToolExecutor, ValidationResult, VerifiedPlan,
+    PendingQuestion, PlanValidationRequest, PlanValidator, ResumeRequest, RunStateError,
+    ToolExecutor, ValidationResult, VerifiedPlan,
 )
 from .policies import RunPolicy
 from .runtime import AgentRuntime
@@ -14,5 +15,5 @@ __all__ = [
     "AgentRuntime", "CallContext", "CapabilityError", "Issue", "ModelPort",
     "ModelReply", "ModelRequest", "PendingOperation", "PlanValidationRequest",
     "PlanValidator", "RunPolicy", "ToolExecutor", "ToolRegistry", "ToolSpec",
-    "ValidationResult", "VerifiedPlan",
+    "ValidationResult", "VerifiedPlan", "PendingQuestion", "ResumeRequest", "RunStateError",
 ]
