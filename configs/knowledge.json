@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "data_root": "../tacc-agentforge-data",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "seed": {
+    "archive": "assets/knowledge/pilot-snapshot.zip",
+    "sha256": "0b2e15a15aeb2df976a0ae4a4ab95d6fe886afefb7e6ab3de6b59c876a4c3a61"
+  },
+  "service": {
+    "cache_size": 512,
+    "max_result_bytes": 8192,
+    "price_ttl_hours": 24
+  }
+}

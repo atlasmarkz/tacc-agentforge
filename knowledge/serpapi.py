@@ -81,17 +81,22 @@ class CallRecord:
     raw_path: str = ""
     sha256: str = ""
     attempt: int = 1
+    category: str | None = None
+    product_id: str | None = None
+    parent_call_id: str | None = None
+    target_id: str | None = None
 
 
 class SerpApiClient:
     def __init__(self, key: str, out_dir: Path, max_calls: int, locale: dict | None = None,
                  base_url: str = BASE_URL, retries: int = 2, backoff_s: float = 5.0,
-                 timeout_s: float = 60.0, sleep=time.sleep):
+                 timeout_s: float = 60.0, sleep=time.sleep, attempt_guard=None, record_hook=None):
         self.key, self.out_dir, self.max_calls = key, Path(out_dir), max_calls
         self.locale = dict(locale or {"gl": "us", "hl": "en"})
         self.base_url, self.retries, self.backoff_s = base_url, retries, backoff_s
         self.timeout_s, self.sleep = timeout_s, sleep
         self.calls_made = 0
+        self.attempt_guard, self.record_hook = attempt_guard, record_hook
         self.records: list[CallRecord] = []
         (self.out_dir / "raw").mkdir(parents=True, exist_ok=True)
         cafile = CA_BUNDLE if Path(CA_BUNDLE).exists() else None
@@ -110,15 +115,20 @@ class SerpApiClient:
             finally:
                 exc.close()
 
-    def _request(self, engine: str, params: dict) -> tuple[CallRecord, dict | None]:
+    def _request(self, engine: str, params: dict, record_meta=None) -> tuple[CallRecord, dict | None]:
         params = {**self.locale, **params, "engine": engine}
+        metadata = dict(record_meta or {})
+        if set(metadata) - {"category", "product_id", "parent_call_id", "target_id"}:
+            raise ValueError("Unsupported acquisition metadata")
         record = None
         for attempt in range(1, self.retries + 2):
             if self.calls_made >= self.max_calls:
                 raise BudgetExceeded(f"call budget of {self.max_calls} reached")
-            self.calls_made += 1  # every attempt counts, retries included
             record = CallRecord(call_id=uuid.uuid4().hex[:12], engine=engine, params=params,
-                                requested_at=now_iso(), status="error", attempt=attempt)
+                                requested_at=now_iso(), status="error", attempt=attempt, **metadata)
+            if self.attempt_guard is not None:
+                self.attempt_guard(record)  # reserve persistent budget BEFORE sending anything
+            self.calls_made += 1  # every attempt counts, retries included
             started = time.perf_counter()
             try:
                 status, body = self._http_get(params)
@@ -130,6 +140,18 @@ class SerpApiClient:
                     continue
                 return record, None
             record.http_status = status
+            # Authentication stops the task even when the server returns HTML/plain text.
+            if status in (401, 403):
+                try:
+                    data = json.loads(body)
+                    if not isinstance(data, dict):
+                        data = {"error": "authentication rejected; non-object response"}
+                except json.JSONDecodeError:
+                    data = {"error": "authentication rejected; non-JSON response"}
+                self._archive(record, data, time.perf_counter() - started)
+                record.error = redact(f"HTTP {status}: {data.get('error', 'authentication rejected')}", self.key)[:300]
+                self._log(record)
+                raise AuthenticationFailed(record.error)
             if status in (429,) or status >= 500:
                 record.error = f"HTTP {status}"
                 self._log(record)
@@ -145,10 +167,12 @@ class SerpApiClient:
                 record.error = "response was not JSON"
                 self._log(record)
                 return record, None
+            if not isinstance(data, dict):
+                record.error = "response JSON was not an object"
+                self._log(record)
+                return record, None
             self._archive(record, data, time.perf_counter() - started)
-            if status in (401, 403):
-                raise AuthenticationFailed(f"HTTP {status}: {redact(str(data.get('error', '')), self.key)[:200]}")
-            error = str(data.get("error", ""))
+            error = str(data.get("error") or "") or (f"HTTP {status}" if not 200 <= status < 300 else "")
             if error:
                 record.error = redact(error, self.key)[:300]
                 self._log(record)
@@ -167,7 +191,10 @@ class SerpApiClient:
         record.api_seconds = meta.get("total_time_taken", round(seconds, 3))
         text = redact(json.dumps(data, ensure_ascii=False, indent=1), self.key)
         raw = self.out_dir / "raw" / f"{record.call_id}.json"
-        raw.write_text(text, encoding="utf-8")
+        with raw.open("w", encoding="utf-8") as fh:
+            fh.write(text)
+            fh.flush()
+            os.fsync(fh.fileno())
         record.raw_path = str(raw.relative_to(self.out_dir))
         record.sha256 = hashlib.sha256(text.encode("utf-8")).hexdigest()
 
@@ -176,20 +203,24 @@ class SerpApiClient:
         line = redact(json.dumps(asdict(record), ensure_ascii=False), self.key)
         with open(self.out_dir / "index.jsonl", "a", encoding="utf-8") as fh:
             fh.write(line + "\n")
+            fh.flush()
+            os.fsync(fh.fileno())
+        if self.record_hook is not None:
+            self.record_hook(record)
 
     # -- engines -----------------------------------------------------------------------------
-    def search_shopping(self, query: str, **extra) -> tuple[CallRecord, dict | None]:
-        return self._request("google_shopping", {"q": query, **extra})
+    def search_shopping(self, query: str, record_meta=None, **extra) -> tuple[CallRecord, dict | None]:
+        return self._request("google_shopping", {"q": query, **extra}, record_meta)
 
     def get_product(self, product_id: str | None = None, page_token: str | None = None,
-                    **extra) -> tuple[CallRecord, dict | None]:
+                    record_meta=None, **extra) -> tuple[CallRecord, dict | None]:
         """Detail lookup. Prefer the page token a shopping result returns: in the first run, 13 of
         40 lookups by bare product_id came back empty even though every result had a token."""
         if not (page_token or product_id):
             raise ValueError("need a page_token or a product_id")
         flags = {"offers": 1, "specs": 1, "reviews": 1}
         ident = {"page_token": page_token} if page_token else {"product_id": product_id}
-        return self._request("google_product", {**ident, **flags, **extra})
+        return self._request("google_product", {**ident, **flags, **extra}, record_meta)
 
 
 def top_products(data: dict | None, n: int) -> list[dict]:
@@ -222,8 +253,11 @@ def collect(client: SerpApiClient, queries: list[dict], products_per_query: int 
             for product in products:
                 if product["product_id"] in seen:
                     continue
-                seen.add(product["product_id"])
-                client.get_product(product["product_id"], page_token=product.get("page_token"))
+                detail_record, detail_data = client.get_product(product["product_id"], page_token=product.get("page_token"),
+                    record_meta={"category": entry.get("category"), "product_id": product["product_id"],
+                                 "parent_call_id": record.call_id})
+                if detail_record.status == "ok" and (detail_data or {}).get("product_results"):
+                    seen.add(product["product_id"])
                 summary["products_requested"] += 1
         summary["stopped"] = "finished"
     except BudgetExceeded as exc:

@@ -1,5 +1,21 @@
 # Course-provided 27B AWQ service on TACC
 
+## Knowledge CPU worker
+
+The knowledge module has a separate CPU-only SDK task with a pinned offline seed,
+USERDIR persistence, node-local snapshot queries, and verify/smoke/benchmark modes.
+See [knowledge-worker deployment](knowledge-worker/README.md). Run its `stage.py`
+before submission. It uses the existing public Python wrapper, requires no GPU
+or API key, and does not start a model service. Real TACC CPU smoke validation
+completed snapshot verification, catalog search, Top-5 retrieval and source
+resolution.
+Cluster latency benchmarks and real LLM/harness integration remain untested.
+
+The existing agent-e2e staging script also includes the knowledge package and
+configuration for harness integration after the persistent snapshot is installed.
+
+## Model service
+
 These launch files originate from the public `qwen27b-student-release.zip`
 provided by CSIT6000V. The shared runtime and checkpoint stay on TACC; no
 model weights or credentials are included in this repository.

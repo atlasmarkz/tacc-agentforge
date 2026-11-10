@@ -18,9 +18,17 @@ TACC AgentForge is a course project for **Advanced AI Computing and Systems**. T
 
 ![Shopping advisor planned architecture: application, SerpApi acquisition and knowledge retrieval, post-training, inference, evaluation, and TACC infrastructure](docs/images/planned-architecture.svg)
 
-SerpApi data will be normalized into a persistent SQLite knowledge base with
-source links, timestamps, and versioned snapshots. The agent will retrieve
-evidence and validate budgets before returning recommendations.
+SerpApi data is normalized into a persistent SQLite knowledge base with source
+links, timestamps, and versioned snapshots. The knowledge module now includes
+quota-bounded incremental collection, compact FTS5 queries, and adapters for the
+agent's existing tool ports. See [knowledge setup and interfaces](knowledge/README.md).
+Budget validation remains a separate integration responsibility.
+
+For a fresh clone, use Python 3.12+ and run `python -m knowledge bootstrap`,
+then `python -m knowledge doctor`. The pinned offline seed is versioned under
+`assets/knowledge/`; no personal data path or API key is needed for queries.
+See [team setup and harness integration](knowledge/README.md) and
+[TACC knowledge CPU worker](deploy/tacc/knowledge-worker/README.md).
 
 Training, quantization, and serving variants will be compared on fixed held-out tasks.
 
@@ -85,7 +93,8 @@ tacc-agentforge/
 `- README.md
 ```
 
-`app/`, `knowledge/` and `evaluations/` are empty placeholders for their owners.
+`knowledge/` implements collection, storage, snapshots, retrieval and tool adapters.
+`app/` and `evaluations/` remain separate integration work for their owners.
 Stub modules raise `NotImplementedError("TODO(Task N)")`; see [tasks/todo.md](tasks/todo.md).
 
 ## Roadmap
@@ -95,8 +104,8 @@ Stub modules raise `NotImplementedError("TODO(Task N)")`; see [tasks/todo.md](ta
 - [x] Run a minimal inference job on TACC
 - [x] Expose the model through a reusable inference interface
 - [ ] Verify SDK file transfer and the TACC worker runtime
-- [ ] Collect and normalize SerpApi shopping evidence
-- [ ] Build versioned knowledge snapshots and evidence retrieval
+- [x] Collect and normalize SerpApi shopping evidence
+- [x] Build versioned knowledge snapshots and evidence retrieval
 - [ ] Implement the initial agent loop
 - [ ] Add budget validation, tools, and session memory
 - [ ] Connect the browser and backend to the TACC worker
@@ -111,8 +120,14 @@ Stub modules raise `NotImplementedError("TODO(Task N)")`; see [tasks/todo.md](ta
 
 ## Status
 
-Initial quantized model serving and API smoke tests are complete. The next
-milestone is tool-using agent implementation and systematic evaluation.
+Initial quantized model serving and API smoke tests are complete. The knowledge
+module has been integrated and tested with 80 detail-bearing provider groups,
+380 review records, and 3,525 source-linked evidence records. Knowledge tools
+integrate with the existing agent runtime. Real TACC CPU smoke validation
+verified the snapshot and exercised catalog search, Top-5 retrieval and evidence
+resolution.
+TACC latency benchmarks, real LLM/harness integration, actual SKU review,
+complete budget validation and held-out end-to-end evaluation remain necessary.
 Post-training, new quantization, and inference acceleration experiments remain
 in the planning stage.
 
