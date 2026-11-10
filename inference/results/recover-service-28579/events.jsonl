@@ -1,0 +1,11 @@
+{"t": 1794323910.361, "event": "vllm_started", "pid": 37247, "attempt": 0}
+{"t": 1794323910.435, "event": "gpu_sampler_started", "source": "nvml"}
+{"t": 1794324354.051, "event": "ready", "address": "http://10-0-1-10:8000/v1", "ready_after_s": 443.6, "attempt": 0}
+{"t": 1794324432.774, "event": "fault_kill", "target": "http://10-0-1-10:8000/v1", "pid": 37247}
+{"t": 1794324433.34, "event": "address_withdrawn", "reason": "vllm_exit"}
+{"t": 1794324433.375, "event": "vllm_down", "reason": "vllm_exit", "code": -9}
+{"t": 1794324433.407, "event": "restarting", "reason": "vllm_exit", "attempt": 1, "time_left_s": 977}
+{"t": 1794324438.448, "event": "vllm_started", "pid": 37485, "attempt": 1}
+{"t": 1794324735.041, "event": "ready", "address": "http://10-0-1-10:8000/v1", "ready_after_s": 296.5, "attempt": 1}
+{"t": 1794324810.588, "event": "handover_submit_failed", "error": "[Errno 2] No such file or directory: 'sbatch'"}
+{"t": 1794325410.698, "event": "address_withdrawn", "reason": "exit"}

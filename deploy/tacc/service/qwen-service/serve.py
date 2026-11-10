@@ -244,8 +244,15 @@ def submit_successor(out: Path, chain_file: Path) -> None:
         event(out, "handover_skipped", remaining=remaining)
         return
     slurm = Path(os.environ.get("TACC_WORKDIR", ".")) / "configurations/run.slurm"
+    # The course environment's PATH does not include /usr/bin (job 28579: "No such file: 'sbatch'"),
+    # although sbatch is there on every node (chain-probe job 28574).
+    sbatch = shutil.which("sbatch") or next(
+        (p for p in ("/usr/bin/sbatch", "/usr/local/bin/sbatch", "/opt/slurm/bin/sbatch") if Path(p).exists()), None)
+    if sbatch is None:
+        event(out, "handover_submit_failed", error="sbatch not found")
+        return
     try:
-        r = subprocess.run(["sbatch", "--parsable", str(slurm)], capture_output=True, text=True, timeout=60)
+        r = subprocess.run([sbatch, "--parsable", str(slurm)], capture_output=True, text=True, timeout=60)
     except (OSError, subprocess.SubprocessError) as exc:
         event(out, "handover_submit_failed", error=str(exc)[:200])
         return

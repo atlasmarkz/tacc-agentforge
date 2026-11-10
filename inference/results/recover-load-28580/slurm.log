@@ -1,0 +1,8 @@
+10-0-1-11
+args=--rates 0.1 --duration 60 --fault-rate 0.2 --fault-duration 480 --kill-at 30 --fault-timeout 30
+15:25:54 service http://10-0-1-10:8000/v1 (waited 425.9s)
+15:25:57 calibration {'base_tokens': 1584, 'chars_per_token': 2.868}
+15:26:37 calls rate 0.1/s: sent 4 ok 4 errors {} p50 9.107s p95 10.77s ttft p50 3.168s tput 0.101/s
+15:27:12 fault requested at 34.981s
+15:34:46 fault: {'ServiceUnavailable': 57, 'ok': 39} first error +1.359s address gone +0.927s hung 0
+15:34:47 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/load-28580
