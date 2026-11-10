@@ -8,7 +8,8 @@ umask 077
 : "${CONDA_PREFIX:?SDK must activate the course management environment}"
 test "$CONDA_PREFIX" = /mnt/home/public/course-envs/CSIT6000V/assignment1/mpi-gemm-v1
 source /mnt/home/public/course-envs/CSIT6000V/project/activate.sh
-trap 'rm -rf -- "$QWEN_RUN_DIR"' EXIT
+HELPER=""
+trap 'if [ -n "$HELPER" ]; then kill "$HELPER" 2>/dev/null || true; fi; rm -rf -- "$QWEN_RUN_DIR"' EXIT
 trap 'exit 143' TERM
 trap 'exit 130' INT
 export QWEN_CACHE_HOME="$TACC_USERDIR/CSIT6000V-project-cache"
@@ -28,6 +29,25 @@ if [ "$MODE" = validate ]; then
     # Validation run (load and fault tests): the load job may ask this service to kill vLLM.
     ARGS+=(--allow-fault-injection)
 fi
+# serve.py runs inside the course runtime's proot root filesystem, where sbatch and the Slurm config do not
+# exist (job 28581). For a handover it writes $OUT/handover-request; this helper, running here outside proot,
+# submits the successor and writes the outcome to $OUT/handover-result.
+handover_helper() {
+    while true; do
+        if [ -f "$OUT/handover-request" ]; then
+            if result=$(/usr/bin/sbatch --parsable "$TACC_WORKDIR/configurations/run.slurm" 2>&1); then
+                printf 'ok %s\n' "$result" > "$OUT/handover-result.tmp"
+            else
+                printf 'error %s\n' "$result" > "$OUT/handover-result.tmp"
+            fi
+            mv "$OUT/handover-result.tmp" "$OUT/handover-result"
+            rm -f "$OUT/handover-request"
+        fi
+        sleep 2
+    done
+}
+handover_helper &
+HELPER=$!
 # Optional extra serve.py options (git-ignored args.txt), e.g. --deadline-s 1500 --handover-lead-s 600
 read -r -a EXTRA <<< "$(cat args.txt 2>/dev/null || true)"
 qwen-python -u serve.py "${ARGS[@]}" ${EXTRA[@]+"${EXTRA[@]}"}

@@ -243,25 +243,26 @@ def submit_successor(out: Path, chain_file: Path) -> None:
     if remaining <= 0 or (chain_file.parent / "service-stop").exists():
         event(out, "handover_skipped", remaining=remaining)
         return
-    slurm = Path(os.environ.get("TACC_WORKDIR", ".")) / "configurations/run.slurm"
-    # The course environment's PATH does not include /usr/bin (job 28579: "No such file: 'sbatch'"),
-    # although sbatch is there on every node (chain-probe job 28574).
-    sbatch = shutil.which("sbatch") or next(
-        (p for p in ("/usr/bin/sbatch", "/usr/local/bin/sbatch", "/opt/slurm/bin/sbatch") if Path(p).exists()), None)
-    if sbatch is None:
-        event(out, "handover_submit_failed", error="sbatch not found")
+    # serve.py runs inside the course runtime's proot root filesystem, which has no sbatch and no Slurm
+    # configuration (jobs 28579 and 28581). job.sh runs a helper outside proot: we write a request file and it
+    # submits the successor, then writes "ok <job id>" or "error <message>" to handover-result.
+    request, result = out / "handover-request", out / "handover-result"
+    result.unlink(missing_ok=True)
+    atomic_write(request, json.dumps({"t": time.time()}))
+    deadline = time.monotonic() + 90
+    while not result.exists() and time.monotonic() < deadline:
+        time.sleep(1)
+    if not result.exists():
+        event(out, "handover_submit_failed", error="no answer from the job.sh helper within 90 s")
         return
-    try:
-        r = subprocess.run([sbatch, "--parsable", str(slurm)], capture_output=True, text=True, timeout=60)
-    except (OSError, subprocess.SubprocessError) as exc:
-        event(out, "handover_submit_failed", error=str(exc)[:200])
+    status, _, detail = result.read_text(encoding="utf-8").strip().partition(" ")
+    if status != "ok" or not detail.strip().isdigit():
+        event(out, "handover_submit_failed", error=(detail or status)[:200])
         return
-    if r.returncode != 0:
-        event(out, "handover_submit_failed", error=(r.stderr or r.stdout)[:200])
-        return
-    atomic_write(chain_file, json.dumps({"remaining": remaining - 1, "last_submitted": r.stdout.strip(),
+    successor = detail.strip()
+    atomic_write(chain_file, json.dumps({"remaining": remaining - 1, "last_submitted": successor,
                                          "by": os.environ.get("SLURM_JOB_ID")}))
-    event(out, "handover_submitted", successor=r.stdout.strip(), remaining=remaining - 1)
+    event(out, "handover_submitted", successor=successor, remaining=remaining - 1)
 
 
 def drain(out: Path, timeout_s: float = 120) -> None:
