@@ -1,0 +1,4 @@
+{"t": 1794329320.013, "event": "vllm_started", "pid": 38964, "attempt": 0}
+{"t": 1794329320.068, "event": "gpu_sampler_started", "source": "nvml"}
+{"t": 1794329633.811, "event": "ready", "address": "http://10-0-1-10:8000/v1", "ready_after_s": 308.0, "attempt": 0}
+{"t": 1794332261.249, "event": "address_withdrawn", "reason": "exit"}
