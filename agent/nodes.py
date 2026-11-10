@@ -192,7 +192,7 @@ class Nodes:
             if reply.finish_reason != "stop":
                 raise ValueError("incomplete generation")
             action = ACTION_ADAPTER.validate_json(reply.content)
-        except (ValidationError, ValueError):
+        except (ValidationError, ValueError) as exc:
             errors = state["consecutive_action_errors"] + 1
             issue = Issue(code="invalid_action", message="Return one complete action matching the schema.")
             usage["action_repairs"] += 1
@@ -200,7 +200,25 @@ class Nodes:
             if errors > self.policy.max_action_repairs:
                 update = stop(state, "invalid_action", issue=issue)
             else:
-                update = observation(state, {"status": "error", **issue.model_dump()}, issue=issue)
+                # 通用提示不足以定位缺括号或字段错误；把有界的原回复和具体原因交回模型。
+                # 不自动补括号、剥离代码围栏，也不把校验库携带的完整输入写入反馈。
+                details = (
+                    exc.errors(include_input=False, include_url=False, include_context=False)
+                    if isinstance(exc, ValidationError)
+                    else [{"type": "incomplete_generation", "loc": [], "msg": str(exc)}]
+                )
+                feedback = {
+                    "status": "error", **issue.model_dump(),
+                    "instruction": "Return a corrected, complete JSON action without Markdown fences.",
+                    "rejected_output": reply.content[:2048],
+                    "rejected_output_truncated": len(reply.content) > 2048,
+                    "validation_errors": [{
+                        "type": detail["type"],
+                        "loc": [str(part)[:128] for part in detail["loc"][:8]],
+                        "msg": detail["msg"][:256],
+                    } for detail in details[:5]],
+                }
+                update = observation(state, feedback, issue=issue)
             return {**update, "usage": usage, "consecutive_action_errors": errors}
         self.scope.emit("decide", "action_selected", action_type=action.type)
         route = {"call_tool": "execute_tool", "propose_plan": "validate_plan", "ask_user": "prepare_question"}

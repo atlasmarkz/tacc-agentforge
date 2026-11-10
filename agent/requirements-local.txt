@@ -1,0 +1,4 @@
+# Apple Silicon 本地模型测试的可选依赖；请使用 Python 3.11 或更高版本。
+-r requirements.txt
+mlx-lm==0.32.2
+python-dotenv==1.2.4

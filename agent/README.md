@@ -60,6 +60,75 @@ Python/platform markers. It was resolved for Python 3.10+ and exercised on
 Python 3.14.7. Other interpreters still need their own runtime validation.
 The project-wide manifest and test configuration are unchanged.
 
+## 本地 Qwen3.5-4B 全流程测试
+
+Apple Silicon 可复用现有 `agent/.venv`，使用 MLX 加载
+`~/models/qwen/qwen3.5-4b` 中的原始权重。该可选测试环境需要 Python 3.11+；
+不会改变 Agent 的生产接口、TACC 连接方式或模型文件。
+
+在项目根目录安装可选依赖：
+
+```bash
+uv pip install --python agent/.venv/bin/python -r agent/requirements-local.txt
+```
+
+在一个终端启动仅监听本机的模型服务，离线选项禁止补下载模型：
+
+```bash
+HF_HUB_OFFLINE=1 TRANSFORMERS_OFFLINE=1 HF_HUB_DISABLE_TELEMETRY=1 \
+TOKENIZERS_PARALLELISM=false agent/.venv/bin/python -m mlx_lm server \
+  --model "$HOME/models/qwen/qwen3.5-4b" \
+  --host 127.0.0.1 --port 18080 --max-tokens 2048 --temp 0.6 \
+  --chat-template-args '{"enable_thinking":true}' \
+  --decode-concurrency 1 --prompt-cache-size 1 --prefill-step-size 512
+```
+
+在另一个终端运行两个真实模型场景：
+
+```bash
+agent/.venv/bin/python -m agent.examples.local_run \
+  --base-url http://127.0.0.1:18080/v1 \
+  --model-path "$HOME/models/qwen/qwen3.5-4b"
+```
+
+入口默认读取根目录 `.env`，不会导出或打印其中的密钥，也不会写回配置。
+配置优先级为显式参数、进程环境变量、`.env`、默认值。
+可选配置项为 `LOCAL_MODEL_BASE_URL`、`LOCAL_MODEL_PATH`、`LOCAL_MODEL_ID`；
+地址还会回退到 `QWEN_BASE_URL`。当前 `.env` 若指向远端模型，需要像上述命令一样
+显式传入本机地址。入口会拒绝远端地址和带凭证的 URL。
+
+默认开启思考模式、温度 `0.6`、每次最多输出 `2048` 个令牌（包含思考令牌），
+可通过 `--no-thinking`、`--temperature`、`--max-tokens` 调整。
+这里复用 `inference.model_port.VllmModelPort` 的兼容 HTTP 接口；MLX 服务不提供
+`response_format` 约束解码，因此只在此示例中设置 `constrain_output=False`。
+Harness 仍严格校验 JSON、动作和最终方案；格式错误会携带有界原回复与校验原因
+返回模型，超出原有修复上限仍按失败收尾。不会人工补全模型 JSON。
+
+两个场景分别为：
+
+- `direct`：已知预算 → 真实模型决策 → 模拟搜索 → 真实模型提交方案 → 模拟业务校验 → 完成。
+- `clarify`：缺少预算 → 真实模型提问 → 检查点挂起 → 示例自动提交
+  `purchase_cap=100.00` → 恢复同一任务 → 搜索、方案校验、完成。
+
+可用 `--scenario direct` 或 `--scenario clarify` 单独执行。商品、报价、证据和业务
+校验器使用 `mock_run.py` 的模拟实现，模型推理是真实调用。这里验证 Agent 编排链路，
+没有调用 SerpAPI、生产知识库、正式预算算法或 TACC 作业。
+
+每次输出独立目录 `agent/results/local-qwen35/<UTC时间>/`，包含 `report.json`、
+各场景 `*-model-calls.json` 原始回复与令牌用量、`*-events.jsonl` 节点事件。
+只有实际收到模型回复、执行工具、通过方案校验、完成预期问答恢复，且最终状态为
+`completed` 才判定通过；全部通过时退出码为 `0`，否则为 `1`。
+输出目录已加入 `agent/.gitignore`。测试后可在服务终端按 Ctrl+C 释放模型内存。
+
+2026-11-10 在本机 Python 3.14.7 / MLX-LM 0.32.2 上的实测结论：权重加载、
+真实模型调用、搜索工具、提问挂起及回答恢复均已执行；直接场景和问答场景都未通过
+最终验收。模型多次返回缺少外层括号、尾随逗号或多余字段的方案，有限修复后以
+`incomplete / invalid_action` 收尾。思考与非思考模式均观察到格式问题。
+因此本入口可用于复现和检查 Agent 链路，目前不能把这套未提供约束解码的本地
+模型组合视为已经完整跑通。要进一步验证稳定的结构化输出，需要模型服务侧实现
+真正的 JSON Schema 约束解码，或继续改进模型输出能力；仅开启不被服务实现的
+`response_format` 参数不会解决问题。
+
 ## Public API and integration
 
 ```python

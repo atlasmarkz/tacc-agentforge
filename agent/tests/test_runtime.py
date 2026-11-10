@@ -110,6 +110,20 @@ def test_malformed_output_has_bounded_repairs():
     assert result.usage.model_calls == 3
 
 
+@pytest.mark.parametrize("bad", [json.dumps(PLAN)[:-1],
+                               json.dumps({**PLAN, "extra": True}), "x" * 6000])
+def test_action_repair_includes_bounded_rejected_output_and_validation_details(bad):
+    model = ScriptedModel(bad, ASK)
+    result = run(runtime(model))
+    assert result.status == "waiting_user" and result.usage.action_repairs == 1
+    feedback = json.loads(model.requests[1].messages[-1].content)["observation"]
+    assert feedback["rejected_output"] == bad[:2048]
+    assert feedback["rejected_output_truncated"] == (len(bad) > 2048)
+    assert feedback["validation_errors"]
+    assert all("input" not in detail for detail in feedback["validation_errors"])
+    assert feedback["instruction"]
+
+
 def test_valid_action_resets_consecutive_format_errors():
     result = run(runtime(ScriptedModel("invalid", SEARCH, "invalid", ASK),
                          policy=RunPolicy(max_action_repairs=1)))
