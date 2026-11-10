@@ -24,5 +24,9 @@ if [ "$MODE" = smoke ]; then
     # Validation run: publish to a separate file so a running real service is never overwritten.
     ARGS=(--out "$OUT" --address-file "$BASE/service-url-smoke.txt" --smoke --exit-after-smoke)
 fi
+if [ "$MODE" = validate ]; then
+    # Validation run (load and fault tests): the load job may ask this service to kill vLLM.
+    ARGS+=(--allow-fault-injection)
+fi
 qwen-python -u serve.py "${ARGS[@]}"
 echo "RESULTS_DIR=$OUT"

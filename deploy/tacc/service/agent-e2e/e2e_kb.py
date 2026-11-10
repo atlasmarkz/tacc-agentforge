@@ -43,8 +43,7 @@ SCENARIOS = [
 ]
 VARIANTS = {"think-off": (False, 2), "think-default": (None, 1)}     # name -> (enable_thinking, repeats)
 CATEGORIES = ["earbuds", "chargers", "keyboards", "backpacks"]       # for --hint (test-only workaround)
-TUNED_CONTEXT_CHARS = 36000                                          # ~12K tokens, inside the 16K model window
-TUNED_THINKING_OUTPUT_TOKENS = 2048                                  # reasoning tokens count against max_output_tokens
+
 
 
 def log(msg):
@@ -218,8 +217,8 @@ async def run_real(config, userdir, out_dir, tuned, hint):
     def policy_for(variant):
         if not tuned:
             return RunPolicy()                                  # harness defaults
-        out = TUNED_THINKING_OUTPUT_TOKENS if VARIANTS[variant][0] is None else 512
-        return RunPolicy(max_context_chars=TUNED_CONTEXT_CHARS, max_output_tokens=out)
+        from inference.harness_policy import run_policy_kwargs
+        return RunPolicy(**run_policy_kwargs(VARIANTS[variant][0]))
 
     def with_hint(constraints):
         return {**constraints, "available_categories": CATEGORIES} if hint else constraints
@@ -261,7 +260,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--selftest", action="store_true")
     parser.add_argument("--config", type=Path, default=HERE / "pkg/configs/knowledge.json")
-    parser.add_argument("--tuned", action="store_true", help="host policy: 36000 context chars, 2048 output tokens when thinking")
+    parser.add_argument("--tuned", action="store_true", help="host policy from inference.harness_policy (36000 context chars, 2048 output tokens when thinking)")
     parser.add_argument("--hint", action="store_true", help="test-only: put the valid category names into the constraints")
     args = parser.parse_args()
     if args.selftest:

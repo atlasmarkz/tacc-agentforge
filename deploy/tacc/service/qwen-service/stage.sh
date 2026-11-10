@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Usage: stage.sh smoke|serve   - copies the stdlib client next to serve.py and records the mode.
+# Usage: stage.sh smoke|serve|validate   - copies the stdlib client next to serve.py and records the mode.
 set -euo pipefail
 cd "$(dirname "$0")"
 mode=${1:?smoke or serve}

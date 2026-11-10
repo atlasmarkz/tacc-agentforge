@@ -56,3 +56,7 @@ deploy/tacc/knowledge-worker/.stage-build-*/
 deploy/tacc/knowledge-worker/runtime.json
 deploy/tacc/service/agent-e2e/script.txt
 deploy/tacc/service/agent-e2e/args.txt
+
+# staged copy of inference/client.py and local options for the load-test job
+deploy/tacc/service/load-test/client.py
+deploy/tacc/service/load-test/args.txt

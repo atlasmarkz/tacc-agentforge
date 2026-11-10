@@ -9,5 +9,5 @@ tar -C "$root" -cf - --exclude='.venv' --exclude='__pycache__' --exclude='tests'
 tar -C "$root" -cf - --exclude='__pycache__' knowledge | tar -xf - -C pkg
 cp "$root/configs/knowledge.json" "$root/configs/category_schemas.json" "$root/configs/shopping_queries.json" pkg/configs/
 cp "$root/assets/knowledge/pilot-snapshot.zip" pkg/assets/knowledge/
-cp "$root/inference/__init__.py" "$root/inference/client.py" "$root/inference/model_port.py" pkg/inference/
+cp "$root/inference/__init__.py" "$root/inference/client.py" "$root/inference/model_port.py" "$root/inference/harness_policy.py" pkg/inference/
 echo "staged: $(find pkg -type f | wc -l) files"

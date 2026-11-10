@@ -6,6 +6,10 @@
   repeatedly, or vLLM exits, the address file is removed so clients see "unavailable" instead of hanging.
 - Every probe interval appends one JSON line (latency, queue and request counters from /metrics) to probe.jsonl.
 - With --smoke it also runs smoke.py against the live server; with --exit-after-smoke it then stops.
+- GPU utilisation, memory and power are sampled every second into gpu.jsonl.
+- vLLM exit is noticed within about a second (not only at the next probe), so the address is withdrawn fast.
+- Test only: with --allow-fault-injection, a client can write this service's address into the file
+  `fault-request` next to the address file, and vLLM is killed (SIGKILL). Timestamps go to events.jsonl.
 """
 import argparse
 import json
@@ -15,6 +19,7 @@ import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from urllib.request import urlopen
@@ -78,6 +83,59 @@ def scrape() -> dict:
     return out
 
 
+def event(out: Path, name: str, **data) -> None:
+    """Wall-clock timestamped events, comparable with the load job's own clock on another node."""
+    with open(out / "events.jsonl", "a", encoding="utf-8") as f:
+        f.write(json.dumps({"t": round(time.time(), 3), "event": name, **data}) + "\n")
+
+
+GPU_QUERY = ["nvidia-smi", "--query-gpu=index,utilization.gpu,memory.used,memory.total,power.draw",
+             "--format=csv,noheader,nounits"]
+
+
+def parse_gpu_csv(text: str) -> list[dict]:
+    def num(value):
+        try:
+            return float(value)
+        except ValueError:          # "[N/A]" or similar
+            return None
+    gpus = []
+    for line in text.strip().splitlines():
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) == 5:
+            gpus.append({"index": int(num(parts[0]) or 0), "util_pct": num(parts[1]), "mem_used_mib": num(parts[2]),
+                         "mem_total_mib": num(parts[3]), "power_w": num(parts[4])})
+    return gpus
+
+
+def gpu_sampler(out: Path, done: threading.Event, interval: float = 1.0) -> None:
+    with open(out / "gpu.jsonl", "a", encoding="utf-8") as f:
+        while not done.wait(interval):
+            try:
+                text = subprocess.run(GPU_QUERY, capture_output=True, text=True, timeout=5).stdout
+            except (OSError, subprocess.SubprocessError):
+                continue
+            f.write(json.dumps({"t": round(time.time(), 2), "gpus": parse_gpu_csv(text)}) + "\n")
+            f.flush()
+
+
+def fault_watcher(trigger: Path, address: str, proc: subprocess.Popen, out: Path, done: threading.Event) -> None:
+    while not done.wait(0.5):
+        try:
+            target = trigger.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if target != address:           # never kill a service the request was not meant for
+            continue
+        trigger.unlink(missing_ok=True)
+        event(out, "fault_kill", target=target)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except OSError as exc:
+            event(out, "fault_kill_failed", error=str(exc))
+        return
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
@@ -87,6 +145,7 @@ def main() -> int:
     ap.add_argument("--exit-after-smoke", action="store_true")
     ap.add_argument("--probe-interval", type=float, default=30)
     ap.add_argument("--deadline-s", type=float, default=3400)
+    ap.add_argument("--allow-fault-injection", action="store_true")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     cfg = json.loads(a.config.read_text(encoding="utf-8"))
@@ -106,6 +165,9 @@ def main() -> int:
             "started_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
     published = False
     code = 0
+    done = threading.Event()
+    threading.Thread(target=gpu_sampler, args=(a.out, done), daemon=True).start()
+    event(a.out, "vllm_started", pid=proc.pid)
     try:
         log(f"vLLM started pid={proc.pid}; waiting for a successful probe")
         while True:
@@ -132,6 +194,11 @@ def main() -> int:
         atomic_write(a.address_file, address + "\n")
         published = True
         log(f"READY and published {address} -> {a.address_file}")
+        event(a.out, "ready", address=address, ready_after_s=info["ready_after_s"])
+        if a.allow_fault_injection:
+            trigger = a.address_file.parent / "fault-request"
+            threading.Thread(target=fault_watcher, args=(trigger, address, proc, a.out, done), daemon=True).start()
+            log(f"fault injection enabled: write {address} into {trigger}")
 
         if a.smoke:
             import smoke
@@ -142,7 +209,12 @@ def main() -> int:
         failures = 0
         with open(a.out / "probe.jsonl", "a", encoding="utf-8") as probes:
             while not stopping and proc.poll() is None and time.monotonic() - start < a.deadline_s:
-                time.sleep(a.probe_interval)
+                # Wait for the next probe in short steps, so a vLLM exit is noticed within about a second.
+                next_probe = time.monotonic() + a.probe_interval
+                while time.monotonic() < next_probe and not stopping and proc.poll() is None:
+                    time.sleep(0.5)
+                if stopping or proc.poll() is not None:
+                    break
                 ok, took, why = probe(local)
                 failures = 0 if ok else failures + 1
                 probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok,
@@ -159,12 +231,15 @@ def main() -> int:
                     published = True
         if proc.poll() is not None:
             log(f"vLLM exited, code {proc.returncode}")
+            event(a.out, "vllm_exit_seen", code=proc.returncode)
             code = code or 1
         return code
     finally:
+        done.set()
         try:
             if a.address_file.exists() and a.address_file.read_text(encoding="utf-8").strip() == address:
                 a.address_file.unlink()          # never remove another job's newer address
+                event(a.out, "address_withdrawn")
         except OSError:
             pass
         if proc.poll() is None:
