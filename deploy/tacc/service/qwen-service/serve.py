@@ -76,6 +76,31 @@ def probe(client: ModelClient, timeout_s: float = 30) -> tuple[bool, float, str]
         return False, time.monotonic() - t0, f"{type(exc).__name__}: {exc}"
 
 
+def process_group_rss_mib(pgid: int, proc_root: Path = Path("/proc")) -> float | None:
+    """Resident host memory of every process in vLLM's process group (API server, engine, TP workers)."""
+    total_kib, found = 0, False
+    try:
+        entries = list(proc_root.iterdir())
+    except OSError:
+        return None
+    for d in entries:
+        if not d.name.isdigit():
+            continue
+        try:
+            stat = (d / "stat").read_text()
+            fields = stat[stat.rindex(")") + 2:].split()          # after "(comm)": state ppid pgrp ...
+            if int(fields[2]) != pgid:
+                continue
+            for line in (d / "status").read_text().splitlines():
+                if line.startswith("VmRSS:"):
+                    total_kib += int(line.split()[1])
+                    found = True
+                    break
+        except (OSError, ValueError, IndexError):
+            continue
+    return round(total_kib / 1024, 1) if found else None
+
+
 def scrape() -> dict:
     out: dict = {}
     try:
@@ -300,7 +325,8 @@ def monitor(a, proc, local, start, address, handover_done: bool) -> str:
             ok, took, why = probe(local)
             failures = 0 if ok else failures + 1
             probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok, "probe_s": round(took, 3),
-                                     "error": why, "metrics": scrape()}) + "\n")
+                                     "error": why, "metrics": scrape(),
+                                     "host_rss_mib": process_group_rss_mib(proc.pid)}) + "\n")
             probes.flush()
             if failures >= 3:
                 return "unhealthy"
