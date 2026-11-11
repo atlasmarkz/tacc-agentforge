@@ -85,20 +85,53 @@ class RecordingValidator:
             issues=[Issue(code="validator_not_implemented", message="No budget validator exists yet (Task 3).")])
 
 
+def _all_pages(fetch, ids, items_key, pending_key):
+    """Collect every page of a knowledge-tool answer (results are size-limited and paginated)."""
+    items, unknown, cursor = [], [], None
+    for _ in range(50):
+        page = fetch(ids, cursor)
+        items += page[items_key]
+        unknown += page.get("unknown_ids", [])
+        cursor = page.get(pending_key)
+        if not cursor:
+            return items, unknown
+        if pending_key == "remaining_offer_ids":     # offers paginate by the IDs still to fetch
+            ids, cursor = cursor, None
+    raise RuntimeError("knowledge answer did not finish within 50 pages")
+
+
 def check_grounding(kb, snapshot_id, plan, context_text):
-    """Are the IDs in a proposed plan real, and were they visible to the model?"""
+    """Is a proposed plan grounded? All of these must hold for every item:
+    - the offer and each cited evidence ID exist in the snapshot,
+    - they appeared in what the model saw (it got them from a tool, not from memory or invention),
+    - each cited evidence belongs to the same product variant as the offer it supports.
+    The first version checked only existence, so real IDs typed from nowhere, or a charger offer with
+    keyboard evidence, counted as grounded (review of PR #12)."""
     offer_ids = [i["offer_id"] for i in plan["items"]]
     evidence_ids = sorted({e for i in plan["items"] for e in i["evidence_ids"]})
     out = {"offer_ids": offer_ids, "evidence_ids": evidence_ids,
            "offers_seen_in_context": [o in context_text for o in offer_ids],
            "evidence_seen_in_context": [e in context_text for e in evidence_ids]}
     try:
-        out["unknown_offers"] = kb.get_offer_facts(snapshot_id, offer_ids)["unknown_ids"]
-        out["unknown_evidence"] = kb.resolve_evidence(snapshot_id, evidence_ids)["unknown_ids"]
+        offers, unknown_offers = _all_pages(lambda ids, cur: kb.get_offer_facts(snapshot_id, ids),
+                                            offer_ids, "offers", "remaining_offer_ids")
+        evidence, unknown_evidence = _all_pages(lambda ids, cur: kb.resolve_evidence(snapshot_id, ids, cur),
+                                                evidence_ids, "evidence", "next_cursor")
     except KnowledgeError as exc:
         out["lookup_error"] = f"{exc.code}"
-    out["grounded"] = (not out.get("unknown_offers") and not out.get("unknown_evidence")
-                       and "lookup_error" not in out)
+        out["grounded"] = False
+        return out
+    out["unknown_offers"], out["unknown_evidence"] = sorted(set(unknown_offers)), sorted(set(unknown_evidence))
+    offer_variant = {o["offer_id"]: o["variant_id"] for o in offers}
+    evidence_variant = {e["evidence_id"]: e["variant_id"] for e in evidence}
+    out["evidence_of_another_variant"] = [
+        {"offer_id": i["offer_id"], "evidence_id": e}
+        for i in plan["items"] for e in i["evidence_ids"]
+        if i["offer_id"] in offer_variant and e in evidence_variant
+        and evidence_variant[e] != offer_variant[i["offer_id"]]]
+    out["grounded"] = bool(not out["unknown_offers"] and not out["unknown_evidence"]
+                           and not out["evidence_of_another_variant"]
+                           and all(out["offers_seen_in_context"]) and all(out["evidence_seen_in_context"]))
     return out
 
 
