@@ -17,6 +17,11 @@ from agent.tools import ToolRegistry, ToolSpec
 from .service import KnowledgeError, KnowledgeService
 
 
+class DescribeFiltersArguments(Schema):
+    category: str | None = None
+    cursor: str | None = Field(default=None, max_length=2048)
+
+
 class SearchProductsArguments(Schema):
     filters: dict[str, JsonValue] = Field(default_factory=dict)
     limit: int = Field(default=5, strict=True, ge=1, le=20)
@@ -46,6 +51,20 @@ class KnowledgeResult(Schema):
     bytes: int = Field(strict=True, ge=0)
     truncated: bool
     next_cursor: str | None
+
+
+class FilterAttribute(Schema):
+    name: str
+    type: str
+    operators: list[str]
+    unit: str | None
+    accepted_units: list[str]
+
+
+class DescribeFiltersResult(KnowledgeResult):
+    category: str | None
+    categories: list[str]
+    attributes: list[FilterAttribute]
 
 
 class SearchProductsResult(KnowledgeResult):
@@ -173,14 +192,21 @@ class KnowledgeToolExecutor:
 
 
 def build_knowledge_tools(service: KnowledgeService, *, retrieval_mode="filtered") -> ToolRegistry:
-    """Register four bounded tools; baseline retrieval mode is trusted host policy."""
+    """Register schema discovery and four bounded queries over the trusted snapshot."""
     if retrieval_mode not in ("filtered", "keyword"):
         raise ValueError("retrieval_mode must be filtered or keyword")
     workers = _Workers()
     specs = [
+        ("describe_filters", DescribeFiltersArguments, DescribeFiltersResult,
+         "Discover legal search filters from the current snapshot before guessing names. "
+         "Call with {} to list categories; pass category to list its canonical attributes, value types, "
+         "allowed operators and units for hard_constraints. Continue with next_cursor and the same category. "
+         "Attributes describe the schema, not proof that a product has a known value."),
         ("search_products", SearchProductsArguments, SearchProductsResult,
          "Search the trusted snapshot. Filters: category, type, currency, max_price_minor (inclusive), "
          "min_price_minor, variant_ids, hard_constraints {attribute:{op,value,unit?}}, include_unknown. "
+         "Use describe_filters to discover legal category and attribute names. "
+         "type is a top-level catalog filter, not a hard_constraints attribute; omit it if unknown. "
          "Missing facts remain unknown. Returns a full-scope candidate_set_id and a compact page."),
         ("retrieve_evidence", RetrieveEvidenceArguments, RetrieveEvidenceResult,
          "Retrieve short cited evidence for an active candidate_set_id in the trusted snapshot. "

@@ -272,6 +272,7 @@ def test_invalid_filters_are_explicit(tmp_path, filters):
     with pytest.raises(KnowledgeError, match=".") as error:
         KnowledgeService(root).search_products("snap-test", filters)
     assert error.value.code == "invalid_arguments"
+    assert error.value.recoverable is True
 
 
 def test_snapshot_paths_context_deadlines_and_read_only(tmp_path):
@@ -453,3 +454,256 @@ def test_resolve_rejects_page_that_cannot_advance_one_unicode_character(tmp_path
     with pytest.raises(KnowledgeError) as error:
         KnowledgeService(root, max_result_bytes=budget).resolve_evidence("snap-test", ["long-review"])
     assert error.value.code == "result_budget_exceeded"
+
+
+def test_filter_discovery_uses_snapshot_schema_and_exposes_query_names_only(tmp_path):
+    root, path = fixture_snapshot(tmp_path)
+    with sqlite3.connect(path) as connection:
+        schema = json.loads(connection.execute(
+            "SELECT schema_json FROM category_schemas WHERE category_id='earbuds'").fetchone()[0])
+        schema["attributes"]["connectivity"] = {"type": "string", "aliases": ["wireless technology"]}
+        connection.execute("UPDATE category_schemas SET schema_json=? WHERE category_id='earbuds'", (json.dumps(schema),))
+    before = hashlib.sha256(path.read_bytes()).hexdigest()
+    service = KnowledgeService(root)
+    categories = service.describe_filters("snap-test")
+    assert categories["categories"] == ["backpacks", "earbuds", "unseen-category"]
+    assert categories["category"] is None and categories["attributes"] == []
+    result = service.describe_filters("snap-test", "earbuds")
+    attributes = {item["name"]: item for item in result["attributes"]}
+    assert attributes["anc"] == {"name": "anc", "type": "boolean", "operators": ["eq"],
+                                 "unit": None, "accepted_units": []}
+    assert attributes["connectivity"]["operators"] == ["eq", "contains"]
+    assert attributes["battery_life"]["unit"] == "h"
+    assert attributes["battery_life"]["accepted_units"] == ["h", "min"]
+    assert "aliases" not in json.dumps(result) and "wireless technology" not in json.dumps(result)
+    assert result["categories"] == [] and result["category"] == "earbuds"
+    # Exercise advertised numeric operators and units, rather than only checking metadata.
+    for operator in attributes["battery_life"]["operators"]:
+        page = service.search_products("snap-test", {"category": "earbuds", "variant_ids": ["v-0"],
+            "hard_constraints": {"battery_life": {"op": operator, "value": 3, "unit": "min"}}})
+        assert page["total_count"] == (1 if operator in ("gt", "gte") else 0)
+        if page["candidates"]:
+            assert page["candidates"][0]["hard_constraint_status"]["battery_life"] == "satisfied"
+    assert result["bytes"] == size(result) <= service.max_result_bytes
+    assert hashlib.sha256(path.read_bytes()).hexdigest() == before
+
+
+def test_discovery_and_validation_share_category_specific_attributes(tmp_path):
+    root, path = fixture_snapshot(tmp_path)
+    with sqlite3.connect(path) as connection:
+        connection.execute("UPDATE category_schemas SET schema_json=? WHERE category_id='backpacks'",
+                           (json.dumps({"attributes": {"capacity": {"type": "number", "unit": "L"}}}),))
+    service = KnowledgeService(root)
+    assert [a["name"] for a in service.describe_filters("snap-test", "backpacks")["attributes"]] == ["capacity"]
+    with pytest.raises(KnowledgeError) as error:
+        service.search_products("snap-test", {"category": "earbuds", "hard_constraints": {
+            "capacity": {"op": "gte", "value": 20}}})
+    assert error.value.recoverable and "battery_life" in error.value.public_message
+    # A category-free query may still apply an attribute defined by another category.
+    assert service.search_products("snap-test", {"hard_constraints": {
+        "capacity": {"op": "gte", "value": 20}}})["total_count"] == 9
+
+
+@pytest.mark.parametrize("filters,correction", [
+    ({"category": "audio"}, "earbuds"),
+    ({"category": "earbuds", "hard_constraints": {"type": {"op": "eq", "value": "wireless"}}}, "battery_life"),
+    ({"category": "earbuds", "hard_constraints": {"anc": {"op": "gte", "value": True}}}, '"eq"'),
+    ({"category": "earbuds", "hard_constraints": {"anc": {"op": ["eq"], "value": True}}}, '"eq"'),
+    ({"category": "earbuds", "hard_constraints": {"battery_life": {"op": "contains", "value": 1}}}, '"gte"'),
+    ({"category": "earbuds", "hard_constraints": {"anc": {"op": "eq", "value": "yes"}}}, "true or false"),
+    ({"category": "earbuds", "hard_constraints": {"battery_life": {"op": "eq", "value": True}}}, "numeric"),
+])
+def test_correctable_query_errors_explain_how_to_repair(tmp_path, filters, correction):
+    root, _ = fixture_snapshot(tmp_path)
+    with pytest.raises(KnowledgeError) as error:
+        KnowledgeService(root).search_products("snap-test", filters)
+    assert error.value.code == "invalid_arguments" and error.value.recoverable
+    assert correction in error.value.public_message
+    assert len(error.value.public_message) <= 500
+
+
+def test_trusted_host_and_snapshot_errors_remain_fatal(tmp_path):
+    root, path = fixture_snapshot(tmp_path)
+    with pytest.raises(KnowledgeError) as error:
+        KnowledgeService(root, max_result_bytes=1)
+    assert not error.value.recoverable
+    service = KnowledgeService(root)
+    for snapshot in ("missing", "../snap-test"):
+        with pytest.raises(KnowledgeError) as error:
+            service.describe_filters(snapshot)
+        assert not error.value.recoverable
+    with sqlite3.connect(path) as connection:
+        connection.execute("UPDATE metadata SET value='wrong-id' WHERE key='snapshot_id'")
+    with pytest.raises(KnowledgeError) as error:
+        service.describe_filters("snap-test")
+    assert error.value.code == "snapshot_mismatch" and not error.value.recoverable
+
+
+def test_discovery_paginates_at_minimum_budget_and_error_feedback_stays_bounded(tmp_path):
+    from agent.contracts import CallContext, CapabilityError
+    from knowledge.agent_tools import DescribeFiltersResult, build_knowledge_tools
+    root, path = fixture_snapshot(tmp_path)
+    names = [f"property_{i:02d}_" + "长" * 24 for i in range(15)]
+    categories = [f"category_{i:02d}_" + "新" * 24 for i in range(15)]
+    with sqlite3.connect(path) as connection:
+        connection.execute("UPDATE category_schemas SET schema_json=? WHERE category_id='earbuds'",
+                           (json.dumps({"attributes": {name: {"type": "number", "unit": "h"} for name in names}}),))
+        for category in categories:
+            put(connection, "category_schemas", category_id=category, schema_json='{"attributes":{}}')
+    service = KnowledgeService(root, max_result_bytes=1024)
+    first = None
+    for category, key, expected in ((None, "categories", sorted(categories + ["backpacks", "earbuds", "unseen-category"])),
+                                    ("earbuds", "attributes", sorted(names))):
+        cursor, collected, seen_cursors, pages = None, [], set(), 0
+        while True:
+            result = service.describe_filters("snap-test", category, cursor)
+            if category == "earbuds" and first is None:
+                first = result
+            parsed = DescribeFiltersResult.model_validate(result, strict=True)
+            assert parsed.bytes == size(result) <= 1024
+            assert len(parsed.model_dump_json().encode()) <= 1024
+            collected += result[key] if category is None else [a["name"] for a in result[key]]
+            pages += 1
+            cursor = result["next_cursor"]
+            if not cursor:
+                assert not result["truncated"]
+                break
+            assert result["truncated"] and cursor not in seen_cursors
+            seen_cursors.add(cursor)
+        assert collected == expected and pages > 1
+    with pytest.raises(KnowledgeError) as error:
+        service.describe_filters("snap-test", "backpacks", first["next_cursor"])
+    assert error.value.recoverable and error.value.code == "invalid_arguments"
+    registry = build_knowledge_tools(service)
+    tool = registry.get("search_products")
+    async def query():
+        arguments = tool.arguments_model.model_validate({"filters": {"category": "earbuds", "hard_constraints": {
+            "bad_" * 1000: {"op": "eq", "value": 1}}}}, strict=True)
+        with pytest.raises(CapabilityError) as error:
+            await tool.executor.execute(arguments, CallContext("run", "snap-test", "op", 5, asyncio.Event()))
+        assert error.value.recoverable and len(error.value.issue.message) <= 500
+        assert "describe_filters" in error.value.issue.message
+    try:
+        asyncio.run(query())
+    finally:
+        tool.executor.close()
+
+
+def test_discovery_adapter_uses_trusted_snapshot_and_is_visible_to_model(tmp_path):
+    from agent import AgentRequest, RunPolicy
+    from agent.contracts import CallContext
+    from agent.prompts import build_model_request
+    from agent.state import initial_state
+    from inference.model_port import to_chat_messages
+    from knowledge.agent_tools import build_knowledge_tools
+    from pydantic import ValidationError
+    root, path = fixture_snapshot(tmp_path)
+    second = root / "snap-second"
+    second.mkdir()
+    other_db = second / "catalog.sqlite"
+    other_db.write_bytes(path.read_bytes())
+    with sqlite3.connect(other_db) as connection:
+        connection.execute("UPDATE metadata SET value='snap-second' WHERE key='snapshot_id'")
+        connection.execute("DELETE FROM category_schemas")
+        put(connection, "category_schemas", category_id="only-second", schema_json='{"attributes":{}}')
+    registry = build_knowledge_tools(KnowledgeService(root))
+    tool = registry.get("describe_filters")
+    with pytest.raises(ValidationError):
+        tool.arguments_model.model_validate({"snapshot_id": "snap-second"}, strict=True)
+    policy = RunPolicy()
+    state = initial_state(AgentRequest(run_id="r", conversation_id="c", snapshot_id="snap-test",
+                                      message="Recommend earbuds"), policy)
+    request = build_model_request(state, registry, policy)
+    description = next(t for t in request.tools if t.name == "describe_filters")
+    assert {"category", "cursor"} == set(description.parameters["properties"])
+    assert "describe_filters" in to_chat_messages(request)[0]["content"]
+    async def query():
+        results = await asyncio.gather(*[
+            tool.executor.execute(tool.arguments_model(), CallContext("run", snapshot, "op", 5, asyncio.Event()))
+            for snapshot in ("snap-test", "snap-second")])
+        for result in results:
+            tool.result_model.model_validate(result, strict=True)
+        assert results[0]["categories"] == ["backpacks", "earbuds", "unseen-category"]
+        assert results[1]["categories"] == ["only-second"]
+    try:
+        asyncio.run(query())
+    finally:
+        tool.executor.close()
+
+
+@pytest.mark.parametrize("category,attribute,value,bad_filters", [
+    ("earbuds", "anc", True, {"category": "audio"}),
+    ("keyboards", "switch_type", "mechanical", {"category": "keyboards", "hard_constraints": {
+        "type": {"op": "eq", "value": "mechanical"}}}),
+])
+def test_issue4_real_snapshot_runtime_repairs_arguments_without_category_hints(
+        tmp_path, category, attribute, value, bad_filters):
+    from agent import AgentDependencies, AgentRequest, AgentRuntime, ModelReply
+    from knowledge.agent_tools import build_knowledge_tools
+    from knowledge.bootstrap import install_snapshot
+    from knowledge.settings import load_settings
+    settings = load_settings(data_root=tmp_path, snapshots_root=tmp_path / "snapshots")
+    install_snapshot(settings)
+    registry = build_knowledge_tools(KnowledgeService(settings.snapshots_root, **settings.service))
+    class RepairModel:
+        def __init__(self):
+            self.requests = []
+
+        async def generate(self, request, context):
+            step = len(self.requests)
+            self.requests.append(request)
+            if step:
+                observation = json.loads(request.messages[-1].content)["observation"]
+            if step == 0:
+                action = {"type": "call_tool", "tool_name": "search_products", "arguments": {"filters": bad_filters}}
+            elif step == 1:
+                assert observation["status"] == "error" and observation["code"] == "invalid_arguments"
+                assert "describe_filters" in observation["message"]
+                action = {"type": "call_tool", "tool_name": "describe_filters", "arguments": {}}
+            elif step == 2:
+                assert observation["status"] == "ok" and category in observation["data"]["categories"]
+                action = {"type": "call_tool", "tool_name": "describe_filters", "arguments": {"category": category}}
+            elif step == 3:
+                assert observation["status"] == "ok"
+                descriptor = next(a for a in observation["data"]["attributes"] if a["name"] == attribute)
+                assert "eq" in descriptor["operators"]
+                action = {"type": "call_tool", "tool_name": "search_products", "arguments": {"limit": 1,
+                    "filters": {"category": category, "hard_constraints": {
+                        descriptor["name"]: {"op": "eq", "value": value}}}}}
+            else:
+                assert step == 4 and observation["status"] == "ok" and observation["tool"] == "search_products"
+                action = {"type": "ask_user", "question": "What is your delivery destination?",
+                          "required_fields": ["destination"]}
+            return ModelReply(content=json.dumps(action))
+    model = RepairModel()
+    runtime = AgentRuntime(AgentDependencies(model=model, tools=registry))
+    request = AgentRequest(run_id="repair", conversation_id="repair", snapshot_id=settings.snapshot_id,
+                           message="Recommend something suitable for my commute, under 100 USD.",
+                           constraints={"currency": "USD", "purchase_cap": "100.00"})
+    try:
+        result = asyncio.run(runtime.run(request))
+        assert result.status == "waiting_user" and result.verified_plan is None
+        assert result.usage.model_calls == 5 and result.usage.tool_calls == 4
+        assert any(i.code == "invalid_arguments" for i in result.issues)
+        assert all("available_categories" not in m.content for r in model.requests for m in r.messages)
+    finally:
+        registry.get("describe_filters").executor.close()
+
+
+def test_correctable_errors_still_exhaust_the_existing_call_budget(tmp_path):
+    from agent import AgentDependencies, AgentRequest, AgentRuntime, ModelReply, RunPolicy
+    from knowledge.agent_tools import build_knowledge_tools
+    root, _ = fixture_snapshot(tmp_path)
+    registry = build_knowledge_tools(KnowledgeService(root))
+    class RepeatingModel:
+        async def generate(self, request, context):
+            return ModelReply(content=json.dumps({"type": "call_tool", "tool_name": "search_products",
+                                                "arguments": {"filters": {"category": "audio"}}}))
+    runtime = AgentRuntime(AgentDependencies(model=RepeatingModel(), tools=registry), RunPolicy(max_tool_calls=2))
+    try:
+        result = asyncio.run(runtime.run(AgentRequest(run_id="r", conversation_id="c", snapshot_id="snap-test",
+                                                    message="Recommend earbuds")))
+        assert result.status == "incomplete" and result.stop_reason == "tool_call_limit"
+        assert result.usage.tool_calls == 2 and result.usage.model_calls == 3
+    finally:
+        registry.get("describe_filters").executor.close()
