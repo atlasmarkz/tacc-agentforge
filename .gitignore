@@ -61,3 +61,5 @@ deploy/tacc/service/agent-e2e/args.txt
 deploy/tacc/service/load-test/client.py
 deploy/tacc/service/load-test/args.txt
 deploy/tacc/service/qwen-service/args.txt
+deploy/tacc/service/net-probe/role.txt
+deploy/tacc/service/net-probe-*/

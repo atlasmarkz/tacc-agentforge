@@ -44,3 +44,12 @@ def test_process_group_rss_sums_only_the_group(tmp_path):
     (tmp_path / "self").mkdir()                 # non-numeric entries are skipped
     assert serve.process_group_rss_mib(100, tmp_path) == 3.0
     assert serve.process_group_rss_mib(999, tmp_path) is None
+
+
+def test_node_ip_is_an_address_not_a_hostname():
+    import ipaddress
+    ip = load_serve().node_ip()
+    try:
+        assert not ipaddress.ip_address(ip).is_loopback
+    except ValueError:                       # no route to 10.x on this machine: hostname fallback
+        assert ip == __import__("socket").gethostname()
