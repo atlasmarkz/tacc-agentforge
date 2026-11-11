@@ -1,7 +1,17 @@
 # Interface proposal: streamed explanation step in the agent harness
 
-Status: proposal for the harness owner. Nothing in `agent/` has been changed. Written 2026-11-08 by the
-inference/deployment side (`inference/`), based on measurements from TACC jobs 28462, 28467 and 28469.
+Status: implemented locally on 2026-11-11, off by default via `RunPolicy(explain=False)`.
+Originally proposed on 2026-11-08 by the inference/deployment side (`inference/`),
+based on measurements from TACC jobs 28462, 28467 and 28469. Those measurements
+describe decision streaming; explanation performance on TACC still needs measurement.
+
+Implementation: `agent/explanation.py`, `Nodes.explain`, the schema-free mode and
+per-call hook in `inference/model_port.py`, and
+`knowledge.explanation.KnowledgeEvidenceResolver`. See `agent/README.md` for the
+current contract. All existing result fields retain their semantics; new optional
+result/usage fields are serialized with defaults. The request schema uses `None`
+for free text, checks live in the harness, fallback is a VerifiedPlan-only template,
+and knowledge implements the injected evidence resolver.
 
 ## 1. Why
 
@@ -21,7 +31,7 @@ The explanation is a *run* artifact, so its progress belongs in the harness's ow
 | Delta callback delivered on the event-loop thread, tagged with `operation_id` | `inference/model_port.py` `VllmModelPort(on_delta=...)` | done, tested |
 | Cancellation closes the connection, vLLM frees the slot | `CancelToken` | done |
 | Retry only while nothing has been delivered; later breaks raise `StreamInterrupted` (recoverable) | client | done |
-| Free-text mode (no schema, no constrained decoding) | `VllmModelPort` | **blocked** until the contract allows it (section 3.1) |
+| Free-text mode (no schema, no constrained decoding) | `VllmModelPort` | implemented locally; cluster measurement pending |
 
 Measured on the real service (Qwen3.8-27B-AWQ-INT4, TP=2, CUDA graphs):
 
@@ -68,24 +78,28 @@ Behaviour of the node:
    that emits `explain_delta`. Suggested limits in `RunPolicy`: `explain: bool = False` (off by default),
    `explain_timeout_s = 20`, `max_explain_tokens = 400`.
 3. The call does **not** count against `max_model_calls` (that budget is for the decision loop).
-4. Check the generated text (section 4). If the check fails, or the call fails or times out, use the
+4. Check the generated text (section 4). If the check fails, or the explanation call fails or times out, use the
    deterministic template built from the verified plan. **An explanation failure never changes the run
    status**: the run stays `completed`, `explanation.fallback = true`.
 5. `scope.emit("explain", "explain_done", ...)`, then `finalize` attaches `explanation` to the result.
-6. Cancellation and the run deadline apply as for any other call. A cancelled run emits no `explain_done`.
+6. Cancellation and the run deadline apply as for any other call. Cancellation during explanation emits no
+   `explain_done`; the final result is cancelled. Overall deadline exhaustion keeps the existing
+   incomplete/deadline_exceeded outcome. These global stops take precedence over template fallback.
 
 Event volume: a decision action produced 17 to 49 content deltas in the end-to-end runs. The explanation is
 expected to be larger (not measured). Optional: coalesce deltas (for example at least 50 ms or 8 characters
 apart) before emitting, to keep the event queue and the browser stream small.
 
-### 3.3 Inputs of the explanation (open: who provides them)
+### 3.3 Inputs of the explanation
 
 The prompt may only contain verified facts: the `VerifiedPlan` (items, quantities, currency, total,
 remaining funds, cost breakdown), the user's message, and for each cited evidence ID the product title,
 merchant, price, price age, excerpt and source URL. The first group is in the run state. The second needs a
-new port, for example
-`EvidenceResolver.resolve(evidence_ids, snapshot_id) -> list[EvidenceFact]`, supplied by the knowledge-base
-side (Tasks 1 and 2, not built yet). Until it exists, the mock tools can return the facts in their results.
+port `EvidenceResolver.resolve(plan, context) -> list[EvidenceFact]`. The harness defines
+the contract; `knowledge.explanation.KnowledgeEvidenceResolver` implements it using
+the existing snapshot service. Hosts inject and close it. The demo supplies an explicit
+mock resolver. Without a resolver the prompt contains only plan facts and user text;
+a configured resolver failure uses the plan-only template.
 
 ## 4. Faithfulness check (deterministic, harness side)
 
@@ -111,19 +125,21 @@ Streaming shows the text before the check completes. Suggested UI contract: labe
 - Check failure (inject an unlisted number): fallback used, status still `completed`.
 - Model error and timeout during explanation: fallback used, status still `completed`.
 - Cancellation during explanation: no `explain_done`, status `cancelled`.
-- `RunPolicy(explain=False)` (default): event sequence and result identical to today.
+- `RunPolicy(explain=False)` (default): event sequence and pre-existing result fields unchanged.
 - A run that ends `waiting_user` or `incomplete` emits no explain events.
 
-## 6. Port-side work that follows (inference side)
+## 6. Port-side implementation (inference side)
 
-Once 3.1 is merged, `VllmModelPort` will: skip constrained decoding when `action_schema is None`; default
-thinking off for free-text requests (configurable); forward `context.on_delta`; keep today's error mapping.
-Tests use the fake streaming server in `tests/fake_vllm.py`; a TACC check repeats the measurements in
-section 2 for the explanation call.
+`VllmModelPort` now skips constrained decoding when `action_schema is None`; defaults
+thinking off for free-text requests (configurable); forwards `context.on_delta`; keeps today's error mapping.
+Tests use the fake streaming server in `tests/fake_vllm.py`; a future TACC check must repeat the measurements in
+section 2 for the explanation call. Queued callbacks drain before success returns; late callbacks are dropped.
 
 ## 7. Related findings from the end-to-end runs (for the harness owner)
 
 These are independent of the explanation step.
+The pause/resume pitfalls below are historical: the current runtime has explicit
+state errors and checkpointed user resume, plus an opt-in durable SQLite host helper.
 
 1. **Schema patterns and constrained decoding.** `ask_user.question` is declared with `pattern=r"\S"`.
    JSON Schema treats a pattern as "contains a match", but the vLLM constrained decoder implements a full
@@ -143,10 +159,13 @@ These are independent of the explanation step.
    into `USERDIR/agent-pylib` with a recent pip bootstrapped from the user's Miniconda
    (`deploy/tacc/service/agent-e2e/job.sh`). Decide how the harness's dependencies are managed for delivery.
 
-## 8. Questions for the harness owner
+## 8. Confirmed decisions
 
-1. Is `action_schema: None` the right way to request free text, or do you prefer an explicit
-   `mode: Literal["action", "text"]`?
-2. Should the check (section 4) live in the harness or in the plan validator?
-3. Fallback text: template built from the verified plan, or no explanation at all?
-4. Who implements `EvidenceResolver`: the knowledge-base owner?
+1. `action_schema=None` requests free text; no separate mode field is added.
+2. Checks live in the harness; the plan validator remains responsible for business correctness.
+3. Fallback uses a deterministic template built only from VerifiedPlan, with
+   `fallback=True, verified=False`; the done event records the cause.
+4. The agent owns the resolver/fact contracts, knowledge owns the adapter, and the host injects it.
+
+The `verified` flag denotes numeric/citation/format checks, not proof of all prose semantics.
+The UI must continue to display authoritative amounts from the structured plan.

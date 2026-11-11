@@ -1,0 +1,78 @@
+# Agent 专用配置；不读取或修改既有知识库、模型服务、训练等任务的配置。
+# 仅由 agent.settings 和 Agent 示例显式加载。密钥仍放环境或本地 .env。
+# 相对路径以本文件所在 configs/ 的上一级为基准。
+version: 1
+default_profile: tacc
+
+defaults:
+  agent:
+    max_model_calls: 8             # 决策尝试总数；错误回复也占额度，解释调用单独计数。
+    max_tool_calls: 8              # 已开始执行的工具调用总数。
+    max_action_repairs: 2          # 连续无效动作最多修复两次，第三次拒绝后停止。
+    max_plan_repairs: 2            # 业务校验失败后的方案修复上限。
+    max_questions: 8               # 同一 run 跨 resume 的提问上限。
+    max_answer_repairs: 2          # 无效用户答案的修复上限。
+    question_timeout_s: 7200       # 用户回答的现实时间有效期；重启不续期。
+    max_answer_bytes: 8192         # 结构化用户答案的 UTF-8 JSON 字节上限。
+    deadline_seconds: 120          # 累计实际执行预算；用户等待不计入。
+    call_timeout_s: 30             # 单次外部调用上限，同时受剩余运行时间约束。
+    max_context_chars: 36000      # 字符预算，非 token 预算；保留多次约 8KB 的真实工具观察。
+    max_history_messages: 32       # 避免 8 次决策的动作/观察被过早按消息数丢弃。
+    max_output_tokens: 2048        # 包含 reasoning token；适用于默认开启思考的 Qwen3。
+    explain: false                # 通过业务校验后才允许解释；默认不额外调用模型。
+    explain_timeout_s: 20          # 证据解析与解释生成共享此预算。
+    max_explain_tokens: 400        # 解释输出预算；自由文本默认关闭思考。
+    max_explain_chars: 8000        # 流式解释累计字符上限。
+
+  model:
+    name: qwen3.8-27b
+    base_url: null                # TACC 通过 address_file 获取会随作业变化的地址。
+    address_file: ${TACC_USERDIR}/tacc-agentforge-service/service-url.txt
+    model_path: null              # 仅本地模型示例需要。
+    temperature: 0.0
+    enable_thinking: null         # null 使用模型默认行为；false 关闭，true 显式开启。
+    constrain_output: true        # 决策使用 schema 解码；解释请求始终不约束解码。
+    timeout_margin_s: 0.5         # 适配器提前结束，让宿主收到具体的模型错误。
+    max_attempts: 4               # 仅未输出任何流片段时允许传输层重试。
+    backoff_base_s: 0.5
+    backoff_max_s: 8.0
+    connect_timeout_s: 5.0
+    context_window_tokens: 16384  # 外部服务的窗口提示，不控制服务启动。36000 字符约 12K token 仅为估计；
+                                  # 中文比例、模板和 schema 会改变实际分词，需保留输出余量。
+
+  checkpoint:
+    backend: sqlite              # memory 仅供离线示例；SQLite 需要支持 WAL 的持久卷。
+    path: ${TACC_USERDIR}/tacc-agentforge/checkpoints/agent.sqlite
+    sqlite_storage_verified: false # 确认卷支持 WAL/锁/fsync 后才能启用；网络盘会额外被拒绝。
+    cleanup_on_start: true        # 在接收任务前、持有独占租约时清理。
+    terminal_retention_s: 604800   # 终态检查点保留 7 天。
+    expired_question_grace_s: 86400 # 问题过期后再保留 24 小时。
+
+  local:
+    env_file: .env
+    scenario: all
+
+profiles:
+  tacc: {}                       # 实际部署默认：36000 字符、2048 输出 token。
+  tacc-fast:
+    model: {enable_thinking: false}
+    agent: {max_output_tokens: 512} # 作业 28561：关闭思考时约 30～200 token，512 足够。
+  tacc-thinking:
+    model: {enable_thinking: true}
+    agent: {max_output_tokens: 2048} # 不能用 512，否则 reasoning 可能耗尽整个额度。
+  mock:
+    agent: {question_timeout_s: 1800, max_context_chars: 16000, max_history_messages: 12, max_output_tokens: 512}
+    checkpoint: {backend: memory}
+  local:
+    agent: {call_timeout_s: 180, deadline_seconds: 600, max_tool_calls: 4, max_questions: 3}
+    model:
+      name: null                 # 未指定 model ID 时使用本地模型的绝对路径。
+      base_url: http://127.0.0.1:18080/v1
+      address_file: null
+      model_path: ~/models/qwen/qwen3.5-4b
+      temperature: 0.6
+      enable_thinking: true
+      constrain_output: false    # MLX 不实现 response_format，仍由 harness 校验动作。
+      max_attempts: 1
+      context_window_tokens: null # 以实际本地模型/tokenizer 配置为准。
+    checkpoint: {backend: memory}
