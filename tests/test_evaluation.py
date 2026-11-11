@@ -250,9 +250,43 @@ def test_runner_end_to_end_against_a_fake_model(tmp_path):
     assert first_body["response_format"]["type"] == "json_schema"
 
 
+def test_runner_waits_for_the_service_and_gives_up_cleanly(tmp_path):
+    import threading
+    import time as _time
+    from evaluations.run import wait_for_service
+    from tests.fake_vllm import FakeVllm
+    srv = FakeVllm([(200, {"status": "ok"}, 0)])
+    try:
+        address = tmp_path / "service-url.txt"
+        threading.Timer(1.0, lambda: address.write_text(srv.url + chr(10))).start()   # service becomes ready later
+        t0 = _time.monotonic()
+        got = wait_for_service(address, wait_s=15)
+        assert got["address"] == srv.url and 0.5 < _time.monotonic() - t0 < 12
+    finally:
+        srv.close()
+    with pytest.raises(SystemExit, match="no healthy service"):
+        wait_for_service(tmp_path / "never.txt", wait_s=0.2)
+
+
 def test_heldout_split_is_sealed(monkeypatch, capsys):
     from evaluations import run
     monkeypatch.setattr(sys, "argv", ["run.py", "--split", "heldout", "--out", "x"])
     with pytest.raises(SystemExit) as exc:
         run.main()
     assert "sealed" in str(exc.value)
+
+
+def test_recall_and_mrr_at_5():
+    from evaluations.retrieval import recall_mrr, score_rankings
+    assert recall_mrr({"a", "b"}, ["x", "a", "y", "z", "w", "b"]) == (0.5, 0.5)     # b is rank 6: outside top 5
+    assert recall_mrr({"a"}, ["x", "y", "z"]) == (0.0, 0.0)
+    assert recall_mrr(set(), ["a"]) is None                                          # not applicable, never 1
+    labels = [{"case_id": "c1", "evidence_id": "a", "relevant": True},
+              {"case_id": "c1", "evidence_id": "x", "relevant": False},
+              {"case_id": "c2", "evidence_id": "q", "relevant": False},              # labelled, none relevant
+              {"case_id": "c3", "evidence_id": "a", "relevant": None}]               # not labelled yet
+    rankings = {("c1", "keyword"): ["a", "x"], ("c1", "filtered"): ["x", "y", "a"]}
+    s = score_rankings(labels, rankings)
+    assert s["keyword"] == {"recall_at_5": 1.0, "mrr_at_5": 1.0, "applicable_cases": 1, "labelled_cases": 2,
+                            "not_applicable": 1}
+    assert s["filtered"]["mrr_at_5"] == 0.333

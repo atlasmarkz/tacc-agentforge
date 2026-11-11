@@ -205,7 +205,28 @@ def prepare_snapshot(config_path, userdir, scratch_parent):
     return settings, scratch
 
 
+def wait_for_service(address_file: Path, wait_s: float) -> dict:
+    """Block until the service has published its address and answers /health. Job 28609 started before the
+    service was ready and recorded every attempt as an error; a baseline must never measure start-up."""
+    from urllib.parse import urlsplit
+    from urllib.request import urlopen
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < wait_s:
+        address = address_file.read_text(encoding="utf-8").strip() if address_file.exists() else ""
+        if address:
+            parts = urlsplit(address)
+            try:
+                if urlopen(f"http://{parts.hostname}:{parts.port}/health", timeout=10).status == 200:
+                    return {"address": address, "waited_s": round(time.monotonic() - t0, 1)}
+            except OSError:
+                pass
+        time.sleep(5)
+    raise SystemExit(f"no healthy service at {address_file} after {wait_s:.0f} s")
+
+
 async def run_all(a):
+    service = wait_for_service(a.address_file, getattr(a, "wait_s", 1800))
+    log(f"service {service}")
     cases = [json.loads(l) for l in a.cases.read_text(encoding="utf-8").splitlines() if l.strip()]
     cases = [c for c in cases if c["split"] == a.split]
     if a.only:
@@ -242,7 +263,7 @@ async def run_all(a):
     scores = [score_record(r, by_id[r["case_id"]], gts[r["case_id"]], catalog) for r in records]
     catalog.close()
     shutil.rmtree(scratch, ignore_errors=True)
-    report = {"split": a.split, "snapshot_id": sid, "cases": len(cases), "repeats": a.repeats, "configs": configs,
+    report = {"split": a.split, "snapshot_id": sid, "service": service, "cases": len(cases), "repeats": a.repeats, "configs": configs,
               "summary": aggregate(scores, records),
               "paired": [d for d in (paired_difference(scores, x, y) for x, y in
                                      (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
@@ -271,6 +292,7 @@ def main():
     ap.add_argument("--address-file", type=Path,
                     default=Path(os.environ.get("TACC_USERDIR", ".")) / "tacc-agentforge-service/service-url.txt")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--wait-s", type=float, default=1800, help="how long to wait for a healthy service")
     a = ap.parse_args()
     if a.split == "heldout" and not a.unseal_heldout:
         sys.exit("refusing: the held-out split stays sealed until the system is frozen (use --unseal-heldout then)")
