@@ -54,3 +54,7 @@ configs/knowledge.local.json
 deploy/tacc/knowledge-worker/_stage/
 deploy/tacc/knowledge-worker/.stage-build-*/
 deploy/tacc/knowledge-worker/runtime.json
+
+# staged code/data and local options for the SFT job
+deploy/tacc/train-sft/pkg/
+deploy/tacc/train-sft/args.txt

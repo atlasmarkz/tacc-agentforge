@@ -101,3 +101,24 @@ def test_write_jsonl_is_deterministic_with_manifest(tmp_path):
     assert manifest["examples"] == 3 and manifest["cases"] == 2
     assert manifest["action_types"] == {"call_tool": 1, "propose_plan": 2}
     assert json.loads(out.with_suffix(".manifest.json").read_text())["sha256"] == manifest["sha256"]
+
+
+def test_scorer_verdict_decides_which_runs_are_kept():
+    ok = trace("d1", [call(SEARCH)], status="incomplete", stop_reason="invalid_arguments", grounded=None)
+    ok["score_success"], ok["rejected"] = True, 0          # scorer judged the outcome correct
+    bad = trace("d1", [call(PLAN)], run_id="r2")
+    bad["score_success"], bad["rejected"] = False, 0       # heuristics would keep it; the scorer does not
+    rejected = trace("d1", [call(SEARCH)], run_id="r3")
+    rejected["score_success"], rejected["rejected"] = True, 1
+    examples = build_examples([case("d1")], [ok, bad, rejected])
+    assert [e.metadata["run_id"] for e in examples] == ["r1"]
+
+
+def test_full_case_file_splits_dev_and_heldout(tmp_path):
+    from training.prepare_data import split_case_file
+    p = tmp_path / "cases.jsonl"
+    p.write_text("\n".join(json.dumps(c) for c in [case("d1"), case("h1", split="heldout"), case("d2")]) + "\n",
+                 encoding="utf-8")
+    dev, rest = split_case_file(p, SEEN)
+    assert [c["case_id"] for c in dev] == ["d1", "d2"] and [c["case_id"] for c in rest] == ["h1"]
+    assert not list(tmp_path.glob("*.tmp.json"))

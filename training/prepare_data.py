@@ -67,6 +67,20 @@ def load_dev_cases(path: Path, allowed_categories: set[str] | None = None) -> li
     return cases
 
 
+def split_case_file(path: Path, allowed_categories: set[str] | None = None) -> tuple[list[dict], list[dict]]:
+    """evaluations/cases.jsonl (all splits): dev cases for training, all other cases for the leakage check.
+    Dev cases go through the same checks as load_dev_cases."""
+    rows = [json.loads(l) for l in Path(path).read_text(encoding="utf-8").splitlines() if l.strip()]
+    dev = [r for r in rows if r.get("split") == "dev"]
+    tmp = Path(path).with_suffix(".dev-only.tmp.json")
+    try:
+        tmp.write_text(json.dumps(dev, ensure_ascii=False), encoding="utf-8")
+        dev = load_dev_cases(tmp, allowed_categories)
+    finally:
+        tmp.unlink(missing_ok=True)
+    return dev, [r for r in rows if r.get("split") != "dev"]
+
+
 def load_traces(path: Path) -> list[dict]:
     traces = []
     for n, line in enumerate(Path(path).read_text(encoding="utf-8").splitlines(), 1):
@@ -79,6 +93,10 @@ def load_traces(path: Path) -> list[dict]:
 
 
 def _keep_run(trace: dict) -> bool:
+    if "score_success" in trace:
+        # Verdict of the independent evaluation scorer (evaluations/score.py): the run reached the correct
+        # outcome for its case. Runs where the harness rejected any step are not demonstrations either.
+        return trace["score_success"] is True and not trace.get("rejected")
     if (trace.get("status"), trace.get("stop_reason")) not in KEEP_OUTCOMES:
         return False
     if trace.get("status") in ("completed", "incomplete"):
@@ -154,15 +172,21 @@ def write_jsonl(examples: list[SFTExample], out_path: Path) -> dict:
 def main() -> None:
     import argparse
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("--dev-cases", type=Path, required=True)
-    ap.add_argument("--heldout-cases", type=Path, required=True,
+    ap.add_argument("--cases", type=Path, help="evaluations/cases.jsonl: dev cases train, the rest check leakage")
+    ap.add_argument("--dev-cases", type=Path)
+    ap.add_argument("--heldout-cases", type=Path,
                     help="held-out cases (any split label); only used to check for leakage")
     ap.add_argument("--traces", type=Path, required=True)
     ap.add_argument("--category-schemas", type=Path, default=Path("configs/category_schemas.json"))
     ap.add_argument("--out", type=Path, default=Path("data/sft/train.jsonl"))
     a = ap.parse_args()
-    cases = load_dev_cases(a.dev_cases, seen_categories(a.category_schemas))
-    heldout = json.loads(a.heldout_cases.read_text(encoding="utf-8"))
+    if a.cases:
+        cases, heldout = split_case_file(a.cases, seen_categories(a.category_schemas))
+    elif a.dev_cases and a.heldout_cases:
+        cases = load_dev_cases(a.dev_cases, seen_categories(a.category_schemas))
+        heldout = json.loads(a.heldout_cases.read_text(encoding="utf-8"))
+    else:
+        ap.error("give --cases, or both --dev-cases and --heldout-cases")
     examples = build_examples(cases, load_traces(a.traces))
     check_no_leakage(examples, heldout)
     print(json.dumps(write_jsonl(examples, a.out), indent=2))
