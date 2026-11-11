@@ -85,11 +85,16 @@ class Catalog:
         return row[0] if row else None
 
     def evidence_ids(self, ids) -> set[str]:
+        return set(self.evidence_variants(ids))
+
+    def evidence_variants(self, ids) -> dict[str, str]:
+        """evidence_id -> the product variant the evidence is about, for the IDs that exist."""
         ids = list(ids)
         if not ids:
-            return set()
+            return {}
         marks = ",".join("?" * len(ids))
-        return {r[0] for r in self.conn.execute(f"SELECT evidence_id FROM evidence WHERE evidence_id IN ({marks})", ids)}
+        return {r[0]: r[1] for r in self.conn.execute(
+            f"SELECT evidence_id, variant_id FROM evidence WHERE evidence_id IN ({marks})", ids)}
 
 
 def check_requirement(attrs: dict, req: dict) -> str:
@@ -182,7 +187,7 @@ def judge_plan(plan_items: list[dict], case: dict, catalog: Catalog) -> dict:
     several items are summed, each with its own shipping."""
     known = catalog.offer_ids()
     out = {"unknown_offer_ids": [], "wrong_category": [], "items": [], "total": None,
-           "over_budget": False, "violates": False, "unverifiable": False}
+           "over_budget": False, "violates": False, "unverifiable": False, "foreign_evidence": []}
     total = Decimal(0)
     for item in plan_items:
         oid = item["offer_id"]
@@ -192,6 +197,12 @@ def judge_plan(plan_items: list[dict], case: dict, catalog: Catalog) -> dict:
         if catalog.offer_category(oid) != case["category"]:
             out["wrong_category"].append(oid)
         offer = next(o for o in catalog.offers(catalog.offer_category(oid)) if o.offer_id == oid)
+        # Evidence must be about the very product the offer is for (a real charger offer with keyboard
+        # evidence is not a grounded plan; review of PR #12).
+        cited = list(item.get("evidence_ids", []))
+        about = catalog.evidence_variants(cited)
+        out["foreign_evidence"] += [{"offer_id": oid, "evidence_id": e} for e in cited
+                                    if e in about and about[e] != offer.variant_id]
         per_item = {**case, "quantity": item.get("quantity", 1)}
         verdict = judge_offer(offer, catalog.attributes(offer.variant_id), per_item)
         out["items"].append({"offer_id": oid, "status": verdict.status, "total": verdict.total,

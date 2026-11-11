@@ -23,8 +23,8 @@ def offer(oid, vid, price, shipping=0, currency="USD", ship_status="known", conf
 
 
 class FakeCatalog:
-    def __init__(self, offers, attrs, evidence=()):
-        self._offers, self._attrs, self._evidence = offers, attrs, set(evidence)
+    def __init__(self, offers, attrs, evidence=None):
+        self._offers, self._attrs, self._evidence = offers, attrs, dict(evidence or {})   # evidence id -> variant
 
     def snapshot_id(self):
         return "snap-test"
@@ -43,7 +43,10 @@ class FakeCatalog:
         return o.variant_id.split("-")[0] if o else None
 
     def evidence_ids(self, ids):
-        return set(ids) & self._evidence
+        return set(ids) & set(self._evidence)
+
+    def evidence_variants(self, ids):
+        return {e: self._evidence[e] for e in ids if e in self._evidence}
 
 
 CASE = {"case_id": "c1", "category": "earbuds", "constraints": {"currency": "USD", "purchase_cap": "50.00"},
@@ -59,7 +62,7 @@ CATALOG = FakeCatalog(
     attrs={"earbuds-a": {"anc": attr(value_type="boolean", b=1)},
            "earbuds-b": {"anc": attr(value_type="boolean", b=0)},
            "earbuds-c": {"anc": attr(status="unknown", value_type="boolean")}},
-    evidence={"ev-1"})
+    evidence={"ev-1": "earbuds-a", "ev-kb": "keyboards-z"})
 
 
 # ---- enumerator ---------------------------------------------------------------------------------------
@@ -107,9 +110,12 @@ def test_ground_truth_classifies_every_offer():
 
 # ---- scorer -------------------------------------------------------------------------------------------
 
-def rec(kind, rep=0, config="B3", **outcome):
-    return {"config": config, "case_id": "c1", "rep": rep, "outcome": {"kind": kind, **outcome}, "wall_s": 10.0,
-            "model_calls": 3, "prompt_tokens": 5000, "completion_tokens": 100}
+def rec(kind, rep=0, config="B3", context_ids=None, **outcome):
+    r = {"config": config, "case_id": "c1", "rep": rep, "outcome": {"kind": kind, **outcome}, "wall_s": 10.0,
+         "model_calls": 3, "prompt_tokens": 5000, "completion_tokens": 100}
+    if context_ids is not None:
+        r["context_ids"] = context_ids
+    return r
 
 
 def plan(oid, qty=1, ev=("ev-1",)):
@@ -352,3 +358,55 @@ def test_rescore_keeps_only_complete_repeats(tmp_path):
     assert report["repeats_complete"] == 1 and report["records_dropped_partial_repeat"] == 3
     assert report["summary"]["B0"]["tsr"] == {"n": 1, "m": 2, "rate": 0.5}
     assert (out / "scores.jsonl").read_text(encoding="utf-8").count("\n") == 4
+
+
+
+# ---- grounding of plans (review of PR #12) -------------------------------------------------------------
+
+def test_evidence_of_another_product_fails_the_plan():
+    gt = ground_truth(CASE, CATALOG)
+    s = score_record(rec("plan", **plan("o-cheap", ev=("ev-kb",))), CASE, gt, CATALOG)    # earbuds offer, keyboard evidence
+    assert (s["success"], s["reason"]) == (False, "evidence_of_another_product")
+    assert s["foreign_evidence"] == [{"offer_id": "o-cheap", "evidence_id": "ev-kb"}] and s["evidence_mismatch"]
+    mixed = score_record(rec("plan", **plan("o-cheap", ev=("ev-1", "ev-kb"))), CASE, gt, CATALOG)
+    assert mixed["reason"] == "evidence_of_another_product"                                # one foreign ID is enough
+
+
+def test_ids_the_model_never_saw_fail_the_plan_when_the_record_says_what_it_saw():
+    gt = ground_truth(CASE, CATALOG)
+    saw_all = score_record(rec("plan", context_ids=["o-cheap", "ev-1"], **plan("o-cheap")), CASE, gt, CATALOG)
+    assert saw_all["success"] and saw_all["context_checked"] and not saw_all["ids_not_in_context"]
+    saw_none = score_record(rec("plan", context_ids=[], **plan("o-cheap")), CASE, gt, CATALOG)
+    assert (saw_none["success"], saw_none["reason"]) == (False, "ids_not_in_context")
+    assert saw_none["unseen_ids"] == ["ev-1", "o-cheap"]
+    only_offer = score_record(rec("plan", context_ids=["o-cheap"], **plan("o-cheap")), CASE, gt, CATALOG)
+    assert only_offer["unseen_ids"] == ["ev-1"] and not only_offer["success"]
+    unchecked = score_record(rec("plan", **plan("o-cheap")), CASE, gt, CATALOG)           # old records: no context info
+    assert unchecked["success"] and unchecked["context_checked"] is False and unchecked["unseen_ids"] is None
+
+
+def test_report_has_the_grounding_rates():
+    gt = ground_truth(CASE, CATALOG)
+    records = [rec("plan", rep=0, context_ids=["o-cheap", "ev-1"], **plan("o-cheap")),
+               rec("plan", rep=1, context_ids=[], **plan("o-cheap")),
+               rec("plan", rep=2, **plan("o-cheap", ev=("ev-kb",)))]
+    a = aggregate([score_record(r, CASE, gt, CATALOG) for r in records], records)["B3"]
+    assert a["evidence_of_another_product"] == {"n": 1, "m": 3, "rate": 0.333}
+    assert a["ids_not_in_context"] == {"n": 1, "m": 2, "rate": 0.5}          # only records that say what was seen
+
+
+def test_sft_traces_need_the_ids_to_have_been_seen():
+    from evaluations.run import write_traces
+    gt = ground_truth(CASE, CATALOG)
+    records = [{**rec("plan", rep=0, context_ids=["o-cheap", "ev-1"], **plan("o-cheap")), "case_id": "c1"},
+               {**rec("plan", rep=1, context_ids=[], **plan("o-cheap")), "case_id": "c1"}]
+    scores = [score_record(r, CASE, gt, CATALOG) for r in records]
+    calls = [{"messages": [{"role": "user", "content": "x"}], "reply": "{}", "accepted": True}]
+    traces = {("B3", "c1", 0): calls, ("B3", "c1", 1): calls}
+    import tempfile
+    out = Path(tempfile.mkdtemp()) / "traces.jsonl"
+    write_traces(out, records, scores, traces)
+    t = [json.loads(l) for l in out.read_text(encoding="utf-8").splitlines()]
+    assert [x["scorer_success"] for x in t] == [True, False]
+    assert [x["score_success"] for x in t] == [True, False]        # what training/prepare_data.py reads
+    assert t[1]["score_reason"] == "ids_not_in_context"

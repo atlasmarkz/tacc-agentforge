@@ -23,6 +23,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -66,12 +67,17 @@ def log(msg):
     print(time.strftime("%H:%M:%S"), msg, flush=True)
 
 
+ID_PATTERN = re.compile(r"\b(?:offer|ev)_[0-9a-f]{24}\b")
+
+
 class RecordingPort:
     def __init__(self, inner, keep_messages=False):
         self.inner, self.calls, self.keep_messages = inner, [], keep_messages
+        self.last_ids: set[str] = set()                # offer/evidence IDs in the latest request
 
     async def generate(self, request, context):
         t0 = time.monotonic()
+        self.last_ids = set(ID_PATTERN.findall(" ".join(m.content for m in request.messages)))
         reply = await self.inner.generate(request, context)
         call = {"s": round(time.monotonic() - t0, 2), "prompt_tokens": reply.prompt_tokens,
                 "completion_tokens": reply.completion_tokens, "finish": reply.finish_reason}
@@ -164,7 +170,8 @@ def single_call(client, kb, snapshot_id, case, config, cand_cache):
                                                  "data": data}, ensure_ascii=False, separators=(",", ":"))},
     ]
     t0 = time.monotonic()
-    rec = {"candidates": len(cards), "evidence": len(evidence)}
+    rec = {"candidates": len(cards), "evidence": len(evidence),
+           "context_ids": sorted(set(ID_PATTERN.findall(messages[1]["content"])))}
     try:
         r = client.chat(messages, max_tokens=512, temperature=0, timeout_s=90, enable_thinking=False,
                         json_schema=decoder_schema(FINAL_ACTION.json_schema()))
@@ -217,6 +224,7 @@ async def harness_call(client, tools, snapshot_id, case, config, rep, temperatur
                                "accepted": valid_action(c["reply"], c["finish"])} for c in port.calls if "messages" in c]
     if validator.proposals:
         rec["outcome"] = {"kind": "plan", "items": validator.proposals[-1]["items"]}
+        rec["context_ids"] = sorted(port.last_ids)       # what the model saw when it proposed the plan
     elif result.clarification is not None:
         rec["outcome"] = {"kind": "ask_user", "question": result.clarification.question,
                           "required_fields": list(result.clarification.required_fields)}
@@ -239,7 +247,10 @@ def write_traces(path: Path, records, scores, traces) -> None:
             f.write(json.dumps({
                 "case_id": r["case_id"], "run_id": f"{r['config']}-{r['case_id']}-{r['rep']}", "config": r["config"],
                 "status": r.get("status"), "stop_reason": r.get("stop_reason"), "rejected": r.get("rejected", 0),
-                "score_success": s["success"], "score_reason": s["reason"], "grounded": s["success"],
+                "scorer_success": s["success"], "score_reason": s["reason"], "grounded": s["success"],
+                # consumed by training/prepare_data.py: the scorer's verdict, and for a plan also that every
+                # cited ID was visible in the call that proposed it
+                "score_success": s["success"] and not s.get("ids_not_in_context"),
                 "calls": [{**c, "messages": strip_hint(c["messages"])} for c in traces[key]],
             }, ensure_ascii=False) + "\n")
 

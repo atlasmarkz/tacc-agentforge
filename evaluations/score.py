@@ -11,6 +11,8 @@ Success (TSR numerator), by expected outcome:
                     and within budget on the case's basis) with the requested quantity; asking instead fails
 - no_feasible_plan: no plan delivered (an explanation or question); any plan fails
 - clarify:          a question that asks for the budget; a plan fails
+A plan must also be grounded: every cited evidence ID exists and is about the same product as the offer it
+supports, and (when the record says which IDs the model saw) every cited ID was visible to the model.
 Errors, timeouts and limits always fail. Text quality is not judged here (needs reviewers).
 
 BVR = delivered plans whose known total exceeds the budget / delivered plans (n/m, None when m = 0).
@@ -45,9 +47,15 @@ def score_record(rec: dict, case: dict, gt: dict, catalog) -> dict:
         evidence = {e for i in items for e in i.get("evidence_ids", [])}
         missing_evidence = evidence - catalog.evidence_ids(evidence)
         qty_ok = sum(int(i.get("quantity", 1)) for i in items) == int(case.get("quantity", 1))
+        context_ids = rec.get("context_ids")             # IDs the model saw in the call that proposed the plan
+        cited = {i["offer_id"] for i in items} | evidence
+        unseen = sorted(cited - set(context_ids)) if context_ids is not None else None
         s.update(over_budget=j["over_budget"], violates=j["violates"], unverifiable=j["unverifiable"],
                  ungrounded=bool(j["unknown_offer_ids"] or missing_evidence), plan_total=j["total"],
-                 plan_items=j["items"], missing_evidence=sorted(missing_evidence))
+                 plan_items=j["items"], missing_evidence=sorted(missing_evidence),
+                 foreign_evidence=j["foreign_evidence"], evidence_mismatch=bool(j["foreign_evidence"]),
+                 context_checked=context_ids is not None, unseen_ids=unseen,
+                 ids_not_in_context=bool(unseen))
         if gt["expected"] == "clarify":
             s["reason"] = "plan_without_required_input"
         elif gt["expected"] == "no_feasible_plan":
@@ -66,6 +74,10 @@ def score_record(rec: dict, case: dict, gt: dict, catalog) -> dict:
             s["reason"] = "unverifiable_claim"
         elif missing_evidence:
             s["reason"] = "unknown_evidence_id"
+        elif j["foreign_evidence"]:
+            s["reason"] = "evidence_of_another_product"
+        elif unseen:
+            s["reason"] = "ids_not_in_context"
         else:
             s["success"], s["reason"] = True, "ok"
     elif kind == "ask_user":
@@ -139,6 +151,8 @@ def aggregate(scores: list[dict], records: list[dict]) -> dict:
             "plans_delivered": len(plans),
             "constraint_violation": rate(plans, "violates"), "unverifiable_claim": rate(plans, "unverifiable"),
             "ungrounded_ids": rate(plans, "ungrounded"),
+            "evidence_of_another_product": rate(plans, "evidence_mismatch"),
+            "ids_not_in_context": rate([s for s in plans if s.get("context_checked")], "ids_not_in_context"),
             "amount_error_rate": None,
             "outcome_reasons": dict(sorted(reasons.items(), key=lambda kv: -kv[1])),
             "wall_s": {"p50": _pct(walls, 0.5), "p95": _pct(walls, 0.95), "max": _pct(walls, 1.0)},
