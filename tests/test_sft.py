@@ -49,19 +49,18 @@ def test_repository_config_is_complete(monkeypatch):
 # ---- encoding ------------------------------------------------------------------------------------------
 
 class FakeTokenizer:
-    """Mimics the chat template contract that encode_example relies on (one char = one token)."""
+    """Mimics the chat template contract that encode_example relies on (one char = one token). Like Qwen3 with
+    thinking off, the generation prompt ends in an empty think block that a finished turn does not contain."""
+    eos_token = "</>"
+    unk_token_id = None
 
-    def __init__(self, prefix_ok=True):
-        self.prefix_ok = prefix_ok
+    def convert_tokens_to_ids(self, token):
+        return None                              # "<|im_end|>" is not in this vocabulary: fall back to eos
 
     def apply_chat_template(self, messages, tokenize=False, add_generation_prompt=False, enable_thinking=None):
         assert enable_thinking is False and tokenize is False
         text = "".join(f"<{m['role']}>{m['content']}</>" for m in messages)
-        if add_generation_prompt:
-            return text + "<assistant>" + ("" if self.prefix_ok else "<think></think>")
-        if messages[-1]["role"] == "assistant" and self.prefix_ok:
-            return text
-        return text
+        return text + "<assistant><think></think>" if add_generation_prompt else text
 
     def __call__(self, text, add_special_tokens=False):
         return {"input_ids": [ord(c) for c in text]}
@@ -76,13 +75,30 @@ def test_loss_covers_only_the_target_and_its_end():
     assert why is None and len(ids) == len(labels)
     target = "".join(chr(t) for t, y in zip(ids, labels) if y != -100)
     assert target == '{"type":"ask_user"}</>'
-    assert all(y == -100 for y in labels[:len("<system>S</><user>U</><assistant>")])
+    served_prompt = "<system>S</><user>U</><assistant><think></think>"      # what the server asks the model to continue
+    assert "".join(chr(t) for t in ids[:len(served_prompt)]) == served_prompt
+    assert all(y == -100 for y in labels[:len(served_prompt)])
 
 
-def test_encoding_refuses_misaligned_template_long_or_targetless_examples():
-    assert encode_example(FakeTokenizer(prefix_ok=False), MSGS, 10_000) == (None, "template_prefix_mismatch")
+def test_encoding_refuses_long_or_targetless_examples_and_template_errors():
     assert encode_example(FakeTokenizer(), MSGS, 10) == (None, "too_long")
     assert encode_example(FakeTokenizer(), MSGS[:2], 10_000) == (None, "no_assistant_target")
+
+
+def test_template_errors_drop_the_example_instead_of_crashing():
+    class Broken(FakeTokenizer):
+        def apply_chat_template(self, *a, **k):
+            raise ValueError("roles must alternate")
+    assert encode_example(Broken(), MSGS, 10_000) == (None, "template_error")
+
+
+def test_end_token_prefers_the_chat_end_token_and_falls_back_to_eos():
+    from training.sft import end_token
+
+    class WithImEnd(FakeTokenizer):
+        def convert_tokens_to_ids(self, token):
+            return 151645
+    assert end_token(WithImEnd()) == "<|im_end|>" and end_token(FakeTokenizer()) == "</>"
 
 
 def test_validation_split_is_by_case():

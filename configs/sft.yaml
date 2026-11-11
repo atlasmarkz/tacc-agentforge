@@ -8,11 +8,14 @@ output_dir: ${TACC_USERDIR}/adapters/sft-pilot
 lora_r: 8
 lora_alpha: 16
 learning_rate: 1.0e-4
-epochs: 2
-# longer examples are dropped, never cut; observed prompts reach about 9K tokens (job 28561)
-max_seq_len: 8192
+epochs: 3
+# Longer examples are dropped, never cut. 4096 keeps the first steps of a run (category choice, clarification);
+# the feasibility test (job 27833) peaked at 14.4 GiB on the busier GPU at 721 tokens and grew about 1.9 MB per
+# token, so 4096 tokens fit in 24 GiB and the 5K to 10K token examples of later steps would not.
+max_seq_len: 4096
 seed: 0
 # training stops here so that loading, saving and the reload check fit in a one-hour job
 max_train_minutes: 30
-validation_cases: []
+# one dev case is held back to watch validation loss (3 of the 19 kept traces)
+validation_cases: [dev-02]
 grad_clip: 1.0

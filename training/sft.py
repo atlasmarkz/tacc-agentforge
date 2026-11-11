@@ -78,17 +78,29 @@ def load_config(path: Path, overrides: dict | None = None) -> SFTConfig:
     return SFTConfig(**raw)
 
 
+def end_token(tok) -> str:
+    """The token that ends an assistant turn in the chat template (<|im_end|> for Qwen)."""
+    candidate = "<|im_end|>"
+    ident = tok.convert_tokens_to_ids(candidate)
+    return candidate if ident is not None and ident != getattr(tok, "unk_token_id", None) else tok.eos_token
+
+
 def encode_example(tok, messages: list[dict], max_len: int):
-    """(input_ids, labels) with the prompt masked, or (None, reason). The full rendering must start with the
-    prompt rendering, otherwise the mask would not line up with the target."""
+    """(input_ids, labels) with the prompt masked, or (None, reason).
+
+    Built the way serving works, not from the template's rendering of the finished conversation: the prompt is
+    the generation prompt exactly as the server builds it (thinking off, which for Qwen3 ends in an empty think
+    block that the rendering of a finished turn would not contain), and the target is the action text plus the
+    end-of-turn token. Training on this is what vLLM will be asked to continue."""
     if not messages or messages[-1].get("role") != "assistant":
         return None, "no_assistant_target"
-    prompt = tok.apply_chat_template(messages[:-1], tokenize=False, add_generation_prompt=True, enable_thinking=False)
-    full = tok.apply_chat_template(messages, tokenize=False, enable_thinking=False)
-    if not full.startswith(prompt):
-        return None, "template_prefix_mismatch"
+    try:
+        prompt = tok.apply_chat_template(messages[:-1], tokenize=False, add_generation_prompt=True,
+                                         enable_thinking=False)
+    except Exception:
+        return None, "template_error"
     prompt_ids = tok(prompt, add_special_tokens=False)["input_ids"]
-    target_ids = tok(full[len(prompt):], add_special_tokens=False)["input_ids"]
+    target_ids = tok(messages[-1]["content"] + end_token(tok), add_special_tokens=False)["input_ids"]
     if not target_ids:
         return None, "empty_target"
     ids = prompt_ids + target_ids
@@ -241,7 +253,9 @@ def reload_adapter(adapter_dir: Path, model=None, samples=(), device=None, log=p
 
     def logits():
         with torch.no_grad():
-            return [model(input_ids=torch.tensor([s["ids"]], device=device)).logits.float().cpu() for s in samples]
+            # last 32 positions only: full logits of a 3K-token sample are over 1 GB each (vocabulary 150K)
+            return [model(input_ids=torch.tensor([s["ids"]], device=device)).logits[:, -32:, :].float().cpu()
+                    for s in samples]
 
     before = logits()
     with torch.no_grad():
