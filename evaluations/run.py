@@ -34,10 +34,10 @@ from pydantic import Field, TypeAdapter
 
 
 from agent import AgentDependencies, AgentRequest, AgentRuntime, Issue, RunPolicy, ValidationResult
-from agent.contracts import AskUser, ProposePlan
+from agent.contracts import ACTION_ADAPTER, AskUser, ProposePlan
 from inference.client import ModelClient, ModelClientError
 from inference.harness_policy import run_policy_kwargs
-from inference.model_port import VllmModelPort, decoder_schema
+from inference.model_port import VllmModelPort, decoder_schema, to_chat_messages
 from knowledge.agent_tools import build_knowledge_tools
 from knowledge.bootstrap import install_snapshot
 from knowledge.service import KnowledgeError, KnowledgeService
@@ -67,15 +67,45 @@ def log(msg):
 
 
 class RecordingPort:
-    def __init__(self, inner):
-        self.inner, self.calls = inner, []
+    def __init__(self, inner, keep_messages=False):
+        self.inner, self.calls, self.keep_messages = inner, [], keep_messages
 
     async def generate(self, request, context):
         t0 = time.monotonic()
         reply = await self.inner.generate(request, context)
-        self.calls.append({"s": round(time.monotonic() - t0, 2), "prompt_tokens": reply.prompt_tokens,
-                           "completion_tokens": reply.completion_tokens, "finish": reply.finish_reason})
+        call = {"s": round(time.monotonic() - t0, 2), "prompt_tokens": reply.prompt_tokens,
+                "completion_tokens": reply.completion_tokens, "finish": reply.finish_reason}
+        if self.keep_messages:                 # exactly what the model saw, for SFT traces
+            call["messages"] = to_chat_messages(request)
+            call["reply"] = reply.content
+        self.calls.append(call)
         return reply
+
+
+def strip_hint(messages: list[dict]) -> list[dict]:
+    """Remove the test-only category hint from the request message, so recorded inputs equal what the
+    deployed harness sends (B3); the actions stay those of the hinted run (context distillation)."""
+    out = []
+    for m in messages:
+        content = m["content"]
+        if m["role"] == "user":
+            try:
+                obj = json.loads(content)
+            except ValueError:
+                obj = None
+            if isinstance(obj, dict) and isinstance(obj.get("constraints"), dict)                     and "available_categories" in obj["constraints"]:
+                obj["constraints"] = {k: v for k, v in obj["constraints"].items() if k != "available_categories"}
+                content = json.dumps(obj, ensure_ascii=False)          # same formatting as agent/prompts.py
+        out.append({**m, "content": content})
+    return out
+
+
+def valid_action(text: str, finish: str) -> bool:
+    try:
+        ACTION_ADAPTER.validate_json(text)
+    except ValueError:
+        return False
+    return finish == "stop"
 
 
 class RecordingValidator:
@@ -156,8 +186,8 @@ def single_call(client, kb, snapshot_id, case, config, cand_cache):
 
 # ---- harness configurations (B3, B3h) ----------------------------------------------------------------
 
-async def harness_call(client, tools, snapshot_id, case, config, rep):
-    port = RecordingPort(VllmModelPort(client, enable_thinking=False))
+async def harness_call(client, tools, snapshot_id, case, config, rep, temperature=0.0, record=False):
+    port = RecordingPort(VllmModelPort(client, enable_thinking=False, temperature=temperature), keep_messages=record)
     validator = RecordingValidator()
     runtime = AgentRuntime(AgentDependencies(port, tools, validator), RunPolicy(**run_policy_kwargs(False)))
     run_id = f"eval-{case['case_id']}-{config}-{rep}"
@@ -182,6 +212,9 @@ async def harness_call(client, tools, snapshot_id, case, config, rep):
            "prompt_tokens": sum(c["prompt_tokens"] or 0 for c in port.calls),
            "completion_tokens": sum(c["completion_tokens"] or 0 for c in port.calls),
            "invalid_actions": result.usage.action_repairs, "issues": [i.code for i in result.issues]}
+    if record:
+        rec["trace_calls"] = [{"messages": c["messages"], "reply": c["reply"],
+                               "accepted": valid_action(c["reply"], c["finish"])} for c in port.calls if "messages" in c]
     if validator.proposals:
         rec["outcome"] = {"kind": "plan", "items": validator.proposals[-1]["items"]}
     elif result.clarification is not None:
@@ -193,6 +226,23 @@ async def harness_call(client, tools, snapshot_id, case, config, rep):
 
 
 # ---- main ----------------------------------------------------------------------------------------------
+
+def write_traces(path: Path, records, scores, traces) -> None:
+    """SFT traces (training/prepare_data.py format) with the independent scorer's verdict; hint removed."""
+    by_key = {(s["config"], s["case_id"], s["rep"]): s for s in scores}
+    with open(path, "w", encoding="utf-8") as f:
+        for r in records:
+            key = (r["config"], r["case_id"], r["rep"])
+            if key not in traces:
+                continue
+            s = by_key[key]
+            f.write(json.dumps({
+                "case_id": r["case_id"], "run_id": f"{r['config']}-{r['case_id']}-{r['rep']}", "config": r["config"],
+                "status": r.get("status"), "stop_reason": r.get("stop_reason"), "rejected": r.get("rejected", 0),
+                "score_success": s["success"], "score_reason": s["reason"], "grounded": s["success"],
+                "calls": [{**c, "messages": strip_hint(c["messages"])} for c in traces[key]],
+            }, ensure_ascii=False) + "\n")
+
 
 def prepare_snapshot(config_path, userdir, scratch_parent):
     settings = load_settings(config_path, data_root=userdir / "tacc-agentforge-data",
@@ -241,17 +291,21 @@ async def run_all(a):
     a.out.mkdir(parents=True, exist_ok=True)
     gts = {c["case_id"]: ground_truth(c, catalog) for c in cases}
     (a.out / "ground_truth.json").write_text(json.dumps(gts, indent=1), encoding="utf-8")
-    records, cand_cache = [], {}
+    records, cand_cache, traces = [], {}, {}
     rec_file = open(a.out / "records.jsonl", "w", encoding="utf-8")
     try:
         for rep in range(a.repeats):
             for case in cases:                     # configurations interleaved within each case
                 for config in configs:
                     if config in ("B3", "B3h"):
-                        rec = await harness_call(client, tools, sid, case, config, rep)
+                        rec = await harness_call(client, tools, sid, case, config, rep,
+                                                 getattr(a, "temperature", 0.0), getattr(a, "record_traces", False))
                     else:
                         rec = await asyncio.to_thread(single_call, client, kb, sid, case, config, cand_cache)
                     rec.update(config=config, case_id=case["case_id"], rep=rep, snapshot_id=sid)
+                    calls = rec.pop("trace_calls", None)
+                    if calls is not None:
+                        traces[(config, case["case_id"], rep)] = calls
                     records.append(rec)
                     rec_file.write(json.dumps(rec, ensure_ascii=False) + "\n")
                     rec_file.flush()
@@ -268,6 +322,8 @@ async def run_all(a):
               "paired": [d for d in (paired_difference(scores, x, y) for x, y in
                                      (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
                                      if x in configs and y in configs) if d]}
+    if traces:
+        write_traces(a.out / "traces.jsonl", records, scores, traces)
     (a.out / "scores.jsonl").write_text("\n".join(json.dumps(s, ensure_ascii=False) for s in scores) + "\n",
                                         encoding="utf-8")
     (a.out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
@@ -293,6 +349,9 @@ def main():
                     default=Path(os.environ.get("TACC_USERDIR", ".")) / "tacc-agentforge-service/service-url.txt")
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--wait-s", type=float, default=1800, help="how long to wait for a healthy service")
+    ap.add_argument("--temperature", type=float, default=0.0, help="harness sampling temperature (trace collection)")
+    ap.add_argument("--record-traces", action="store_true",
+                    help="write traces.jsonl (exact model inputs and actions, scorer verdict) for SFT data")
     a = ap.parse_args()
     if a.split == "heldout" and not a.unseal_heldout:
         sys.exit("refusing: the held-out split stays sealed until the system is frozen (use --unseal-heldout then)")

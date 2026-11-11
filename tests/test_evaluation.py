@@ -290,3 +290,45 @@ def test_recall_and_mrr_at_5():
     assert s["keyword"] == {"recall_at_5": 1.0, "mrr_at_5": 1.0, "applicable_cases": 1, "labelled_cases": 2,
                             "not_applicable": 1}
     assert s["filtered"]["mrr_at_5"] == 0.333
+
+
+def test_strip_hint_keeps_the_harness_formatting():
+    from evaluations.run import strip_hint
+    req = {"schema_version": "1", "message": "earbuds", "constraints": {"currency": "USD", "purchase_cap": "60.00",
+                                                                       "available_categories": ["earbuds"]}}
+    msgs = [{"role": "system", "content": "S"}, {"role": "user", "content": json.dumps(req, ensure_ascii=False)},
+            {"role": "user", "content": '{"observation": {"status": "ok"}}'}]
+    out = strip_hint(msgs)
+    without = {**req, "constraints": {"currency": "USD", "purchase_cap": "60.00"}}
+    assert out[1]["content"] == json.dumps(without, ensure_ascii=False)       # what B3 would have sent
+    assert out[0] == msgs[0] and out[2] == msgs[2] and "available_categories" in msgs[1]["content"]
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_trace_recording_for_sft(tmp_path):
+    import argparse
+    import asyncio
+    from evaluations import run
+    from tests.fake_vllm import FakeVllm
+    ask = {"choices": [{"message": {"content": json.dumps({"type": "ask_user", "question": "What is your budget?",
+                                                           "required_fields": ["purchase_cap"]})},
+                        "finish_reason": "stop"}], "usage": {"prompt_tokens": 100, "completion_tokens": 20}}
+    srv = FakeVllm([(200, ask, 0)])
+    try:
+        address = tmp_path / "service-url.txt"
+        address.write_text(srv.url + "\n")
+        a = argparse.Namespace(cases=Path("evaluations/cases.jsonl"), split="dev", only="dev-05",
+                               configs="B0,B3h", repeats=2, config=Path("configs/knowledge.json"), userdir=tmp_path,
+                               address_file=address, out=tmp_path / "out", unseal_heldout=False, wait_s=10,
+                               temperature=0.7, record_traces=True)
+        asyncio.run(run.run_all(a))
+    finally:
+        srv.close()
+    traces = [json.loads(l) for l in (tmp_path / "out/traces.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(traces) == 2 and all(t["config"] == "B3h" and t["score_success"] for t in traces)   # dev-05: clarify
+    call = traces[0]["calls"][0]
+    assert call["accepted"] and json.loads(call["reply"])["type"] == "ask_user"
+    assert [m["role"] for m in call["messages"]][:2] == ["system", "user"]
+    assert "available_categories" not in json.dumps(call["messages"], ensure_ascii=False)
+    assert any(abs(b.get("temperature", 0) - 0.7) < 1e-9 for b in srv.requests)                   # sampling on
+    assert "trace_calls" not in (tmp_path / "out/records.jsonl").read_text(encoding="utf-8")
