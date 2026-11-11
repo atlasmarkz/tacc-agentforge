@@ -334,6 +334,37 @@ async def run_all(a):
     log(f"RESULTS_DIR={a.out}")
 
 
+def rescore(out_dir: Path, cases_path: Path, snapshot_db: Path) -> dict:
+    """Rebuild scores.jsonl and report.json from records.jsonl, e.g. after a job hit its time limit before
+    reporting. Only complete repeats (every case x configuration) are kept, so comparisons stay paired."""
+    records = [json.loads(l) for l in (out_dir / "records.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    cases = {c["case_id"]: c for c in (json.loads(l) for l in cases_path.read_text(encoding="utf-8").splitlines() if l.strip())}
+    configs = list(dict.fromkeys(r["config"] for r in records))
+    seen_cases = sorted({r["case_id"] for r in records})
+    expected = {(c, k) for c in seen_cases for k in configs}
+    complete = [rep for rep in sorted({r["rep"] for r in records})
+                if {(r["case_id"], r["config"]) for r in records if r["rep"] == rep} == expected]
+    kept = [r for r in records if r["rep"] in complete]
+    catalog = Catalog(snapshot_db)
+    try:
+        gts = {c: ground_truth(cases[c], catalog) for c in seen_cases}
+        scores = [score_record(r, cases[r["case_id"]], gts[r["case_id"]], catalog) for r in kept]
+    finally:
+        catalog.close()
+    report = {"rescored": True, "snapshot_id": records[0].get("snapshot_id"), "cases": len(seen_cases),
+              "repeats_complete": len(complete), "records_total": len(records),
+              "records_dropped_partial_repeat": len(records) - len(kept), "configs": configs,
+              "summary": aggregate(scores, kept),
+              "paired": [d for d in (paired_difference(scores, x, y) for x, y in
+                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
+                                     if x in configs and y in configs) if d]}
+    (out_dir / "ground_truth.json").write_text(json.dumps(gts, indent=1), encoding="utf-8")
+    (out_dir / "scores.jsonl").write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in scores) + "\n",
+                                          encoding="utf-8")
+    (out_dir / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
+    return report
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     here = Path(__file__).resolve().parent
@@ -347,12 +378,22 @@ def main():
     ap.add_argument("--userdir", type=Path, default=Path(os.environ.get("TACC_USERDIR", ".")))
     ap.add_argument("--address-file", type=Path,
                     default=Path(os.environ.get("TACC_USERDIR", ".")) / "tacc-agentforge-service/service-url.txt")
-    ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--out", type=Path)
+    ap.add_argument("--rescore", type=Path, help="results directory: rebuild scores and report from records.jsonl")
+    ap.add_argument("--snapshot-db", type=Path, help="catalog.sqlite of the snapshot (for --rescore)")
     ap.add_argument("--wait-s", type=float, default=1800, help="how long to wait for a healthy service")
     ap.add_argument("--temperature", type=float, default=0.0, help="harness sampling temperature (trace collection)")
     ap.add_argument("--record-traces", action="store_true",
                     help="write traces.jsonl (exact model inputs and actions, scorer verdict) for SFT data")
     a = ap.parse_args()
+    if a.rescore:
+        if not a.snapshot_db:
+            ap.error("--rescore needs --snapshot-db")
+        report = rescore(a.rescore, a.cases, a.snapshot_db)
+        print(json.dumps({k: v for k, v in report.items() if k != "summary"}, indent=1))
+        return
+    if a.out is None:
+        ap.error("--out is required")
     if a.split == "heldout" and not a.unseal_heldout:
         sys.exit("refusing: the held-out split stays sealed until the system is frozen (use --unseal-heldout then)")
     asyncio.run(run_all(a))

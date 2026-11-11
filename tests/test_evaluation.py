@@ -332,3 +332,23 @@ def test_trace_recording_for_sft(tmp_path):
     assert "available_categories" not in json.dumps(call["messages"], ensure_ascii=False)
     assert any(abs(b.get("temperature", 0) - 0.7) < 1e-9 for b in srv.requests)                   # sampling on
     assert "trace_calls" not in (tmp_path / "out/records.jsonl").read_text(encoding="utf-8")
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_rescore_keeps_only_complete_repeats(tmp_path):
+    from knowledge.bootstrap import install_snapshot
+    from knowledge.settings import load_settings
+    from evaluations.run import rescore
+    s = load_settings("configs/knowledge.json", data_root=tmp_path / "kb", snapshots_root=tmp_path / "kb/s")
+    install_snapshot(s)
+    ask = {"kind": "ask_user", "question": "Budget?", "required_fields": ["purchase_cap"]}
+    recs = [{"config": cfg, "case_id": c, "rep": rep, "outcome": ask, "wall_s": 1.0, "snapshot_id": s.snapshot_id}
+            for rep in (0, 1) for c in ("dev-01", "dev-05") for cfg in ("B0", "B3")]
+    recs = recs[:-1]                                          # repeat 1 was cut off by the job time limit
+    out = tmp_path / "out"
+    out.mkdir()
+    (out / "records.jsonl").write_text("".join(json.dumps(r) + "\n" for r in recs), encoding="utf-8")
+    report = rescore(out, Path("evaluations/cases.jsonl"), s.snapshots_root / s.snapshot_id / "catalog.sqlite")
+    assert report["repeats_complete"] == 1 and report["records_dropped_partial_repeat"] == 3
+    assert report["summary"]["B0"]["tsr"] == {"n": 1, "m": 2, "rate": 0.5}
+    assert (out / "scores.jsonl").read_text(encoding="utf-8").count("\n") == 4
