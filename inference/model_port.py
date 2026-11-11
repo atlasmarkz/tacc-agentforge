@@ -1,8 +1,7 @@
 """ModelPort adapter: lets the agent harness use the vLLM service through `inference.client`.
 
-Contract (agent/contracts.py): `generate(request, context)` returns a `ModelReply` whose `content` is one JSON
-action matching `request.action_schema`. The harness passes tools and the schema as structured data, not as
-chat text, so this adapter is responsible for showing them to the model and for constraining the output.
+Contract: a schema requests a JSON action; action_schema=None requests free text.
+Per-call delta hooks and the optional legacy monitoring hook run on the event loop.
 
 Cancellation: the harness cancels the awaiting task on timeout or stop; we then close the HTTP connection so
 vLLM aborts the generation and frees its slot.
@@ -11,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 
 from agent.contracts import CallContext, CapabilityError, ModelReply, ModelRequest
 
@@ -23,6 +23,7 @@ from .client import (
 
 # (operation_id, kind, text) with kind "content" or "reasoning"
 DeltaSink = Callable[[str, str, str], None]
+logger = logging.getLogger(__name__)
 
 _PUBLIC_MESSAGES = {
     StreamInterrupted: ("model_unavailable", "The model stream was interrupted.", True),
@@ -64,6 +65,8 @@ def to_chat_messages(request: ModelRequest) -> list[dict]:
     """One leading system message (chat templates require it first) that also carries the tool list and
     the action schema. The text is deterministic, so it stays a stable prefix for prefix caching."""
     messages = [m.model_dump() for m in request.messages]
+    if request.action_schema is None:
+        return messages
     extra = ("\n\nRegistered tools (JSON):\n" + _compact([t.model_dump() for t in request.tools])
              + "\n\nAction JSON Schema:\n" + _compact(request.action_schema))
     if messages and messages[0]["role"] == "system":
@@ -99,14 +102,25 @@ class VllmModelPort:
         token = CancelToken()
         # Finish slightly before the harness's own timer so our typed error wins over its generic one.
         budget = max(0.5, context.timeout_s - self.timeout_margin_s)
+        loop = asyncio.get_running_loop()
+        active = True
         forward = None
-        if self.on_delta is not None:
-            loop = asyncio.get_running_loop()
-            sink, operation_id = self.on_delta, context.operation_id
+        legacy, scoped = self.on_delta, context.on_delta
+        if legacy is not None or scoped is not None:
+            def deliver(kind: str, text: str):
+                if not active or context.cancellation.is_set():
+                    return
+                for sink, arguments in ((scoped, (kind, text)),
+                                        (legacy, (context.operation_id, kind, text))):
+                    if sink is not None:
+                        try:
+                            sink(*arguments)
+                        except Exception:
+                            logger.warning("Model delta callback failed", exc_info=True)
 
             def forward(kind: str, text: str) -> None:          # runs in the worker thread
                 try:
-                    loop.call_soon_threadsafe(sink, operation_id, kind, text)
+                    loop.call_soon_threadsafe(deliver, kind, text)
                 except RuntimeError:                              # loop already closed: run is over
                     pass
         call = asyncio.create_task(asyncio.to_thread(
@@ -115,8 +129,8 @@ class VllmModelPort:
             max_tokens=request.max_output_tokens,
             temperature=self.temperature,
             timeout_s=budget,
-            json_schema=decoder_schema(request.action_schema) if self.constrain_output else None,
-            enable_thinking=self.enable_thinking,
+            json_schema=decoder_schema(request.action_schema) if self.constrain_output and request.action_schema is not None else None,
+            enable_thinking=False if request.action_schema is None and self.enable_thinking is None else self.enable_thinking,
             cancel=token,
             on_delta=forward,
         ))
@@ -127,6 +141,17 @@ class VllmModelPort:
                 token.cancel()
                 raise CapabilityError("cancelled", "The request was cancelled.", recoverable=False)
             result = call.result()
+            if forward is not None:
+                # The client queues all deltas before returning. A loop barrier drains them
+                # before generate returns, without callers adding arbitrary sleeps.
+                flushed = loop.create_future()
+
+                def flush_barrier():
+                    if not flushed.done():
+                        flushed.set_result(None)
+
+                loop.call_soon(flush_barrier)
+                await flushed
         except asyncio.CancelledError:
             token.cancel()
             raise
@@ -137,9 +162,12 @@ class VllmModelPort:
                 type(exc), ("model_error", "The model call failed.", False))
             raise CapabilityError(code, message, recoverable=recoverable) from exc
         finally:
+            active = False
             stop.cancel()
             if not call.done():
                 token.cancel()
+                call.cancel()
+            await asyncio.gather(stop, call, return_exceptions=True)
         too_long = len(result.content) > 65536
         return ModelReply(
             content=result.content[:65536],

@@ -1,4 +1,4 @@
-"""构建九节点单智能体状态图；再次决策前统一经过执行限制检查。"""
+"""构建含可选解释节点的单智能体状态图。"""
 
 from langgraph.graph import END, START, StateGraph
 
@@ -11,7 +11,7 @@ def build_graph(scope: RunScope, checkpointer):
     nodes = Nodes(scope)
     graph = StateGraph(AgentState)
     for name in ("prepare", "guard", "decide", "execute_tool", "validate_plan",
-                 "prepare_question", "suspend", "apply_answer", "finalize"):
+                 "prepare_question", "suspend", "apply_answer", "explain", "finalize"):
         handler = getattr(nodes, name)
 
         # 默认参数固定本轮处理函数，避免循环闭包全部引用最后一个节点。
@@ -27,8 +27,9 @@ def build_graph(scope: RunScope, checkpointer):
     graph.add_conditional_edges("guard", lambda state: state["next_node"], ["decide", "finalize"])
     graph.add_conditional_edges("decide", lambda state: state["next_node"],
                                 ["guard", "execute_tool", "validate_plan", "prepare_question", "finalize"])
-    for name in ("execute_tool", "validate_plan"):
-        graph.add_conditional_edges(name, lambda state: state["next_node"], ["guard", "finalize"])
+    graph.add_conditional_edges("execute_tool", lambda state: state["next_node"], ["guard", "finalize"])
+    graph.add_conditional_edges("validate_plan", lambda state: state["next_node"], ["guard", "explain", "finalize"])
+    graph.add_edge("explain", "finalize")
     # 问题先写入检查点再中断；恢复后进入回答校验，而不是直接结束整个任务。
     graph.add_conditional_edges("prepare_question", lambda state: state["next_node"], ["suspend", "finalize"])
     graph.add_edge("suspend", "apply_answer")

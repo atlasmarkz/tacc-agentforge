@@ -127,6 +127,13 @@ tools.get("search_products").executor.close()
 
 `candidate_set_id`在服务内存中活跃。服务重启或集合淘汰后，重新执行商品查询；不同快照的集合不能互用。B1通过 `build_knowledge_tools(kb, retrieval_mode='keyword')` 选择关键词证据，B2/B3用filtered，保持候选/价格输入一致。
 
+解释节点可注入 `knowledge.explanation.KnowledgeEvidenceResolver(service)`，由宿主在活动调用结束后执行 `close()`。
+它复用现有查询线程的取消/期限机制，解析同一快照的 offer 与 evidence，处理分页并只保留每条证据的有界首段。
+无效 ID、快照或商品归属不匹配会返回能力错误，由 harness 使用已验证计划模板回退。
+只有单一且无冲突的报价上下文才附带单价；不从多个目的地/数量上下文中任意选择价格。
+该适配器提供来源观察，不替代预算校验；商品家族或未知 scope 也随事实传递。
+`EvidenceResolver` / `EvidenceFact` 契约由 agent 定义，适配器由 knowledge 实现，宿主负责注入。
+
 CLI演示需要传入显式快照位置，可使用环境变量或配置输出填写：
 
 ```bash
