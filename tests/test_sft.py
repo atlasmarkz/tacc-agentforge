@@ -157,3 +157,41 @@ def test_export_and_import_round_trip_on_a_tiny_model(tmp_path):
         torch.nn.init.zeros_(mod.lora_B)
     assert import_peft(m, tmp_path / "a")["missing"] == 0
     assert torch.allclose(before, m.model.language_model.layers[1].mlp.gate_proj(x))
+
+
+# ---- serve_check.py (adapter vs base on the dev prompts) ------------------------------------------------
+
+def load_serve_check():
+    import importlib.util
+    from pathlib import Path
+    path = Path(__file__).resolve().parents[1] / "deploy/tacc/train-sft-serve/serve_check.py"
+    spec = importlib.util.spec_from_file_location("serve_check_under_test", path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def test_serve_check_scores_first_actions_by_what_the_case_requires():
+    sc = load_serve_check()
+    search = {"valid_json": True, "type": "call_tool", "tool": "search_products", "category": "chargers"}
+    want = {"type": "call_tool", "tool_name": "search_products", "category": "chargers"}
+    assert sc.correct_first_action(want, search)
+    assert not sc.correct_first_action(want, {**search, "category": "audio"})           # the guessed-name failure (#4)
+    assert not sc.correct_first_action(want, {**search, "tool": "get_offer_facts"})
+    assert not sc.correct_first_action(want, {**search, "valid_json": False})
+    assert sc.correct_first_action({"type": "ask_user"}, {"valid_json": True, "type": "ask_user"})
+    assert not sc.correct_first_action({"type": "ask_user"}, search)
+    rows = [{"model": "m", "role": "unseen", "valid_json": True, "correct": True},
+            {"model": "m", "role": "unseen", "valid_json": True, "correct": False},
+            {"model": "m", "role": "train", "valid_json": False, "correct": False}]
+    s = sc.summarise(rows)["m"]
+    assert s["valid_json"] == {"n": 2, "of": 3} and s["by_role"]["unseen"] == {"correct": 1, "of": 2}
+
+
+def test_serve_check_anchoring_matches_the_serving_adapter():
+    pytest.importorskip("pydantic")
+    pytest.importorskip("langgraph")
+    from agent.contracts import ACTION_ADAPTER
+    from inference.model_port import decoder_schema
+    schema = ACTION_ADAPTER.json_schema()
+    assert load_serve_check().decoder_schema(schema) == decoder_schema(schema)
