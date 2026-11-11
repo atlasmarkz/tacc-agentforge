@@ -80,7 +80,8 @@ cd deploy/tacc/service/qwen-service && "$TCLOUD_BIN" submit
 
 ## 3. 判断服务是否正常
 
-- **就绪的标志**:`service-url.txt` 出现,内容形如 `http://10-0-1-10:8000/v1`;`events.jsonl` 里有 `ready` 事件。作业状态显示"运行中"不代表服务已可用。
+- **就绪的标志**:`service-url.txt` 出现,内容形如 `http://10.0.1.10:8000/v1`;`events.jsonl` 里有 `ready` 事件。作业状态显示"运行中"不代表服务已可用。
+- **地址用的是节点 IP,不是主机名**:计算节点之间不能互相解析所有主机名。例如 10-0-1-11 解析不了 `10-0-3-10`,但通过 IP 10.0.3.10 可以正常连接(作业 28614、28616)。早期的结果目录里还能看到主机名形式的地址。
 - **启动时间**:5 到 8.5 分钟,随节点不同(实测 297、305、313、367、392、443、513 秒)。启动超时设为 1200 秒。
 - **运行中**:`probe.jsonl` 每 30 秒一行,`ok` 为 true 表示一次真实生成成功。连续 3 次失败会触发重启。
 - **GPU**:`gpu.jsonl` 每秒一行。空闲时利用率约 11%,舒适负载下约 85%,显存约 22 GiB / 24 GiB(这是 vLLM 预留的,不代表在涨)。
@@ -230,6 +231,7 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 | `ask_user` 的问题只有一个字 | schema 的 `pattern` 被解码器当成整串匹配 | 适配器已修复;新增带 `pattern` 的 schema 时注意同样的问题 |
 | `events.jsonl` 里有 `handover_submit_failed` | 辅助循环没有运行,或 `sbatch` 报错 | 看 `service-<作业号>/handover-result`;确认用的是当前的 `job.sh` |
 | 继任作业一直不启动 | 2 个作业名额已满 | 正常现象;它会在旧作业结束后启动 |
+| 地址文件存在,但调用方一直连不上,或报 "Name or service not known" | 地址里是对方节点的主机名,本节点无法解析 | 当前的 `serve.py` 已改为发布 IP;如果看到主机名形式的地址,说明用的是旧版本 |
 | harness 作业装依赖失败(找不到 pip) | 课程的 vLLM 环境没有 pip | `agent-e2e/job.sh` 已改用个人 Miniconda 引导的新版 pip,装到 `USERDIR/agent-pylib` |
 
 ## 11. 证据

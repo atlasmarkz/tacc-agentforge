@@ -76,6 +76,22 @@ def probe(client: ModelClient, timeout_s: float = 30) -> tuple[bool, float, str]
         return False, time.monotonic() - t0, f"{type(exc).__name__}: {exc}"
 
 
+def node_ip() -> str:
+    """This node's cluster IP, for the published address. Compute nodes cannot resolve each other's names
+    (job 28614: 10-0-1-11 could not resolve "10-0-3-10", although TCP to 10.0.3.10 works), so a hostname in
+    the address made the service unreachable from some nodes. Asking the kernel which local address routes
+    to 10.x sends no packet; nodes also carry a docker bridge address (172.17.x), which this skips."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            ip = s.getsockname()[0]
+        if ip and not ip.startswith("127."):
+            return ip
+    except OSError:
+        pass
+    return socket.gethostname()
+
+
 def process_group_rss_mib(pgid: int, proc_root: Path = Path("/proc")) -> float | None:
     """Resident host memory of every process in vLLM's process group (API server, engine, TP workers)."""
     total_kib, found = 0, False
@@ -360,7 +376,7 @@ def main() -> int:
 
     start = time.monotonic()
     host = socket.gethostname()
-    address = f"http://{host}:{PORT}/v1"
+    address = f"http://{node_ip()}:{PORT}/v1"     # an IP: other nodes cannot resolve every hostname
     local = ModelClient(base_url=f"http://127.0.0.1:{PORT}/v1", model=cfg["served_name"], max_attempts=1)
     env = dict(os.environ, **cfg.get("env", {}))
     server_log = open(a.out / "server.log", "w", encoding="utf-8")

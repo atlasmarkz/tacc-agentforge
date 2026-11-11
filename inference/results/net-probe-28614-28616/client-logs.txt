@@ -1,0 +1,24 @@
+=== job 28614
+role=client node=10-0-1-11 ip=10.0.1.11 172.17.0.3 
+target=10-0-3-10
+DNS: cannot resolve 10-0-3-10
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+socket.gaierror: [Errno -2] Name or service not known
+Traceback (most recent call last):
+  File "<string>", line 1, in <module>
+socket.gaierror: [Errno -2] Name or service not known
+urllib.error.URLError: <urlopen error [Errno -3] Temporary failure in name resolution>
+Command line is not complete. Try option "help"
+srun: error: 10-0-1-11: task 0: Exited with exit code 255
+=== job 28616
+role=client node=10-0-1-11 ip=10.0.1.11 172.17.0.3 
+target=10-0-3-10 ip=10.0.3.10
+DNS: cannot resolve 10-0-3-10
+tcp by ip 8000 connect_ex = 0
+tcp by ip 22 connect_ex = 0
+http by ip status 200
+own /etc/hosts entries for 10-0-*:
+2
+172.17.0.3	10-0-1-11
+10.0.1.11	10-0-1-11
