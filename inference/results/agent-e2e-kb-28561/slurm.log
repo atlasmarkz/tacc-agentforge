@@ -1,0 +1,59 @@
+10-0-1-11
+script=e2e_kb.py args=--tuned --hint
+12:34:13 snapshot snapshot_5bcd00723fb0b7589cbe50c8: already_installed, valid=True
+12:34:13 service reachable: {'address': 'http://10-0-1-10:8000/v1', 'waited_s': 0.0, 'this_node': '10-0-1-11', 'service_node': '10-0-1-10', 'same_node': False, 'resolved_ip': '10.0.1.10', 'tcp_connect_s': 0.0009, 'health_status': 200}
+12:34:28 earbuds-100         think-off     rep1: incomplete (validation_unavailable) 14.21s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence'] rejected=0 grounded=[True]
+12:34:35 backpack-zh-80      think-off     rep1: incomplete (validation_unavailable) 7.76s tools=['search_products', 'get_offer_facts'] rejected=0 grounded=[True]
+12:34:47 charger-60          think-off     rep1: incomplete (validation_unavailable) 11.67s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts'] rejected=0 grounded=[True]
+12:34:52 keyboard-no-budget  think-off     rep1: failed (invalid_arguments) 5.01s tools=['search_products', 'search_products', 'search_products'] rejected=0 grounded=[]
+12:34:54 earbuds-5           think-off     rep1: waiting_user (None) 2.15s tools=['search_products'] rejected=0 grounded=[]
+12:35:08 earbuds-100         think-off     rep2: incomplete (validation_unavailable) 14.26s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence'] rejected=0 grounded=[True]
+12:35:16 backpack-zh-80      think-off     rep2: incomplete (validation_unavailable) 7.85s tools=['search_products', 'get_offer_facts'] rejected=0 grounded=[True]
+12:35:28 charger-60          think-off     rep2: incomplete (validation_unavailable) 11.63s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts'] rejected=0 grounded=[True]
+12:35:35 keyboard-no-budget  think-off     rep2: failed (invalid_arguments) 6.66s tools=['search_products', 'search_products', 'search_products'] rejected=0 grounded=[]
+12:35:37 earbuds-5           think-off     rep2: waiting_user (None) 2.11s tools=['search_products'] rejected=0 grounded=[]
+12:36:08 earbuds-100         think-default rep1: incomplete (validation_unavailable) 30.73s tools=['search_products', 'search_products', 'get_offer_facts'] rejected=0 grounded=[True]
+12:36:33 backpack-zh-80      think-default rep1: incomplete (validation_unavailable) 25.67s tools=['search_products', 'retrieve_evidence', 'get_offer_facts'] rejected=0 grounded=[True]
+12:37:07 charger-60          think-default rep1: incomplete (validation_unavailable) 33.9s tools=['search_products', 'search_products', 'get_offer_facts'] rejected=0 grounded=[True]
+12:37:39 keyboard-no-budget  think-default rep1: waiting_user (None) 32.25s tools=['search_products', 'search_products', 'search_products'] rejected=1 grounded=[]
+12:38:53 earbuds-5           think-default rep1: waiting_user (None) 73.63s tools=['search_products', 'search_products', 'search_products', 'retrieve_evidence', 'retrieve_evidence', 'get_offer_facts', 'retrieve_evidence'] rejected=0 grounded=[]
+12:38:53 4 runs at once (think-off)
+12:39:27 concurrent4: ['incomplete', 'incomplete', 'incomplete', 'incomplete'] wall 33.97s
+{
+  "earbuds-100/think-off": [
+    "incomplete(validation_unavailable) 14.21s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence']",
+    "incomplete(validation_unavailable) 14.26s tools=['search_products', 'search_products', 'get_offer_facts', 'retrieve_evidence']"
+  ],
+  "backpack-zh-80/think-off": [
+    "incomplete(validation_unavailable) 7.76s tools=['search_products', 'get_offer_facts']",
+    "incomplete(validation_unavailable) 7.85s tools=['search_products', 'get_offer_facts']"
+  ],
+  "charger-60/think-off": [
+    "incomplete(validation_unavailable) 11.67s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts']",
+    "incomplete(validation_unavailable) 11.63s tools=['search_products', 'search_products', 'retrieve_evidence', 'get_offer_facts']"
+  ],
+  "keyboard-no-budget/think-off": [
+    "failed(invalid_arguments) 5.01s tools=['search_products', 'search_products', 'search_products']",
+    "failed(invalid_arguments) 6.66s tools=['search_products', 'search_products', 'search_products']"
+  ],
+  "earbuds-5/think-off": [
+    "waiting_user(-) 2.15s tools=['search_products']",
+    "waiting_user(-) 2.11s tools=['search_products']"
+  ],
+  "earbuds-100/think-default": [
+    "incomplete(validation_unavailable) 30.73s tools=['search_products', 'search_products', 'get_offer_facts']"
+  ],
+  "backpack-zh-80/think-default": [
+    "incomplete(validation_unavailable) 25.67s tools=['search_products', 'retrieve_evidence', 'get_offer_facts']"
+  ],
+  "charger-60/think-default": [
+    "incomplete(validation_unavailable) 33.9s tools=['search_products', 'search_products', 'get_offer_facts']"
+  ],
+  "keyboard-no-budget/think-default": [
+    "waiting_user(-) 32.25s tools=['search_products', 'search_products', 'search_products']"
+  ],
+  "earbuds-5/think-default": [
+    "waiting_user(-) 73.63s tools=['search_products', 'search_products', 'search_products', 'retrieve_evidence', 'retrieve_evidence', 'get_offer_facts', 'retrieve_evidence']"
+  ]
+}
+12:39:27 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/e2e-kb-28561

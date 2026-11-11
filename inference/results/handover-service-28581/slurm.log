@@ -1,0 +1,5 @@
+10-0-1-10
+15:45:07 vLLM started pid=37788 (attempt 0); waiting for a successful probe
+15:51:39 probe ok=True 1.67s 
+15:51:41 READY and published http://10-0-1-10:8000/v1 -> /mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-url.txt
+RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-28581

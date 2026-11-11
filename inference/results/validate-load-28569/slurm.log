@@ -1,0 +1,10 @@
+10-0-1-11
+args=--mode runs --rates 0.03,0.06,0.1,0.15,0.25 --duration 120 --skip-fault
+14:24:08 service http://10-0-1-10:8000/v1 (waited 275.0s)
+14:24:12 calibration {'base_tokens': 1584, 'chars_per_token': 2.868}
+14:26:20 runs rate 0.03/s: sent 20 ok 20 errors {} p50 3.174s p95 5.621s ttft p50 1.476s tput 0.156/s runs/min 2.34 run p50 14.893s p95 22.497s
+14:28:15 runs rate 0.06/s: sent 41 ok 41 errors {} p50 3.076s p95 8.999s ttft p50 1.145s tput 0.358/s runs/min 6.29 run p50 11.883s p95 24.666s
+14:30:20 runs rate 0.1/s: sent 56 ok 56 errors {} p50 4.231s p95 11.212s ttft p50 1.628s tput 0.447/s runs/min 7.19 run p50 16.659s p95 33.426s
+14:32:45 runs rate 0.15/s: sent 79 ok 79 errors {} p50 11.025s p95 24.114s ttft p50 3.689s tput 0.544/s runs/min 9.08 run p50 36.646s p95 74.517s
+14:35:11 runs rate 0.25/s: sent 77 ok 77 errors {} p50 7.011s p95 19.203s ttft p50 1.797s tput 0.528/s runs/min 9.47 run p50 23.315s p95 57.767s
+14:35:11 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/load-28569

@@ -1,0 +1,59 @@
+10-0-1-11
+script=e2e_kb.py
+12:25:09 snapshot snapshot_5bcd00723fb0b7589cbe50c8: installed, valid=True
+12:29:39 service reachable: {'address': 'http://10-0-1-10:8000/v1', 'waited_s': 270.0, 'this_node': '10-0-1-11', 'service_node': '10-0-1-10', 'same_node': False, 'resolved_ip': '10.0.1.10', 'tcp_connect_s': 0.0014, 'health_status': 200}
+12:29:42 earbuds-100         think-off     rep1: failed (invalid_arguments) 2.89s tools=['search_products'] rejected=0 grounded=[]
+12:29:44 backpack-zh-80      think-off     rep1: failed (invalid_arguments) 1.86s tools=['search_products'] rejected=0 grounded=[]
+12:29:45 charger-60          think-off     rep1: failed (invalid_arguments) 1.33s tools=['search_products'] rejected=0 grounded=[]
+12:29:47 keyboard-no-budget  think-off     rep1: failed (invalid_arguments) 1.57s tools=['search_products'] rejected=0 grounded=[]
+12:29:49 earbuds-5           think-off     rep1: waiting_user (None) 2.61s tools=['search_products'] rejected=0 grounded=[]
+12:29:51 earbuds-100         think-off     rep2: failed (invalid_arguments) 1.38s tools=['search_products'] rejected=0 grounded=[]
+12:29:52 backpack-zh-80      think-off     rep2: failed (invalid_arguments) 1.31s tools=['search_products'] rejected=0 grounded=[]
+12:29:53 charger-60          think-off     rep2: failed (invalid_arguments) 1.34s tools=['search_products'] rejected=0 grounded=[]
+12:29:55 keyboard-no-budget  think-off     rep2: failed (invalid_arguments) 1.58s tools=['search_products'] rejected=0 grounded=[]
+12:29:57 earbuds-5           think-off     rep2: waiting_user (None) 2.6s tools=['search_products'] rejected=0 grounded=[]
+12:30:40 earbuds-100         think-default rep1: incomplete (invalid_action) 42.18s tools=['search_products', 'search_products', 'retrieve_evidence'] rejected=3 grounded=[]
+12:30:43 backpack-zh-80      think-default rep1: failed (invalid_arguments) 3.65s tools=['search_products'] rejected=0 grounded=[]
+12:30:50 charger-60          think-default rep1: failed (invalid_arguments) 6.23s tools=['search_products'] rejected=0 grounded=[]
+12:30:52 keyboard-no-budget  think-default rep1: failed (invalid_arguments) 2.74s tools=['search_products'] rejected=0 grounded=[]
+12:31:21 earbuds-5           think-default rep1: incomplete (model_call_limit) 29.08s tools=['search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products'] rejected=0 grounded=[]
+12:31:21 4 runs at once (think-off)
+12:31:29 concurrent4: ['failed', 'failed', 'failed', 'failed'] wall 8.16s
+{
+  "earbuds-100/think-off": [
+    "failed(invalid_arguments) 2.89s tools=['search_products']",
+    "failed(invalid_arguments) 1.38s tools=['search_products']"
+  ],
+  "backpack-zh-80/think-off": [
+    "failed(invalid_arguments) 1.86s tools=['search_products']",
+    "failed(invalid_arguments) 1.31s tools=['search_products']"
+  ],
+  "charger-60/think-off": [
+    "failed(invalid_arguments) 1.33s tools=['search_products']",
+    "failed(invalid_arguments) 1.34s tools=['search_products']"
+  ],
+  "keyboard-no-budget/think-off": [
+    "failed(invalid_arguments) 1.57s tools=['search_products']",
+    "failed(invalid_arguments) 1.58s tools=['search_products']"
+  ],
+  "earbuds-5/think-off": [
+    "waiting_user(-) 2.61s tools=['search_products']",
+    "waiting_user(-) 2.6s tools=['search_products']"
+  ],
+  "earbuds-100/think-default": [
+    "incomplete(invalid_action) 42.18s tools=['search_products', 'search_products', 'retrieve_evidence']"
+  ],
+  "backpack-zh-80/think-default": [
+    "failed(invalid_arguments) 3.65s tools=['search_products']"
+  ],
+  "charger-60/think-default": [
+    "failed(invalid_arguments) 6.23s tools=['search_products']"
+  ],
+  "keyboard-no-budget/think-default": [
+    "failed(invalid_arguments) 2.74s tools=['search_products']"
+  ],
+  "earbuds-5/think-default": [
+    "incomplete(model_call_limit) 29.08s tools=['search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products']"
+  ]
+}
+12:31:30 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/e2e-kb-28560

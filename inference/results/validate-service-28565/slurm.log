@@ -1,0 +1,7 @@
+10-0-1-10
+14:04:20 vLLM started pid=36089; waiting for a successful probe
+14:09:22 probe ok=True 1.33s 
+14:09:22 READY and published http://10-0-1-10:8000/v1 -> /mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-url.txt
+14:09:22 fault injection enabled: write http://10-0-1-10:8000/v1 into /mnt/home/markzhang/USERDIR/tacc-agentforge-service/fault-request
+14:12:25 vLLM exited, code -9
+srun: error: 10-0-1-10: task 0: Exited with exit code 1

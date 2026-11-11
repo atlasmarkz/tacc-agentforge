@@ -1,0 +1,4 @@
+# Job scripts run on the Linux cluster. Keep LF even in Windows checkouts with core.autocrlf=true;
+# CRLF breaks bash (": command not found").
+*.sh text eol=lf
+tuxiv.conf text eol=lf
