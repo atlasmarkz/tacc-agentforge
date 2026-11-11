@@ -1,11 +1,18 @@
-# Task 7. Fill in after inspecting TACC resources and licensing.
-base_model: TODO
-base_revision: TODO
-train_file: data/sft/train.jsonl
-output_dir: outputs/sft
-lora_r: 16
-lora_alpha: 32
-learning_rate: 2.0e-4
-epochs: 1
-max_seq_len: 4096
+# Task 7 SFT pilot on the course checkpoint (the only model on the cluster; see
+# docs/experiments/2026-10-28-27b-lora-feasibility/README.md). ${VAR} comes from the job environment.
+base_model: ${QWEN_MODEL_PATH}
+base_revision: course-public qwen3.8-27b-v1 Qwen3.8-27B-AWQ-INT4 (config and tokenizer sha256 are recorded)
+train_file: ${TACC_USERDIR}/sft-data/train.jsonl
+output_dir: ${TACC_USERDIR}/adapters/sft-pilot
+# rank 8 / alpha 16: what the served vLLM build was tested with (--max-lora-rank 8, experiments E4/E4b)
+lora_r: 8
+lora_alpha: 16
+learning_rate: 1.0e-4
+epochs: 2
+# longer examples are dropped, never cut; observed prompts reach about 9K tokens (job 28561)
+max_seq_len: 8192
 seed: 0
+# training stops here so that loading, saving and the reload check fit in a one-hour job
+max_train_minutes: 30
+validation_cases: []
+grad_clip: 1.0
