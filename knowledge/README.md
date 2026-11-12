@@ -136,6 +136,13 @@ tools.get("search_products").executor.close()
 
 issue #4 的本地验收使用真实快照、真实适配器和脚本模型，覆盖错误反馈后更正查询。本地回归不能替代真实模型验收：后续应固定代码、快照和 issue #6 的部署策略，重跑原五个场景，不传 `--hint` 或 `available_categories`，确认不再因可修正的品类/属性错误直接失败；本次修复不自动提交 TACC 作业。
 
+解释节点可注入 `knowledge.explanation.KnowledgeEvidenceResolver(service)`，由宿主在活动调用结束后执行 `close()`。
+它复用现有查询线程的取消/期限机制，解析同一快照的 offer 与 evidence，处理分页并只保留每条证据的有界首段。
+无效 ID、快照或商品归属不匹配会返回能力错误，由 harness 使用已验证计划模板回退。
+只有单一且无冲突的报价上下文才附带单价；不从多个目的地/数量上下文中任意选择价格。
+该适配器提供来源观察，不替代预算校验；商品家族或未知 scope 也随事实传递。
+`EvidenceResolver` / `EvidenceFact` 契约由 agent 定义，适配器由 knowledge 实现，宿主负责注入。
+
 CLI演示需要传入显式快照位置，可使用环境变量或配置输出填写：
 
 ```bash

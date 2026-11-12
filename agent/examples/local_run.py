@@ -20,13 +20,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from uuid import uuid4
 
-from agent import AgentDependencies, AgentRequest, AgentRuntime, RunPolicy
-from agent.examples.mock_run import MockPlanValidator, demo_tools
+from agent import AgentDependencies, AgentRequest, AgentRuntime
+from agent.examples.mock_run import MockEvidenceResolver, MockPlanValidator, demo_tools
 from inference.client import ModelClient
 from inference.model_port import VllmModelPort
+from agent.settings import RuntimeSettings, RuntimeValues, load_runtime_settings
 
 ROOT = Path(__file__).resolve().parents[2]
-DEFAULT_MODEL = Path.home() / "models" / "qwen" / "qwen3.5-4b"
 
 
 @dataclass(frozen=True)
@@ -38,20 +38,23 @@ class LocalSettings:
     model_id: str
     env_file: Path
     env_loaded: bool
+    runtime: RuntimeSettings
 
 
 def load_settings(args) -> LocalSettings:
     """显式参数优先于环境配置；本地测试只允许无凭证的回环 HTTP 地址。"""
     from dotenv import dotenv_values
 
-    env_file = Path(args.env_file).expanduser().resolve()
+    runtime = load_runtime_settings(args.config, args.profile, default_profile="local")
+    env_file = (Path(args.env_file).expanduser().resolve() if args.env_file
+                else runtime.config.resolve_path(runtime.values.local["env_file"]))
     values = dotenv_values(env_file) if env_file.is_file() else {}
 
     def configured(name):
         return os.environ.get(name) or values.get(name)
 
     base_url = (args.base_url or configured("LOCAL_MODEL_BASE_URL")
-                or configured("QWEN_BASE_URL") or "http://127.0.0.1:18080/v1")
+                or configured("QWEN_BASE_URL") or runtime.model.base_url)
     parts = urlsplit(base_url)
     if (parts.scheme != "http" or parts.hostname not in {"127.0.0.1", "localhost", "::1"}
             or parts.username or parts.password or parts.query or parts.fragment
@@ -60,13 +63,24 @@ def load_settings(args) -> LocalSettings:
     base_url = base_url.rstrip("/")
     if not parts.path.rstrip("/"):
         base_url += "/v1"
-    model_path = Path(args.model_path or configured("LOCAL_MODEL_PATH") or DEFAULT_MODEL).expanduser().resolve()
+    model_path = Path(args.model_path or configured("LOCAL_MODEL_PATH")
+                      or runtime.config.resolve_path(runtime.model.model_path)).expanduser().resolve()
     if not (model_path / "config.json").is_file():
         raise ValueError("本地模型目录缺少 config.json，请检查 --model-path。")
+    values = runtime.values.model_dump()
+    for argument, field in (("timeout", "call_timeout_s"), ("deadline", "deadline_seconds"),
+                            ("max_tokens", "max_output_tokens"), ("explain", "explain")):
+        if getattr(args, argument) is not None:
+            values["agent"][field] = getattr(args, argument)
+    for argument, field in (("temperature", "temperature"), ("thinking", "enable_thinking")):
+        if getattr(args, argument) is not None:
+            values["model"][field] = getattr(args, argument)
+    runtime = RuntimeSettings(runtime.config, RuntimeValues.model_validate(values))
     return LocalSettings(
         base_url=base_url, model_path=model_path,
-        model_id=args.model_id or configured("LOCAL_MODEL_ID") or str(model_path),
+        model_id=args.model_id or configured("LOCAL_MODEL_ID") or runtime.model.name or str(model_path),
         env_file=env_file, env_loaded=env_file.is_file(),
+        runtime=runtime,
     )
 
 
@@ -108,15 +122,13 @@ def audit_scenario(name, result, events, calls, resumed):
 
 async def run_scenario(name, settings: LocalSettings, args, output: Path):
     """每个场景使用独立任务和检查点，恢复时只提交事先给定的模拟用户答案。"""
-    client = ModelClient(base_url=settings.base_url, model=settings.model_id, max_attempts=1)
+    client = ModelClient(base_url=settings.base_url, model=settings.model_id, **settings.runtime.model.client_options())
     # MLX 服务不实现 response_format 强制解码；保留提示中的 schema 和 Harness 校验。
     port = RecordedModelPort(VllmModelPort(
-        client, temperature=args.temperature, enable_thinking=args.thinking, constrain_output=False,
+        client, **settings.runtime.model.port_options(),
     ), output / f"{name}-model-calls.json")
-    runtime = AgentRuntime(AgentDependencies(port, demo_tools(), MockPlanValidator()), RunPolicy(
-        call_timeout_s=args.timeout, deadline_seconds=args.deadline, max_model_calls=8,
-        max_tool_calls=4, max_questions=3, max_output_tokens=args.max_tokens,
-    ))
+    runtime = AgentRuntime(AgentDependencies(port, demo_tools(), MockPlanValidator(),
+                                              evidence_resolver=MockEvidenceResolver()), settings.runtime.policy)
     message = "请调用搜索工具，从当前知识快照中挑选一件适合通勤的无线耳机，取得报价和证据后提交候选方案。"
     constraints = {"currency": "USD"}
     if name == "direct":
@@ -165,16 +177,19 @@ async def run_scenario(name, settings: LocalSettings, args, output: Path):
 def parser():
     """本地测试参数；不会写回 .env 或更改生产模型服务配置。"""
     result = argparse.ArgumentParser(description=__doc__)
-    result.add_argument("--env-file", default=str(ROOT / ".env"))
+    result.add_argument("--config", help="Agent YAML (default: configs/agent.yaml)")
+    result.add_argument("--profile", help="named YAML profile (default: local)")
+    result.add_argument("--env-file")
     result.add_argument("--base-url")
     result.add_argument("--model-path")
     result.add_argument("--model-id")
-    result.add_argument("--scenario", choices=["all", "direct", "clarify"], default="all")
-    result.add_argument("--timeout", type=float, default=180)
-    result.add_argument("--deadline", type=float, default=600)
-    result.add_argument("--max-tokens", type=int, default=2048)
-    result.add_argument("--temperature", type=float, default=0.6)
-    result.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=True)
+    result.add_argument("--scenario", choices=["all", "direct", "clarify"])
+    result.add_argument("--timeout", type=float)
+    result.add_argument("--deadline", type=float)
+    result.add_argument("--max-tokens", type=int)
+    result.add_argument("--temperature", type=float)
+    result.add_argument("--thinking", action=argparse.BooleanOptionalAction, default=None)
+    result.add_argument("--explain", action=argparse.BooleanOptionalAction, default=None)
     result.add_argument("--output", type=Path)
     return result
 
@@ -194,12 +209,14 @@ async def main():
         "versions": {name: importlib.metadata.version(name) for name in ["langgraph", "mlx-lm", "mlx", "transformers"]},
         "real_model": True, "synthetic_catalog_and_validator": True,
         "constrained_decoding": False, "scenarios": [], "passed": False,
-        "generation": {"temperature": args.temperature, "enable_thinking": args.thinking,
-                       "max_output_tokens": args.max_tokens},
+        "generation": {**settings.runtime.model.port_options(), "max_output_tokens": settings.runtime.policy.max_output_tokens},
+        "effective_policy": settings.runtime.policy.model_dump(),
+        "config": str(settings.runtime.config.path), "profile": settings.runtime.config.profile,
     }
     path = output / "report.json"
     try:
-        for name in (["direct", "clarify"] if args.scenario == "all" else [args.scenario]):
+        scenario = args.scenario or settings.runtime.values.local["scenario"]
+        for name in (["direct", "clarify"] if scenario == "all" else [scenario]):
             report["scenarios"].append(await run_scenario(name, settings, args, output))
             path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         report["passed"] = all(case["passed"] for case in report["scenarios"])

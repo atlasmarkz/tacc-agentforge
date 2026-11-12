@@ -16,6 +16,7 @@ class AgentState(TypedDict):
     rejected_plans: int
     action: dict | None
     verified_plan: dict | None
+    explanation: dict | None
     clarification: dict | None
     issues: list[dict]
     status: str | None
@@ -39,7 +40,7 @@ def initial_state(request: AgentRequest, policy) -> AgentState:
         "state_version": "2", "request": request.model_dump(mode="json"),
         "history": [], "usage": Usage().model_dump(mode="json"),
         "consecutive_action_errors": 0, "rejected_plans": 0,
-        "action": None, "verified_plan": None, "clarification": None,
+        "action": None, "verified_plan": None, "explanation": None, "clarification": None,
         "issues": [], "status": None, "stop_reason": None,
         "next_node": "guard", "result": None,
         "policy": policy.model_dump(mode="json"), "pending_question": None,

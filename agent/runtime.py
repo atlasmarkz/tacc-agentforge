@@ -98,7 +98,7 @@ class AgentRuntime:
             graph_input = state
         else:
             if saved is None:
-                raise RunStateError("run_not_found", "No checkpoint exists for this run.")
+                raise RunStateError("run_not_found", "Run does not exist, or its checkpoints were removed by retention.")
             # 先读取已保存字段以重建运行作用域，随后再确认图确实停在可恢复中断。
             state = saved.checkpoint["channel_values"]
             if state.get("state_version") != "2":

@@ -4,6 +4,10 @@ __pycache__/
 .local/
 *.py[cod]
 .venv/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite.lock
 .env
 .env.*
 !.env.example

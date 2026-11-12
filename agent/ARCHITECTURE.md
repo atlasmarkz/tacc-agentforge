@@ -1,8 +1,8 @@
 # Agent loop architecture
 
-Status: runnable nine-node framework with checkpointed user-question resume;
+Status: runnable framework with checkpointed user-question resume and optional explanation;
 real integrations and production storage/deployment remain future milestones.
-Updated: 2026-11-10.
+Updated: 2026-11-11.
 
 ## Implementation status
 
@@ -15,6 +15,8 @@ registry, strict argument/result checks, bounded repair loops, deadlines and
 cooperative cancellation, validation receipts, structured events, user-question
 checkpoints, `resume` / `astream_resume`, and scenario tests. The example uses
 explicit synthetic model/search/validator adapters; `--clarify` exercises resume.
+`RunPolicy(explain=True)` adds a tenth node after passed validation; `--explain`
+demonstrates streamed content, deterministic checks and the verified-plan fallback.
 
 The design below also records future contracts. In this milestone:
 
@@ -29,7 +31,9 @@ The design below also records future contracts. In this milestone:
   handles remain unsupported. Production database provisioning and distributed
   locking are outside the runtime; see README for the single-owner constraint.
 - Dependency files and a universal development lock are confined to `agent/`;
-  project-wide manifest changes and default test discovery remain outside scope.
+  the Agent YAML loader lives in `agent/config.py` and uses the Agent's PyYAML dependency.
+  `configs/agent.yaml` supplies Agent host budgets. Existing project/task configs
+  and the root manifest are unchanged; bare RunPolicy defaults remain compatible.
 
 ## 1. Scope and decision
 
@@ -173,7 +177,9 @@ flowchart TD
     D -->|call_tool| T[execute_tool]
     T -->|observation| G
     D -->|propose_plan| V[validate_plan]
-    V -->|passed| F
+    V -->|passed; explain off| F
+    V -->|passed; explain on| E[explain]
+    E -->|checked text or template| F
     V -->|violations; repair allowed| G
     V -->|unavailable / repair exhausted| F
     D -->|ask_user| Q[prepare_question]
@@ -202,8 +208,11 @@ fatal failures end the run with a reason.
 
 `validate_plan` is mandatory. Missing validation capability or unavailable cost
 evidence cannot produce `completed`. `finalize` returns the validator's verified
-data and a structured outcome. Any later LLM-written explanation must not mutate
-verified amounts, selections or citations without revalidation.
+data and a structured outcome. The optional `explain` node uses schema-free text
+without tools, then checks numeric values and citations in the harness. Expected
+explanation failures use a plan-only template without changing completed status.
+Global cancellation/deadline still stop the run. Explanation never mutates the plan;
+its `verified` flag denotes the limited rules check, not full semantic verification.
 
 `prepare_question` saves a stable ID, the requested fields and wall-clock expiry
 before entering `suspend`. `suspend` only calls interrupt, then returns the answer
@@ -224,7 +233,7 @@ Persist only serializable, bounded data in `AgentState`:
 ```text
 state_version, request, policy
 history, usage, consecutive_action_errors, rejected_plans
-action, verified_plan, clarification, issues, status, stop_reason, next_node, result
+action, verified_plan, explanation, clarification, issues, status, stop_reason, next_node, result
 pending_question, resume_answer, question_count, answer_errors
 active_elapsed_s, event_sequence
 ```
@@ -313,11 +322,13 @@ later coordination with the repository's current `testpaths = ["tests"]`.
 
 ### Add production durability
 
-- Deploy and validate a durable injected checkpointer; memory-backed user resume
-  and the async checkpointer integration point are already implemented.
+- SQLite construction, a host lease, startup/manual retention and SIGKILL/restart
+  tests are implemented in `checkpoints.py`, `checkpoint_cleanup.py` and
+  `tests/test_persistence.py`. Deploy and validate the selected durable saver on
+  TACC's actual filesystem; local recovery does not establish cross-job support.
 - Add pending operations, correlation checks, replay-safe operation records and
   idempotency coordination with external adapters.
-- Add state/graph-version compatibility, retention and recovery tests.
+- Add state/graph migrations beyond the current version-2 rejection contract.
 - Integrate event persistence and operational telemetry through the host.
 - Fault-test interruption before/after external calls and checkpoints. Checkpoint
   persistence alone does not guarantee exactly-once tool side effects.
@@ -457,6 +468,7 @@ do not accidentally duplicate the message history on every transition.
 | `prepare_question` | ask_user action, question/repair limits | stable ID, requested fields, expiry and waiting state |
 | `suspend` | checkpointed pending_question | interrupt; after resume, stores the answer |
 | `apply_answer` | answer and pending question | validated constraints/history or bounded re-question/stop |
+| `explain` | verified plan, optional resolved facts, original policy | bounded text/usage/events or template; no decision-budget charge |
 | `finalize` | outcome, current validation receipt, usage | AgentResult; no extra model call in the first milestone |
 
 Before a new proposal/constraint/snapshot version is accepted, clear obsolete

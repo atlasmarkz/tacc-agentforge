@@ -12,10 +12,11 @@ from decimal import Decimal, InvalidOperation
 from pydantic import Field
 
 from agent import (
-    AgentDependencies, AgentRequest, AgentRuntime, Issue, ModelReply,
+    AgentDependencies, AgentRequest, AgentRuntime, EvidenceFact, Issue, ModelReply,
     ToolRegistry, ToolSpec, ValidationResult, VerifiedPlan,
 )
 from agent.contracts import Schema
+from agent.settings import load_runtime_settings
 
 DEMO_OFFER = "demo-offer-001"
 DEMO_EVIDENCE = "demo-evidence-001"
@@ -54,6 +55,14 @@ class MockModel:
     """根据请求和观察结果生成预设动作，不保存各任务共享的对话状态。"""
 
     async def generate(self, request, context):
+        if request.action_schema is None:
+            plan = json.loads(request.messages[1].content)["verified_plan"]
+            text = f"此方案合计 {plan['total_cost']} {plan['currency']}，剩余预算 {plan['remaining_funds']} {plan['currency']}。[E1]"
+            if context.on_delta is not None:
+                for offset in range(0, len(text), 5):
+                    context.on_delta("content", text[offset:offset + 5])
+                    await asyncio.sleep(0)
+            return ModelReply(content=text)
         original = json.loads(request.messages[1].content)
         observations = [json.loads(m.content)["observation"] for m in request.messages
                         if m.role == "user" and m.content.startswith('{"observation":')]
@@ -128,9 +137,23 @@ def demo_tools(executor=None):
     )])
 
 
-def demo_runtime():
+class MockEvidenceResolver:
+    """只提供本示例目录的显式模拟证据。"""
+
+    async def resolve(self, plan, context):
+        return [EvidenceFact(snapshot_id=context.snapshot_id, offer_id=item.offer_id, evidence_id=eid,
+                             title="Synthetic commuting earbuds", merchant="Synthetic store",
+                             unit_price=str(DEMO_PRICE), currency="USD", excerpt="Synthetic fixture.",
+                             source_url="https://example.com/demo")
+                for item in plan.items for eid in item.evidence_ids]
+
+
+def demo_runtime(*, explain=None, config=None, profile=None):
     """显式组装模拟模型、搜索工具和校验器，便于离线运行。"""
-    return AgentRuntime(AgentDependencies(MockModel(), demo_tools(), MockPlanValidator()))
+    settings = load_runtime_settings(config, profile, default_profile="mock")
+    policy = settings.policy if explain is None else settings.policy.model_copy(update={"explain": explain})
+    return AgentRuntime(AgentDependencies(MockModel(), demo_tools(), MockPlanValidator(),
+                                          evidence_resolver=MockEvidenceResolver()), policy)
 
 
 async def main():
@@ -138,8 +161,11 @@ async def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--events", action="store_true", help="print live node events as JSON lines")
     parser.add_argument("--clarify", action="store_true", help="pause for a missing budget, then simulate an answer")
+    parser.add_argument("--config", help="Agent YAML (default: configs/agent.yaml)")
+    parser.add_argument("--profile", help="named YAML profile (default: mock)")
+    parser.add_argument("--explain", action=argparse.BooleanOptionalAction, default=None, help="override explanation policy")
     args = parser.parse_args()
-    runtime, request = demo_runtime(), demo_request()
+    runtime, request = demo_runtime(explain=args.explain, config=args.config, profile=args.profile), demo_request()
     if args.clarify:
         request = request.model_copy(update={"constraints": {"currency": "USD"}})
     result = None

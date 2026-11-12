@@ -23,8 +23,12 @@ class RunPolicy(Schema):
     max_context_chars: int = Field(default=16000, strict=True, ge=1000, le=1000000)
     max_history_messages: int = Field(default=12, strict=True, ge=0, le=100)
     max_output_tokens: int = Field(default=512, strict=True, ge=1, le=32768)
+    explain: bool = False
+    explain_timeout_s: float = Field(default=20, gt=0, le=3600)
+    max_explain_tokens: int = Field(default=400, strict=True, ge=1, le=32768)
+    max_explain_chars: int = Field(default=8000, strict=True, ge=100, le=65536)
 
     @property
     def recursion_limit(self) -> int:
         """按节点转换次数估算框架递归保险，不替代模型、工具及问答的业务计数。"""
-        return 5 * self.max_model_calls + 3 * self.max_questions + 10
+        return 5 * self.max_model_calls + 3 * self.max_questions + 10 + int(self.explain)

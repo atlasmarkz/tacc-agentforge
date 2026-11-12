@@ -2,7 +2,7 @@
 
 from .contracts import (
     AgentDependencies, AgentEvent, AgentRequest, AgentResult, CallContext,
-    CapabilityError, Issue, ModelPort, ModelReply, ModelRequest, PendingOperation,
+    CapabilityError, EvidenceFact, EvidenceResolver, Explanation, Issue, ModelPort, ModelReply, ModelRequest, PendingOperation,
     PendingQuestion, PlanValidationRequest, PlanValidator, ResumeRequest, RunStateError,
     ToolExecutor, ValidationResult, VerifiedPlan,
 )
@@ -16,4 +16,5 @@ __all__ = [
     "ModelReply", "ModelRequest", "PendingOperation", "PlanValidationRequest",
     "PlanValidator", "RunPolicy", "ToolExecutor", "ToolRegistry", "ToolSpec",
     "ValidationResult", "VerifiedPlan", "PendingQuestion", "ResumeRequest", "RunStateError",
+    "EvidenceFact", "EvidenceResolver", "Explanation",
 ]
