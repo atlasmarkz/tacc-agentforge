@@ -70,8 +70,8 @@ funds, missing fees, and the smaller-of-two-budgets rule.
 
 **Progress:** `agent/budget.py` and `knowledge/budget_source.py` implement exact totals, the
 smaller-of-two-budgets rule, unknown shipping/tax, currency and evidence-ownership checks (see
-`agent/README.md`). The next two items stay open because required-attribute checks and
-requirement evidence are not implemented, and the tax rule is still a team decision.
+`agent/README.md`). Budgets are compared before tax (decided); answers must say so. The next two items stay
+open because required-attribute checks and requirement evidence are not implemented.
 
 ## Task 4: Complete the bounded agent loop
 

@@ -79,14 +79,14 @@ def test_offer_cost_treats_malformed_amounts_as_unknown():
 
 
 def test_a_pre_tax_plan_passes_end_to_end_on_the_real_snapshot(tmp_path):
-    result = validate(tmp_path, request(), default_basis="pre_tax")
+    result = validate(tmp_path, request())
     assert result.status == "passed"
     assert (result.verified_plan.total_cost, result.verified_plan.remaining_funds) == ("50.00", "50.00")
     assert result.verified_plan.cost_breakdown == {"items": "50.00", "shipping": "0.00"}
 
 
 def test_the_snapshot_never_proves_tax_so_the_all_in_basis_asks_instead(tmp_path):
-    result = validate(tmp_path, request())
+    result = validate(tmp_path, request(), default_basis="all_in")
     assert result.status == "failed" and [i.code for i in result.issues] == ["tax_unknown"]
 
 
@@ -168,7 +168,7 @@ def run_agent(tmp_path, model, **constraints):
         source = KnowledgeOfferCostSource(service)
         try:
             runtime = AgentRuntime(AgentDependencies(
-                model, build_knowledge_tools(service), BudgetPlanValidator(source, default_basis="pre_tax")))
+                model, build_knowledge_tools(service), BudgetPlanValidator(source)))
             return await runtime.run(AgentRequest(
                 run_id="budget-run", conversation_id="c", snapshot_id="snap-test", message="buy earbuds",
                 constraints={"currency": "USD", "purchase_cap": "100.00", **constraints}))

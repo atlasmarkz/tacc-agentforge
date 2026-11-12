@@ -166,16 +166,22 @@ def test_unknown_shipping_blocks_an_affordability_claim():
     {"price_includes_tax": None, "tax": "1.00"},
 ])
 def test_all_in_basis_does_not_guess_the_tax(fields):
-    assert codes(run(FakeSource(cost(**fields)))) == ["tax_unknown"]
+    assert codes(run(FakeSource(cost(**fields)), default_basis="all_in")) == ["tax_unknown"]
+
+
+def test_the_default_basis_is_pre_tax_and_a_request_can_ask_for_all_in():
+    unknown_tax = cost(price_includes_tax=None)
+    assert run(FakeSource(unknown_tax)).status == "passed"
+    assert codes(run(FakeSource(unknown_tax), constraints={"budget_basis": "all_in"})) == ["tax_unknown"]
 
 
 @pytest.mark.parametrize("how", ["default", "constraint"])
 def test_pre_tax_basis_counts_listed_price_and_shipping_only(how):
     row = cost(price_includes_tax=None)
     if how == "default":
-        result = run(FakeSource(row), default_basis="pre_tax")
+        result = run(FakeSource(row))
     else:
-        result = run(FakeSource(row), constraints={"budget_basis": "pre_tax"})
+        result = run(FakeSource(row, ), default_basis="all_in", constraints={"budget_basis": "pre_tax"})
     assert result.status == "passed" and result.verified_plan.total_cost == "12.00"
     assert "tax" not in result.verified_plan.cost_breakdown
 
@@ -243,7 +249,7 @@ def test_the_source_is_asked_only_for_the_plans_offers_and_evidence():
 
 def test_at_most_twenty_issues_are_returned():
     rows = [cost(f"o{i}", shipping=None, price_includes_tax=None) for i in range(12)]
-    result = run(FakeSource(*rows), [(f"o{i}", 1) for i in range(12)])
+    result = run(FakeSource(*rows), [(f"o{i}", 1) for i in range(12)], default_basis="all_in")
     assert result.status == "failed" and len(result.issues) == 20
 
 

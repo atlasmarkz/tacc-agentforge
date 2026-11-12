@@ -17,8 +17,9 @@
 
 规则要点：
 - 运费未知、币种不一致、价格冲突、规格版本冲突或证据不属于所选商品，一律不通过，不估算；
+- ``pre_tax``（默认，项目已决定按不含税比较）：只计标价和已知运费，税费不计入，``cost_breakdown`` 不含 ``tax``，
+  面向用户的回答必须注明不含税；
 - ``all_in``：税费无法确定（未知，或不知道标价是否含税）就不通过；
-- ``pre_tax``：只计标价和已知运费，税费不计入，且 ``cost_breakdown`` 不含 ``tax``；
 - 运费按 ``shipping_scope`` 计算：``item`` 乘数量，``order`` 每个方案条目计一次（假设每个条目是一次订单，
   商家合并运费时是偏高的上界）；范围未知时只有数量为 1 才能确定；已知税费按单价同样的方式乘数量；
 - 总价恰好等于可用资金时通过；
@@ -122,7 +123,7 @@ def _scale(text):
 class BudgetPlanValidator:
     """用报价事实计算方案总价并与可用资金比较。"""
 
-    def __init__(self, source: OfferCostSource, *, default_basis: BudgetBasis = "all_in",
+    def __init__(self, source: OfferCostSource, *, default_basis: BudgetBasis = "pre_tax",
                  require_verified_identity: bool = False):
         if default_basis not in ("all_in", "pre_tax"):
             raise ValueError("default_basis must be all_in or pre_tax")
