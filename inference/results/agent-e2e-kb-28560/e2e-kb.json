@@ -1,0 +1,1735 @@
+{
+  "env": {
+    "python": "3.12.14",
+    "pydantic": "2.14.2",
+    "job": "28560"
+  },
+  "network": {
+    "address": "http://10-0-1-10:8000/v1",
+    "waited_s": 270.0,
+    "this_node": "10-0-1-11",
+    "service_node": "10-0-1-10",
+    "same_node": false,
+    "resolved_ip": "10.0.1.10",
+    "tcp_connect_s": 0.0014,
+    "health_status": 200
+  },
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "runs": [
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1599,
+        "completion_tokens": 49,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.887947
+      },
+      "wall_s": 2.89,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.04,
+          "run_started"
+        ],
+        [
+          0.05,
+          "decision_started"
+        ],
+        [
+          2.87,
+          "action_selected:call_tool"
+        ],
+        [
+          2.88,
+          "tool_started:search_products"
+        ],
+        [
+          2.89,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          2.89,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-off-1:model:1",
+          "s": 2.82,
+          "request_chars": 1354,
+          "prompt_tokens": 1599,
+          "completion_tokens": 49,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 48,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1591,
+        "completion_tokens": 45,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.859678
+      },
+      "wall_s": 1.86,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.85,
+          "action_selected:call_tool"
+        ],
+        [
+          1.85,
+          "tool_started:search_products"
+        ],
+        [
+          1.86,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.86,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-off-1:model:1",
+          "s": 1.83,
+          "request_chars": 1309,
+          "prompt_tokens": 1591,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpack\",\"type\":\"commuter\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 44,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1591,
+        "completion_tokens": 46,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.327274
+      },
+      "wall_s": 1.33,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.32,
+          "action_selected:call_tool"
+        ],
+        [
+          1.32,
+          "tool_started:search_products"
+        ],
+        [
+          1.33,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.33,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-off-1:model:1",
+          "s": 1.3,
+          "request_chars": 1342,
+          "prompt_tokens": 1591,
+          "completion_tokens": 46,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"electronics\",\"type\":\"usb_c_charger\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 45,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1565,
+        "completion_tokens": 65,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.573359
+      },
+      "wall_s": 1.57,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.56,
+          "action_selected:call_tool"
+        ],
+        [
+          1.57,
+          "tool_started:search_products"
+        ],
+        [
+          1.57,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.57,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-off-1:model:1",
+          "s": 1.55,
+          "request_chars": 1315,
+          "prompt_tokens": 1565,
+          "completion_tokens": 65,
+          "finish": "stop",
+          "reply": "{\n  \"type\": \"call_tool\",\n  \"tool_name\": \"search_products\",\n  \"arguments\": {\n    \"filters\": {\n      \"category\": \"keyboard\",\n      \"type\": \"mechanical\"\n    },\n    \"limit\": 5\n  }\n}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 64,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-off",
+      "rep": 1,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "No wireless earbuds were found within your $5.00 USD budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different product category?",
+      "required_fields": [
+        "budget_or_alternative_preference"
+      ],
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 3565,
+        "completion_tokens": 107,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.603304
+      },
+      "wall_s": 2.61,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.31,
+          "action_selected:call_tool"
+        ],
+        [
+          1.31,
+          "tool_started:search_products"
+        ],
+        [
+          1.32,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.33,
+          "decision_started"
+        ],
+        [
+          2.6,
+          "action_selected:ask_user"
+        ],
+        [
+          2.6,
+          "question_prepared"
+        ],
+        [
+          2.61,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-off-1:model:1",
+          "s": 1.29,
+          "request_chars": 1317,
+          "prompt_tokens": 1586,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-off-1:model:2",
+          "s": 1.27,
+          "request_chars": 2110,
+          "prompt_tokens": 1979,
+          "completion_tokens": 62,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"No wireless earbuds were found within your $5.00 USD budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different product category?\",\"required_fields\":[\"budget_or_alternative_preference\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 105,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1599,
+        "completion_tokens": 49,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.374575
+      },
+      "wall_s": 1.38,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          1.36,
+          "action_selected:call_tool"
+        ],
+        [
+          1.37,
+          "tool_started:search_products"
+        ],
+        [
+          1.37,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.38,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-off-2:model:1",
+          "s": 1.34,
+          "request_chars": 1354,
+          "prompt_tokens": 1599,
+          "completion_tokens": 49,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 48,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1591,
+        "completion_tokens": 45,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.311446
+      },
+      "wall_s": 1.31,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.3,
+          "action_selected:call_tool"
+        ],
+        [
+          1.3,
+          "tool_started:search_products"
+        ],
+        [
+          1.31,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.31,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-off-2:model:1",
+          "s": 1.28,
+          "request_chars": 1309,
+          "prompt_tokens": 1591,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpack\",\"type\":\"commuter\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 44,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1591,
+        "completion_tokens": 46,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.333846
+      },
+      "wall_s": 1.34,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.32,
+          "action_selected:call_tool"
+        ],
+        [
+          1.33,
+          "tool_started:search_products"
+        ],
+        [
+          1.33,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.33,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-off-2:model:1",
+          "s": 1.31,
+          "request_chars": 1342,
+          "prompt_tokens": 1591,
+          "completion_tokens": 46,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"electronics\",\"type\":\"usb_c_charger\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 45,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1565,
+        "completion_tokens": 65,
+        "unreported_token_calls": 0,
+        "elapsed_s": 1.576843
+      },
+      "wall_s": 1.58,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.56,
+          "action_selected:call_tool"
+        ],
+        [
+          1.57,
+          "tool_started:search_products"
+        ],
+        [
+          1.57,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          1.58,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-off-2:model:1",
+          "s": 1.55,
+          "request_chars": 1315,
+          "prompt_tokens": 1565,
+          "completion_tokens": 65,
+          "finish": "stop",
+          "reply": "{\n  \"type\": \"call_tool\",\n  \"tool_name\": \"search_products\",\n  \"arguments\": {\n    \"filters\": {\n      \"category\": \"keyboard\",\n      \"type\": \"mechanical\"\n    },\n    \"limit\": 5\n  }\n}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 64,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-off",
+      "rep": 2,
+      "status": "waiting_user",
+      "stop_reason": null,
+      "question": "No wireless earbuds were found within your $5.00 USD budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different product category?",
+      "required_fields": [
+        "budget_or_alternative_preference"
+      ],
+      "issues": [],
+      "usage": {
+        "model_calls": 2,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 3565,
+        "completion_tokens": 107,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.599573
+      },
+      "wall_s": 2.6,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          1.31,
+          "action_selected:call_tool"
+        ],
+        [
+          1.31,
+          "tool_started:search_products"
+        ],
+        [
+          1.32,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          1.33,
+          "decision_started"
+        ],
+        [
+          2.6,
+          "action_selected:ask_user"
+        ],
+        [
+          2.6,
+          "question_prepared"
+        ],
+        [
+          2.6,
+          "run_waiting"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-off-2:model:1",
+          "s": 1.29,
+          "request_chars": 1317,
+          "prompt_tokens": 1586,
+          "completion_tokens": 45,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-off-2:model:2",
+          "s": 1.27,
+          "request_chars": 2110,
+          "prompt_tokens": 1979,
+          "completion_tokens": 62,
+          "finish": "stop",
+          "reply": "{\"type\":\"ask_user\",\"question\":\"No wireless earbuds were found within your $5.00 USD budget in the current catalog. Would you like to increase your budget, consider wired earbuds, or look at a different product category?\",\"required_fields\":[\"budget_or_alternative_preference\"]}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 105,
+        "reasoning": 0
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-100",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "invalid_action",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_action",
+        "invalid_action",
+        "invalid_action"
+      ],
+      "usage": {
+        "model_calls": 6,
+        "tool_calls": 3,
+        "action_repairs": 3,
+        "plan_repairs": 0,
+        "prompt_tokens": 19387,
+        "completion_tokens": 2293,
+        "unreported_token_calls": 0,
+        "elapsed_s": 42.177334
+      },
+      "wall_s": 42.18,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "retrieve_evidence"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          6.04,
+          "action_selected:call_tool"
+        ],
+        [
+          6.04,
+          "tool_started:search_products"
+        ],
+        [
+          6.05,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          6.06,
+          "decision_started"
+        ],
+        [
+          7.96,
+          "action_selected:call_tool"
+        ],
+        [
+          7.96,
+          "tool_started:search_products"
+        ],
+        [
+          8.01,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          8.03,
+          "decision_started"
+        ],
+        [
+          16.26,
+          "action_selected:call_tool"
+        ],
+        [
+          16.27,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          16.29,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          16.3,
+          "decision_started"
+        ],
+        [
+          25.57,
+          "action_rejected:invalid_action"
+        ],
+        [
+          25.58,
+          "decision_started"
+        ],
+        [
+          33.84,
+          "action_rejected:invalid_action"
+        ],
+        [
+          33.86,
+          "decision_started"
+        ],
+        [
+          42.17,
+          "action_rejected:invalid_action"
+        ],
+        [
+          42.18,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [
+        "action_rejected:invalid_action",
+        "action_rejected:invalid_action",
+        "action_rejected:invalid_action"
+      ],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-100-think-default-1:model:1",
+          "s": 6.02,
+          "request_chars": 1362,
+          "prompt_tokens": 1635,
+          "completion_tokens": 319,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:2",
+          "s": 1.9,
+          "request_chars": 2163,
+          "prompt_tokens": 2032,
+          "completion_tokens": 101,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:3",
+          "s": 8.23,
+          "request_chars": 9899,
+          "prompt_tokens": 4947,
+          "completion_tokens": 337,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"wireless earbuds noise cancelling battery life commute\",\"candidate_set_id\":\"cand_84a6a28898ee4efbd8961ca93a5391e5\",\"k\":8}}"
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:4",
+          "s": 9.27,
+          "request_chars": 5403,
+          "prompt_tokens": 3504,
+          "completion_tokens": 512,
+          "finish": "length",
+          "reply": ""
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:5",
+          "s": 8.26,
+          "request_chars": 5772,
+          "prompt_tokens": 3591,
+          "completion_tokens": 512,
+          "finish": "length",
+          "reply": ""
+        },
+        {
+          "op": "kb-earbuds-100-think-default-1:model:6",
+          "s": 8.31,
+          "request_chars": 6141,
+          "prompt_tokens": 3678,
+          "completion_tokens": 512,
+          "finish": "length",
+          "reply": ""
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 155,
+        "reasoning": 2107
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "backpack-zh-80",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1627,
+        "completion_tokens": 156,
+        "unreported_token_calls": 0,
+        "elapsed_s": 3.647299
+      },
+      "wall_s": 3.65,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          3.63,
+          "action_selected:call_tool"
+        ],
+        [
+          3.64,
+          "tool_started:search_products"
+        ],
+        [
+          3.65,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          3.65,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-backpack-zh-80-think-default-1:model:1",
+          "s": 3.61,
+          "request_chars": 1317,
+          "prompt_tokens": 1627,
+          "completion_tokens": 156,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpack\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":5}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 38,
+        "reasoning": 116
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "charger-60",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1627,
+        "completion_tokens": 364,
+        "unreported_token_calls": 0,
+        "elapsed_s": 6.224632
+      },
+      "wall_s": 6.23,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.02,
+          "decision_started"
+        ],
+        [
+          6.21,
+          "action_selected:call_tool"
+        ],
+        [
+          6.22,
+          "tool_started:search_products"
+        ],
+        [
+          6.22,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          6.23,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-charger-60-think-default-1:model:1",
+          "s": 6.2,
+          "request_chars": 1350,
+          "prompt_tokens": 1627,
+          "completion_tokens": 364,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"charger\",\"type\":\"usb_c\",\"currency\":\"USD\",\"max_price_minor\":6000,\"include_unknown\":true},\"limit\":10}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 48,
+        "reasoning": 258
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "keyboard-no-budget",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "failed",
+      "stop_reason": "invalid_arguments",
+      "question": null,
+      "required_fields": null,
+      "issues": [
+        "invalid_arguments"
+      ],
+      "usage": {
+        "model_calls": 1,
+        "tool_calls": 1,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 1601,
+        "completion_tokens": 137,
+        "unreported_token_calls": 0,
+        "elapsed_s": 2.734884
+      },
+      "wall_s": 2.74,
+      "tools_used": [
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          2.72,
+          "action_selected:call_tool"
+        ],
+        [
+          2.73,
+          "tool_started:search_products"
+        ],
+        [
+          2.73,
+          "tool_finished:search_products:invalid_arguments:error"
+        ],
+        [
+          2.74,
+          "run_stopped:failed"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-keyboard-no-budget-think-default-1:model:1",
+          "s": 2.71,
+          "request_chars": 1323,
+          "prompt_tokens": 1601,
+          "completion_tokens": 137,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboard\",\"type\":\"mechanical\"},\"limit\":5}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 29,
+        "reasoning": 106
+      },
+      "grounding": []
+    },
+    {
+      "scenario": "earbuds-5",
+      "variant": "think-default",
+      "rep": 1,
+      "status": "incomplete",
+      "stop_reason": "model_call_limit",
+      "question": null,
+      "required_fields": null,
+      "issues": [],
+      "usage": {
+        "model_calls": 8,
+        "tool_calls": 8,
+        "action_repairs": 0,
+        "plan_repairs": 0,
+        "prompt_tokens": 28909,
+        "completion_tokens": 1280,
+        "unreported_token_calls": 0,
+        "elapsed_s": 29.081877
+      },
+      "wall_s": 29.08,
+      "tools_used": [
+        "search_products",
+        "search_products",
+        "retrieve_evidence",
+        "search_products",
+        "search_products",
+        "retrieve_evidence",
+        "search_products",
+        "search_products"
+      ],
+      "timeline": [
+        [
+          0.01,
+          "run_started"
+        ],
+        [
+          0.01,
+          "decision_started"
+        ],
+        [
+          4.36,
+          "action_selected:call_tool"
+        ],
+        [
+          4.37,
+          "tool_started:search_products"
+        ],
+        [
+          4.37,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          4.38,
+          "decision_started"
+        ],
+        [
+          6.22,
+          "action_selected:call_tool"
+        ],
+        [
+          6.23,
+          "tool_started:search_products"
+        ],
+        [
+          6.27,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          6.28,
+          "decision_started"
+        ],
+        [
+          11.89,
+          "action_selected:call_tool"
+        ],
+        [
+          11.89,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          11.91,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          11.92,
+          "decision_started"
+        ],
+        [
+          15.55,
+          "action_selected:call_tool"
+        ],
+        [
+          15.55,
+          "tool_started:search_products"
+        ],
+        [
+          15.56,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          15.57,
+          "decision_started"
+        ],
+        [
+          17.15,
+          "action_selected:call_tool"
+        ],
+        [
+          17.15,
+          "tool_started:search_products"
+        ],
+        [
+          17.16,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          17.17,
+          "decision_started"
+        ],
+        [
+          22.85,
+          "action_selected:call_tool"
+        ],
+        [
+          22.85,
+          "tool_started:retrieve_evidence"
+        ],
+        [
+          22.87,
+          "tool_finished:retrieve_evidence:ok"
+        ],
+        [
+          22.88,
+          "decision_started"
+        ],
+        [
+          26.46,
+          "action_selected:call_tool"
+        ],
+        [
+          26.46,
+          "tool_started:search_products"
+        ],
+        [
+          26.47,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          26.48,
+          "decision_started"
+        ],
+        [
+          29.07,
+          "action_selected:call_tool"
+        ],
+        [
+          29.07,
+          "tool_started:search_products"
+        ],
+        [
+          29.08,
+          "tool_finished:search_products:ok"
+        ],
+        [
+          29.08,
+          "run_stopped:incomplete"
+        ]
+      ],
+      "rejected": [],
+      "model_calls": [
+        {
+          "op": "kb-earbuds-5-think-default-1:model:1",
+          "s": 4.35,
+          "request_chars": 1325,
+          "prompt_tokens": 1622,
+          "completion_tokens": 243,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:2",
+          "s": 1.84,
+          "request_chars": 2122,
+          "prompt_tokens": 2015,
+          "completion_tokens": 97,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:3",
+          "s": 5.6,
+          "request_chars": 9724,
+          "prompt_tokens": 4313,
+          "completion_tokens": 236,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"wireless earbuds price under 5 USD budget cheap\",\"candidate_set_id\":\"cand_480d28e2c17d321081446f1ec7518980\",\"k\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:4",
+          "s": 3.63,
+          "request_chars": 6503,
+          "prompt_tokens": 3965,
+          "completion_tokens": 124,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:5",
+          "s": 1.58,
+          "request_chars": 7300,
+          "prompt_tokens": 4358,
+          "completion_tokens": 79,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:6",
+          "s": 5.68,
+          "request_chars": 9724,
+          "prompt_tokens": 4313,
+          "completion_tokens": 237,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"retrieve_evidence\",\"arguments\":{\"query\":\"wireless earbuds price under 5 USD budget cheap\",\"candidate_set_id\":\"cand_480d28e2c17d321081446f1ec7518980\",\"k\":10}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:7",
+          "s": 3.58,
+          "request_chars": 6503,
+          "prompt_tokens": 3965,
+          "completion_tokens": 120,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        },
+        {
+          "op": "kb-earbuds-5-think-default-1:model:8",
+          "s": 2.59,
+          "request_chars": 7300,
+          "prompt_tokens": 4358,
+          "completion_tokens": 144,
+          "finish": "stop",
+          "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"currency\":\"USD\",\"max_price_minor\":500},\"limit\":20}}"
+        }
+      ],
+      "proposals": [],
+      "deltas": {
+        "content": 397,
+        "reasoning": 867
+      },
+      "grounding": []
+    }
+  ],
+  "concurrent4": {
+    "wall_s": 8.16,
+    "statuses": [
+      "failed",
+      "failed",
+      "failed",
+      "failed"
+    ],
+    "run_wall_s": [
+      8.16,
+      8.08,
+      8.14,
+      8.14
+    ],
+    "runs": [
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 100,
+        "status": "failed",
+        "stop_reason": "invalid_arguments",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "invalid_arguments"
+        ],
+        "usage": {
+          "model_calls": 1,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1603,
+          "completion_tokens": 49,
+          "unreported_token_calls": 0,
+          "elapsed_s": 8.155689
+        },
+        "wall_s": 8.16,
+        "tools_used": [
+          "search_products"
+        ],
+        "timeline": [
+          [
+            0.03,
+            "run_started"
+          ],
+          [
+            0.05,
+            "decision_started"
+          ],
+          [
+            8.14,
+            "action_selected:call_tool"
+          ],
+          [
+            8.14,
+            "tool_started:search_products"
+          ],
+          [
+            8.15,
+            "tool_finished:search_products:invalid_arguments:error"
+          ],
+          [
+            8.16,
+            "run_stopped:failed"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-100:model:1",
+            "s": 8.09,
+            "request_chars": 1358,
+            "prompt_tokens": 1603,
+            "completion_tokens": 49,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          }
+        ],
+        "proposals": [],
+        "deltas": {
+          "content": 48,
+          "reasoning": 0
+        },
+        "grounding": []
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 101,
+        "status": "failed",
+        "stop_reason": "invalid_arguments",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "invalid_arguments"
+        ],
+        "usage": {
+          "model_calls": 1,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1603,
+          "completion_tokens": 49,
+          "unreported_token_calls": 0,
+          "elapsed_s": 8.08127
+        },
+        "wall_s": 8.08,
+        "tools_used": [
+          "search_products"
+        ],
+        "timeline": [
+          [
+            0.02,
+            "run_started"
+          ],
+          [
+            0.04,
+            "decision_started"
+          ],
+          [
+            8.07,
+            "action_selected:call_tool"
+          ],
+          [
+            8.07,
+            "tool_started:search_products"
+          ],
+          [
+            8.08,
+            "tool_finished:search_products:invalid_arguments:error"
+          ],
+          [
+            8.08,
+            "run_stopped:failed"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-101:model:1",
+            "s": 8.03,
+            "request_chars": 1358,
+            "prompt_tokens": 1603,
+            "completion_tokens": 49,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          }
+        ],
+        "proposals": [],
+        "deltas": {
+          "content": 48,
+          "reasoning": 0
+        },
+        "grounding": []
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 102,
+        "status": "failed",
+        "stop_reason": "invalid_arguments",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "invalid_arguments"
+        ],
+        "usage": {
+          "model_calls": 1,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1603,
+          "completion_tokens": 49,
+          "unreported_token_calls": 0,
+          "elapsed_s": 8.136834
+        },
+        "wall_s": 8.14,
+        "tools_used": [
+          "search_products"
+        ],
+        "timeline": [
+          [
+            0.02,
+            "run_started"
+          ],
+          [
+            0.04,
+            "decision_started"
+          ],
+          [
+            8.12,
+            "action_selected:call_tool"
+          ],
+          [
+            8.12,
+            "tool_started:search_products"
+          ],
+          [
+            8.14,
+            "tool_finished:search_products:invalid_arguments:error"
+          ],
+          [
+            8.14,
+            "run_stopped:failed"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-102:model:1",
+            "s": 8.08,
+            "request_chars": 1358,
+            "prompt_tokens": 1603,
+            "completion_tokens": 49,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          }
+        ],
+        "proposals": [],
+        "deltas": {
+          "content": 48,
+          "reasoning": 0
+        },
+        "grounding": []
+      },
+      {
+        "scenario": "earbuds-100",
+        "variant": "think-off",
+        "rep": 103,
+        "status": "failed",
+        "stop_reason": "invalid_arguments",
+        "question": null,
+        "required_fields": null,
+        "issues": [
+          "invalid_arguments"
+        ],
+        "usage": {
+          "model_calls": 1,
+          "tool_calls": 1,
+          "action_repairs": 0,
+          "plan_repairs": 0,
+          "prompt_tokens": 1603,
+          "completion_tokens": 49,
+          "unreported_token_calls": 0,
+          "elapsed_s": 8.134867
+        },
+        "wall_s": 8.14,
+        "tools_used": [
+          "search_products"
+        ],
+        "timeline": [
+          [
+            0.01,
+            "run_started"
+          ],
+          [
+            0.05,
+            "decision_started"
+          ],
+          [
+            8.12,
+            "action_selected:call_tool"
+          ],
+          [
+            8.12,
+            "tool_started:search_products"
+          ],
+          [
+            8.13,
+            "tool_finished:search_products:invalid_arguments:error"
+          ],
+          [
+            8.14,
+            "run_stopped:failed"
+          ]
+        ],
+        "rejected": [],
+        "model_calls": [
+          {
+            "op": "kb-earbuds-100-think-off-103:model:1",
+            "s": 8.07,
+            "request_chars": 1358,
+            "prompt_tokens": 1603,
+            "completion_tokens": 49,
+            "finish": "stop",
+            "reply": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}"
+          }
+        ],
+        "proposals": [],
+        "deltas": {
+          "content": 48,
+          "reasoning": 0
+        },
+        "grounding": []
+      }
+    ]
+  },
+  "summary": {
+    "earbuds-100/think-off": [
+      "failed(invalid_arguments) 2.89s tools=['search_products']",
+      "failed(invalid_arguments) 1.38s tools=['search_products']"
+    ],
+    "backpack-zh-80/think-off": [
+      "failed(invalid_arguments) 1.86s tools=['search_products']",
+      "failed(invalid_arguments) 1.31s tools=['search_products']"
+    ],
+    "charger-60/think-off": [
+      "failed(invalid_arguments) 1.33s tools=['search_products']",
+      "failed(invalid_arguments) 1.34s tools=['search_products']"
+    ],
+    "keyboard-no-budget/think-off": [
+      "failed(invalid_arguments) 1.57s tools=['search_products']",
+      "failed(invalid_arguments) 1.58s tools=['search_products']"
+    ],
+    "earbuds-5/think-off": [
+      "waiting_user(-) 2.61s tools=['search_products']",
+      "waiting_user(-) 2.6s tools=['search_products']"
+    ],
+    "earbuds-100/think-default": [
+      "incomplete(invalid_action) 42.18s tools=['search_products', 'search_products', 'retrieve_evidence']"
+    ],
+    "backpack-zh-80/think-default": [
+      "failed(invalid_arguments) 3.65s tools=['search_products']"
+    ],
+    "charger-60/think-default": [
+      "failed(invalid_arguments) 6.23s tools=['search_products']"
+    ],
+    "keyboard-no-budget/think-default": [
+      "failed(invalid_arguments) 2.74s tools=['search_products']"
+    ],
+    "earbuds-5/think-default": [
+      "incomplete(model_call_limit) 29.08s tools=['search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products', 'retrieve_evidence', 'search_products', 'search_products']"
+    ]
+  }
+}

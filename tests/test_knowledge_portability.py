@@ -4,6 +4,7 @@ import hashlib
 import io
 import json
 import os
+import re
 from pathlib import Path
 import shutil
 import stat
@@ -205,7 +206,13 @@ class TaccPackagingTests(unittest.TestCase):
             # The existing harness upload must also contain the new importable package.
             shutil.copytree(REPO/"agent",clone/"agent",ignore=shutil.ignore_patterns(".venv","__pycache__"))
             (clone/"inference").mkdir()
-            for name in ("__init__.py","client.py","model_port.py"):
+            # The inference modules are exactly those that stage.sh uploads (a hand-kept list here went stale
+            # when harness_policy.py was added; PR #12 review), so adding a module there cannot break this again.
+            stage_text=(REPO/"deploy/tacc/service/agent-e2e/stage.sh").read_text(encoding="utf-8")
+            staged=sorted(set(re.findall(r'"\$root/inference/([A-Za-z_]+\.py)"',stage_text)))
+            self.assertIn("harness_policy.py",staged)
+            self.assertIn("model_port.py",staged)
+            for name in staged:
                 shutil.copy2(REPO/"inference"/name,clone/"inference"/name)
             harness=clone/"deploy/tacc/service/agent-e2e"
             harness.mkdir(parents=True)
@@ -213,3 +220,5 @@ class TaccPackagingTests(unittest.TestCase):
             command(["bash","stage.sh"],harness)
             self.assertTrue((harness/"pkg/knowledge/service.py").is_file())
             self.assertTrue((harness/"pkg/configs/knowledge.json").is_file())
+            for name in staged:
+                self.assertTrue((harness/"pkg/inference"/name).is_file(),name)

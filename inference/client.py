@@ -322,6 +322,10 @@ class ModelClient:
             readable, _, _ = select.select([sock], [], [], min(0.2, left))
             if readable:
                 data = sock.recv(65536)
+                if not data and token.cancelled:
+                    # cancel() shut the socket down while we were waiting: that EOF is the cancellation,
+                    # not the server ending the stream (which would otherwise read as StreamInterrupted).
+                    raise Cancelled("cancelled by caller")
                 return data or None
 
 

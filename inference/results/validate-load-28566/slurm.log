@@ -1,0 +1,10 @@
+10-0-1-11
+args=
+14:09:22 service http://10-0-1-10:8000/v1 (waited 265.0s)
+14:09:26 calibration {'base_tokens': 1584, 'chars_per_token': 2.868}
+14:10:32 rate 0.25/s: sent 17 ok 17 errors {} p50 14.522s p95 27.292s ttft p50 4.389s tput 0.26/s
+14:12:04 rate 0.5/s: sent 29 ok 29 errors {} p50 32.78s p95 48.873s ttft p50 12.404s tput 0.315/s
+14:12:04 saturated at 0.5/s; not escalating further
+14:12:24 fault requested at 20.356s
+14:13:34 fault: {'StreamInterrupted': 2, 'ServiceUnavailable': 48} first error +0.669s address gone +0.918s hung 0
+14:13:34 RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/load-28566

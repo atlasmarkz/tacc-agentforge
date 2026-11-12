@@ -6,15 +6,26 @@
   repeatedly, or vLLM exits, the address file is removed so clients see "unavailable" instead of hanging.
 - Every probe interval appends one JSON line (latency, queue and request counters from /metrics) to probe.jsonl.
 - With --smoke it also runs smoke.py against the live server; with --exit-after-smoke it then stops.
+- GPU utilisation, memory and power are sampled every second into gpu.jsonl.
+- vLLM exit is noticed within about a second (not only at the next probe), so the address is withdrawn fast.
+- Recovery inside the job: after a vLLM crash or 3 failed probes, the address is withdrawn and vLLM is
+  restarted (--max-restarts; only while --min-restart-time-s of job time remains), then re-published.
+- Handover across the 1-hour job limit (--handover-lead-s > 0): that long before the deadline the job
+  submits its successor (its own run.slurm) if service-chain.json allows; when the successor publishes its
+  address, this job lets running requests finish and exits. Write service-stop to end the chain.
+- Test only: with --allow-fault-injection, a client can write this service's address into the file
+  `fault-request` next to the address file, and vLLM is killed (SIGKILL). Timestamps go to events.jsonl.
 """
 import argparse
 import json
 import os
 import re
+import shutil
 import signal
 import socket
 import subprocess
 import sys
+import threading
 import time
 from pathlib import Path
 from urllib.request import urlopen
@@ -65,6 +76,47 @@ def probe(client: ModelClient, timeout_s: float = 30) -> tuple[bool, float, str]
         return False, time.monotonic() - t0, f"{type(exc).__name__}: {exc}"
 
 
+def node_ip() -> str:
+    """This node's cluster IP, for the published address. Compute nodes cannot resolve each other's names
+    (job 28614: 10-0-1-11 could not resolve "10-0-3-10", although TCP to 10.0.3.10 works), so a hostname in
+    the address made the service unreachable from some nodes. Asking the kernel which local address routes
+    to 10.x sends no packet; nodes also carry a docker bridge address (172.17.x), which this skips."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
+            s.connect(("10.255.255.255", 1))
+            ip = s.getsockname()[0]
+        if ip and not ip.startswith("127."):
+            return ip
+    except OSError:
+        pass
+    return socket.gethostname()
+
+
+def process_group_rss_mib(pgid: int, proc_root: Path = Path("/proc")) -> float | None:
+    """Resident host memory of every process in vLLM's process group (API server, engine, TP workers)."""
+    total_kib, found = 0, False
+    try:
+        entries = list(proc_root.iterdir())
+    except OSError:
+        return None
+    for d in entries:
+        if not d.name.isdigit():
+            continue
+        try:
+            stat = (d / "stat").read_text()
+            fields = stat[stat.rindex(")") + 2:].split()          # after "(comm)": state ppid pgrp ...
+            if int(fields[2]) != pgid:
+                continue
+            for line in (d / "status").read_text().splitlines():
+                if line.startswith("VmRSS:"):
+                    total_kib += int(line.split()[1])
+                    found = True
+                    break
+        except (OSError, ValueError, IndexError):
+            continue
+    return round(total_kib / 1024, 1) if found else None
+
+
 def scrape() -> dict:
     out: dict = {}
     try:
@@ -78,6 +130,226 @@ def scrape() -> dict:
     return out
 
 
+def event(out: Path, name: str, **data) -> None:
+    """Wall-clock timestamped events, comparable with the load job's own clock on another node."""
+    with open(out / "events.jsonl", "a", encoding="utf-8") as f:
+        f.write(json.dumps({"t": round(time.time(), 3), "event": name, **data}) + "\n")
+
+
+GPU_QUERY = ["nvidia-smi", "--query-gpu=index,utilization.gpu,memory.used,memory.total,power.draw",
+             "--format=csv,noheader,nounits"]
+
+
+def parse_gpu_csv(text: str) -> list[dict]:
+    def num(value):
+        try:
+            return float(value)
+        except ValueError:          # "[N/A]" or similar
+            return None
+    gpus = []
+    for line in text.strip().splitlines():
+        parts = [p.strip() for p in line.split(",")]
+        if len(parts) == 5:
+            gpus.append({"index": int(num(parts[0]) or 0), "util_pct": num(parts[1]), "mem_used_mib": num(parts[2]),
+                         "mem_total_mib": num(parts[3]), "power_w": num(parts[4])})
+    return gpus
+
+
+def nvml_reader():
+    """GPU reader through NVML (vLLM bundles a copy), or None if NVML is unavailable."""
+    try:
+        try:
+            import pynvml
+        except ImportError:
+            from vllm.third_party import pynvml
+        pynvml.nvmlInit()
+        handles = [pynvml.nvmlDeviceGetHandleByIndex(i) for i in range(pynvml.nvmlDeviceGetCount())]
+    except Exception:
+        return None
+
+    def read():
+        gpus = []
+        for i, h in enumerate(handles):
+            util, mem = pynvml.nvmlDeviceGetUtilizationRates(h), pynvml.nvmlDeviceGetMemoryInfo(h)
+            try:
+                power = round(pynvml.nvmlDeviceGetPowerUsage(h) / 1000, 1)
+            except Exception:
+                power = None
+            gpus.append({"index": i, "util_pct": float(util.gpu), "mem_used_mib": round(mem.used / 2**20),
+                         "mem_total_mib": round(mem.total / 2**20), "power_w": power})
+        return gpus
+    return read
+
+
+def smi_reader():
+    exe = shutil.which("nvidia-smi") or ("/usr/bin/nvidia-smi" if Path("/usr/bin/nvidia-smi").exists() else None)
+    if exe is None:
+        return None
+    return lambda: parse_gpu_csv(subprocess.run([exe, *GPU_QUERY[1:]], capture_output=True, text=True,
+                                                timeout=5, check=True).stdout)
+
+
+def gpu_sampler(out: Path, done: threading.Event, interval: float = 1.0) -> None:
+    """One line per second. The source used, or why sampling is impossible, goes to events.jsonl:
+    round 1 (job 28565) recorded nothing and said nothing, because errors were swallowed."""
+    read, source = nvml_reader(), "nvml"
+    if read is None:
+        read, source = smi_reader(), "nvidia-smi"
+    if read is None:
+        event(out, "gpu_sampler_unavailable", reason="neither NVML nor nvidia-smi is available")
+        return
+    event(out, "gpu_sampler_started", source=source)
+    reported = False
+    with open(out / "gpu.jsonl", "a", encoding="utf-8") as f:
+        while not done.wait(interval):
+            try:
+                gpus = read()
+            except Exception as exc:
+                if not reported:                       # say it once, keep trying
+                    event(out, "gpu_sampler_error", error=f"{type(exc).__name__}: {exc}"[:300])
+                    reported = True
+                continue
+            f.write(json.dumps({"t": round(time.time(), 2), "gpus": gpus}) + "\n")
+            f.flush()
+
+
+def fault_watcher(trigger: Path, address: str, current: dict, out: Path, done: threading.Event) -> None:
+    """Test only: kill the current vLLM each time a client writes this service's address into `trigger`."""
+    while not done.wait(0.5):
+        try:
+            target = trigger.read_text(encoding="utf-8").strip()
+        except OSError:
+            continue
+        if target != address:           # never kill a service the request was not meant for
+            continue
+        trigger.unlink(missing_ok=True)
+        proc = current.get("proc")
+        event(out, "fault_kill", target=target, pid=proc.pid if proc else None)
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+        except (OSError, AttributeError) as exc:
+            event(out, "fault_kill_failed", error=str(exc))
+
+
+def stop_vllm(proc: subprocess.Popen) -> None:
+    if proc.poll() is not None:
+        return
+    try:
+        os.killpg(proc.pid, signal.SIGTERM)
+        proc.wait(60)
+    except Exception:
+        try:
+            os.killpg(proc.pid, signal.SIGKILL)
+            proc.wait(30)
+        except Exception:
+            pass
+
+
+def wait_ready(proc, local, timeout_s) -> str:
+    """'ready', 'exited', 'timeout' or 'stopping'."""
+    t0 = time.monotonic()
+    while True:
+        if stopping:
+            return "stopping"
+        if proc.poll() is not None:
+            return "exited"
+        if time.monotonic() - t0 > timeout_s:
+            return "timeout"
+        try:
+            urlopen(f"http://127.0.0.1:{PORT}/health", timeout=3)
+        except OSError:
+            time.sleep(5)
+            continue
+        ok, took, why = probe(local)
+        log(f"probe ok={ok} {took:.2f}s {why}")
+        if ok:
+            return "ready"
+        time.sleep(5)
+
+
+def read_address(path: Path) -> str:
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except OSError:
+        return ""
+
+
+def submit_successor(out: Path, chain_file: Path) -> None:
+    """Submit the next service job (the same uploaded job directory) if the chain allows it."""
+    try:
+        chain = json.loads(chain_file.read_text(encoding="utf-8"))
+        remaining = int(chain.get("remaining", 0))
+    except (OSError, ValueError):
+        remaining = 0
+    if remaining <= 0 or (chain_file.parent / "service-stop").exists():
+        event(out, "handover_skipped", remaining=remaining)
+        return
+    # serve.py runs inside the course runtime's proot root filesystem, which has no sbatch and no Slurm
+    # configuration (jobs 28579 and 28581). job.sh runs a helper outside proot: we write a request file and it
+    # submits the successor, then writes "ok <job id>" or "error <message>" to handover-result.
+    request, result = out / "handover-request", out / "handover-result"
+    result.unlink(missing_ok=True)
+    atomic_write(request, json.dumps({"t": time.time()}))
+    deadline = time.monotonic() + 90
+    while not result.exists() and time.monotonic() < deadline:
+        time.sleep(1)
+    if not result.exists():
+        event(out, "handover_submit_failed", error="no answer from the job.sh helper within 90 s")
+        return
+    status, _, detail = result.read_text(encoding="utf-8").strip().partition(" ")
+    if status != "ok" or not detail.strip().isdigit():
+        event(out, "handover_submit_failed", error=(detail or status)[:200])
+        return
+    successor = detail.strip()
+    atomic_write(chain_file, json.dumps({"remaining": remaining - 1, "last_submitted": successor,
+                                         "by": os.environ.get("SLURM_JOB_ID")}))
+    event(out, "handover_submitted", successor=successor, remaining=remaining - 1)
+
+
+def drain(out: Path, timeout_s: float = 120) -> None:
+    """After a newer service took over: let the requests still running here finish (or time out)."""
+    t0 = time.monotonic()
+    while time.monotonic() - t0 < timeout_s and not stopping:
+        m = scrape()
+        if m.get("vllm:num_requests_running", 0) + m.get("vllm:num_requests_waiting", 0) <= 0:
+            break
+        time.sleep(1)
+    event(out, "drained", after_s=round(time.monotonic() - t0, 1))
+
+
+def monitor(a, proc, local, start, address, handover_done: bool) -> str:
+    """Watch a ready vLLM. Returns 'deadline', 'stopping', 'vllm_exit', 'unhealthy', 'superseded' or
+    'handover_due'. Checks every 0.5 s; probes every --probe-interval seconds."""
+    failures = 0
+    with open(a.out / "probe.jsonl", "a", encoding="utf-8") as probes:
+        while True:
+            next_probe = time.monotonic() + a.probe_interval
+            while time.monotonic() < next_probe:
+                if stopping:
+                    return "stopping"
+                if proc.poll() is not None:
+                    return "vllm_exit"
+                elapsed = time.monotonic() - start
+                if elapsed >= a.deadline_s:
+                    return "deadline"
+                if not handover_done and a.handover_lead_s > 0 and elapsed >= a.deadline_s - a.handover_lead_s:
+                    return "handover_due"
+                current = read_address(a.address_file)
+                if current and current != address:
+                    return "superseded"
+                time.sleep(0.5)
+            ok, took, why = probe(local)
+            failures = 0 if ok else failures + 1
+            probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok, "probe_s": round(took, 3),
+                                     "error": why, "metrics": scrape(),
+                                     "host_rss_mib": process_group_rss_mib(proc.pid)}) + "\n")
+            probes.flush()
+            if failures >= 3:
+                return "unhealthy"
+            if ok and not read_address(a.address_file):
+                atomic_write(a.address_file, address + "\n")   # re-publish after a transient withdrawal
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
@@ -87,6 +359,14 @@ def main() -> int:
     ap.add_argument("--exit-after-smoke", action="store_true")
     ap.add_argument("--probe-interval", type=float, default=30)
     ap.add_argument("--deadline-s", type=float, default=3400)
+    ap.add_argument("--allow-fault-injection", action="store_true")
+    ap.add_argument("--max-restarts", type=int, default=2,
+                    help="restart vLLM inside this job after a crash or 3 failed probes, at most this often")
+    ap.add_argument("--min-restart-time-s", type=float, default=600,
+                    help="do not restart when less job time than this remains (start-up takes about 5 min)")
+    ap.add_argument("--handover-lead-s", type=float, default=0,
+                    help="if > 0: this many seconds before the deadline, submit the successor job "
+                         "(allowed by service-chain.json next to the address file); 0 disables handover")
     a = ap.parse_args()
     a.out.mkdir(parents=True, exist_ok=True)
     cfg = json.loads(a.config.read_text(encoding="utf-8"))
@@ -96,86 +376,81 @@ def main() -> int:
 
     start = time.monotonic()
     host = socket.gethostname()
-    address = f"http://{host}:{PORT}/v1"
+    address = f"http://{node_ip()}:{PORT}/v1"     # an IP: other nodes cannot resolve every hostname
     local = ModelClient(base_url=f"http://127.0.0.1:{PORT}/v1", model=cfg["served_name"], max_attempts=1)
     env = dict(os.environ, **cfg.get("env", {}))
     server_log = open(a.out / "server.log", "w", encoding="utf-8")
-    proc = subprocess.Popen(vllm_command(cfg, model_path), stdout=server_log, stderr=subprocess.STDOUT,
-                            env=env, start_new_session=True)
     info = {"job_id": os.environ.get("SLURM_JOB_ID"), "node": host, "address": address, "config": cfg,
             "started_at": time.strftime("%Y-%m-%dT%H:%M:%S")}
-    published = False
-    code = 0
+    chain_file = a.address_file.parent / "service-chain.json"
+    done = threading.Event()
+    current: dict = {}
+    threading.Thread(target=gpu_sampler, args=(a.out, done), daemon=True).start()
+    if a.allow_fault_injection:
+        trigger = a.address_file.parent / "fault-request"
+        threading.Thread(target=fault_watcher, args=(trigger, address, current, a.out, done), daemon=True).start()
+        log(f"fault injection enabled: write {address} into {trigger}")
+    restarts, handover_done, code = 0, False, 0
+
+    def withdraw(reason: str) -> None:
+        if read_address(a.address_file) == address:            # never remove another job's newer address
+            a.address_file.unlink(missing_ok=True)
+            event(a.out, "address_withdrawn", reason=reason)
+
     try:
-        log(f"vLLM started pid={proc.pid}; waiting for a successful probe")
         while True:
-            if stopping:
+            attempt_start = time.monotonic()
+            proc = subprocess.Popen(vllm_command(cfg, model_path), stdout=server_log, stderr=subprocess.STDOUT,
+                                    env=env, start_new_session=True)
+            current["proc"] = proc
+            event(a.out, "vllm_started", pid=proc.pid, attempt=restarts)
+            log(f"vLLM started pid={proc.pid} (attempt {restarts}); waiting for a successful probe")
+            state = wait_ready(proc, local, cfg["startup_timeout_s"])
+            if state == "stopping":
                 return 143
-            if proc.poll() is not None:
-                log(f"vLLM exited during start-up, code {proc.returncode}")
-                return 1
-            if time.monotonic() - start > cfg["startup_timeout_s"]:
-                log("start-up timeout")
-                return 2
-            try:
-                urlopen(f"http://127.0.0.1:{PORT}/health", timeout=3)
-            except OSError:
-                time.sleep(5)
-                continue
-            ok, took, why = probe(local)
-            log(f"probe ok={ok} {took:.2f}s {why}")
-            if ok:
-                break
-            time.sleep(5)
-        info["ready_after_s"] = round(time.monotonic() - start, 1)
-        atomic_write(a.out / "service-info.json", json.dumps(info, indent=2))
-        atomic_write(a.address_file, address + "\n")
-        published = True
-        log(f"READY and published {address} -> {a.address_file}")
-
-        if a.smoke:
-            import smoke
-            smoke.run(local, a.out, cfg)
-            if a.exit_after_smoke:
+            if state != "ready":
+                reason = f"startup_{state}"
+            else:
+                info["ready_after_s"] = round(time.monotonic() - attempt_start, 1)
+                info["restarts"] = restarts
+                atomic_write(a.out / "service-info.json", json.dumps(info, indent=2))
+                atomic_write(a.address_file, address + "\n")
+                log(f"READY and published {address} -> {a.address_file}")
+                event(a.out, "ready", address=address, ready_after_s=info["ready_after_s"], attempt=restarts)
+                if a.smoke:
+                    import smoke
+                    smoke.run(local, a.out, cfg)
+                    if a.exit_after_smoke:
+                        return 0
+                reason = monitor(a, proc, local, start, address, handover_done)
+                if reason == "handover_due":
+                    submit_successor(a.out, chain_file)
+                    handover_done = True
+                    reason = monitor(a, proc, local, start, address, handover_done)
+            if reason == "stopping":
+                return 143
+            if reason == "deadline":
+                return code
+            if reason == "superseded":
+                event(a.out, "superseded", by=read_address(a.address_file))
+                drain(a.out)
                 return 0
-
-        failures = 0
-        with open(a.out / "probe.jsonl", "a", encoding="utf-8") as probes:
-            while not stopping and proc.poll() is None and time.monotonic() - start < a.deadline_s:
-                time.sleep(a.probe_interval)
-                ok, took, why = probe(local)
-                failures = 0 if ok else failures + 1
-                probes.write(json.dumps({"t": round(time.monotonic() - start, 1), "ok": ok,
-                                         "probe_s": round(took, 3), "error": why, "metrics": scrape()}) + "\n")
-                probes.flush()
-                if failures >= 3:
-                    log("3 failed probes in a row; withdrawing the address")
-                    a.address_file.unlink(missing_ok=True)
-                    published = False
-                    code = 3
-                    break
-                if not published and ok:
-                    atomic_write(a.address_file, address + "\n")
-                    published = True
-        if proc.poll() is not None:
-            log(f"vLLM exited, code {proc.returncode}")
-            code = code or 1
-        return code
+            # vLLM died or stopped answering: withdraw, then restart if allowed and worthwhile.
+            withdraw(reason)
+            event(a.out, "vllm_down", reason=reason, code=proc.poll())
+            stop_vllm(proc)
+            left = a.deadline_s - (time.monotonic() - start)
+            if restarts >= a.max_restarts or left < a.min_restart_time_s:
+                event(a.out, "giving_up", reason=reason, restarts=restarts, time_left_s=round(left))
+                return 1
+            restarts += 1
+            event(a.out, "restarting", reason=reason, attempt=restarts, time_left_s=round(left))
+            time.sleep(5)                                      # let the GPUs and the port be released
     finally:
-        try:
-            if a.address_file.exists() and a.address_file.read_text(encoding="utf-8").strip() == address:
-                a.address_file.unlink()          # never remove another job's newer address
-        except OSError:
-            pass
-        if proc.poll() is None:
-            try:
-                os.killpg(proc.pid, signal.SIGTERM)
-                proc.wait(60)
-            except Exception:
-                try:
-                    os.killpg(proc.pid, signal.SIGKILL)
-                except Exception:
-                    pass
+        done.set()
+        withdraw("exit")
+        if current.get("proc") is not None:
+            stop_vllm(current["proc"])
         server_log.close()
 
 

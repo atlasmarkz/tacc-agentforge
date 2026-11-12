@@ -64,4 +64,7 @@ PY
     printf '%s\n' "$LOCK_SHA" > "$LIB/.agent-requirements-sha256"
 fi
 export PYTHONPATH="$TACC_WORKDIR/pkg:$LIB${PYTHONPATH:+:$PYTHONPATH}"
-qwen-python -u e2e.py
+SCRIPT="$(tr -d '[:space:]' < script.txt 2>/dev/null || echo e2e.py)"
+ARGS="$(cat args.txt 2>/dev/null || true)"
+echo "script=$SCRIPT args=$ARGS"
+qwen-python -u "$SCRIPT" $ARGS

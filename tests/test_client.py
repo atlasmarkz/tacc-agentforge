@@ -257,3 +257,47 @@ def test_stream_callback_failure_does_not_break_generation(make_server):
     def bad(kind, text):
         raise RuntimeError("ui exploded")
     assert client_for(srv.url).chat(MSG, on_delta=bad).content == "".join(ACTION_TEXT)
+
+
+# ---- regression: cancel() while the reader waits makes the socket report EOF ----------------------
+
+import inference.client as client_mod  # noqa: E402
+
+
+class _CancelThenEofSock:
+    """Plays the race deterministically: after the scripted chunks, cancel() arrives while the reader is
+    waiting in select(); its shutdown wakes select() and recv() returns b"" (EOF)."""
+
+    def __init__(self, token, chunks=()):
+        self.token, self.chunks = token, list(chunks)
+
+    def recv(self, n):
+        if self.chunks:
+            return self.chunks.pop(0)
+        self.token.cancel()
+        return b""
+
+
+def _always_readable(monkeypatch):
+    monkeypatch.setattr(client_mod.select, "select", lambda r, w, x, t: (r, [], []))
+
+
+def test_eof_caused_by_cancel_is_cancelled_not_end_of_stream(monkeypatch):
+    _always_readable(monkeypatch)
+    token = CancelToken()
+    with pytest.raises(Cancelled):
+        ModelClient(base_url="http://h")._recv(_CancelThenEofSock(token), time.monotonic() + 5, token)
+
+
+def test_cancel_after_delivered_output_is_cancelled_not_interrupted(monkeypatch):
+    _always_readable(monkeypatch)
+    token = CancelToken()
+    head = b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nTransfer-Encoding: chunked\r\n\r\n"
+    events = sse_events(["first delta", "never sent"])[:2]          # role chunk + one content delta
+    chunks = [head] + [b"%x\r\n%s\r\n" % (len(e), e) for e in events]
+    got = []
+    with pytest.raises(Cancelled):
+        ModelClient(base_url="http://h")._read_stream(
+            _CancelThenEofSock(token, chunks), "http://h", time.monotonic() + 5, token,
+            lambda kind, text: got.append(text), time.monotonic(), client_mod._StreamState())
+    assert got == ["first delta"]                                    # output was delivered before the cancel

@@ -1,0 +1,36 @@
+{
+  "job_id": "28584",
+  "node": "10-0-3-10",
+  "address": "http://10-0-3-10:8000/v1",
+  "config": {
+    "served_name": "qwen3.8-27b",
+    "tensor_parallel_size": 2,
+    "startup_timeout_s": 1200,
+    "env": {
+      "NCCL_P2P_DISABLE": "1",
+      "NCCL_IB_DISABLE": "1"
+    },
+    "args": [
+      "--safetensors-load-strategy",
+      "prefetch",
+      "--language-model-only",
+      "--dtype",
+      "bfloat16",
+      "--gpu-memory-utilization",
+      "0.85",
+      "--max-model-len",
+      "16384",
+      "--max-num-seqs",
+      "8",
+      "--max-num-batched-tokens",
+      "4096",
+      "--reasoning-parser",
+      "qwen3",
+      "--enable-prefix-caching",
+      "--disable-custom-all-reduce"
+    ]
+  },
+  "started_at": "2026-11-10T16:18:40",
+  "ready_after_s": 512.8,
+  "restarts": 0
+}

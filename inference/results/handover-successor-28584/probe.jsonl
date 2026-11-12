@@ -1,0 +1,1 @@
+{"t": 543.5, "ok": true, "probe_s": 0.267, "error": "", "metrics": {"vllm:num_requests_running": 0.0, "vllm:num_requests_waiting": 0.0, "vllm:kv_cache_usage_perc": 0.0, "vllm:num_preemptions_total": 0.0, "vllm:prompt_tokens_total": 52.0, "vllm:generation_tokens_total": 12.0, "vllm:request_success_total": 2.0}}
