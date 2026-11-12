@@ -205,6 +205,8 @@ class TaccPackagingTests(unittest.TestCase):
             self.assertNotIn("gres=gpu",configuration)
             # The existing harness upload must also contain the new importable package.
             shutil.copytree(REPO/"agent",clone/"agent",ignore=shutil.ignore_patterns(".venv","__pycache__"))
+            # stage.sh also uploads the evaluation package (the Task 6 runner runs from the same job).
+            shutil.copytree(REPO/"evaluations",clone/"evaluations",ignore=shutil.ignore_patterns("__pycache__","results"))
             (clone/"inference").mkdir()
             # The inference modules are exactly those that stage.sh uploads (a hand-kept list here went stale
             # when harness_policy.py was added; PR #12 review), so adding a module there cannot break this again.
@@ -222,3 +224,5 @@ class TaccPackagingTests(unittest.TestCase):
             self.assertTrue((harness/"pkg/configs/knowledge.json").is_file())
             for name in staged:
                 self.assertTrue((harness/"pkg/inference"/name).is_file(),name)
+            self.assertTrue((harness/"pkg/evaluations/run.py").is_file())
+            self.assertTrue((harness/"pkg/evaluations/cases.jsonl").is_file())

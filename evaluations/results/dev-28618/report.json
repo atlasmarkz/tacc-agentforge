@@ -1,0 +1,517 @@
+{
+ "split": "dev",
+ "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+ "service": {
+  "address": "http://10.0.3.10:8000/v1",
+  "waited_s": 270.1
+ },
+ "cases": 10,
+ "repeats": 3,
+ "configs": [
+  "B0",
+  "B1",
+  "B2",
+  "B3",
+  "B3h"
+ ],
+ "summary": {
+  "B0": {
+   "runs": 30,
+   "tsr": {
+    "n": 21,
+    "m": 30,
+    "rate": 0.7
+   },
+   "tsr_by_case": {
+    "mean": 0.7,
+    "ci95": [
+     0.4,
+     1.0
+    ],
+    "cases": 10
+   },
+   "tsr_by_expected": {
+    "plan": {
+     "n": 9,
+     "m": 18,
+     "rate": 0.5
+    },
+    "no_feasible_plan": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    },
+    "clarify": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    }
+   },
+   "tsr_by_category": {
+    "backpacks": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "chargers": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    },
+    "earbuds": {
+     "n": 9,
+     "m": 9,
+     "rate": 1.0
+    },
+    "keyboards": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    }
+   },
+   "bvr": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "plans_delivered": 12,
+   "constraint_violation": {
+    "n": 3,
+    "m": 12,
+    "rate": 0.25
+   },
+   "unverifiable_claim": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "ungrounded_ids": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "amount_error_rate": null,
+   "outcome_reasons": {
+    "ok": 21,
+    "unnecessary_clarification": 6,
+    "violates_requirement": 3
+   },
+   "wall_s": {
+    "p50": 5.76,
+    "p95": 7.13,
+    "max": 7.57
+   },
+   "model_calls_mean": 1,
+   "prompt_tokens_mean": 6000.7,
+   "completion_tokens_mean": 114.4,
+   "invalid_actions": 0
+  },
+  "B1": {
+   "runs": 30,
+   "tsr": {
+    "n": 21,
+    "m": 30,
+    "rate": 0.7
+   },
+   "tsr_by_case": {
+    "mean": 0.7,
+    "ci95": [
+     0.4,
+     1.0
+    ],
+    "cases": 10
+   },
+   "tsr_by_expected": {
+    "plan": {
+     "n": 9,
+     "m": 18,
+     "rate": 0.5
+    },
+    "no_feasible_plan": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    },
+    "clarify": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    }
+   },
+   "tsr_by_category": {
+    "backpacks": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "chargers": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    },
+    "earbuds": {
+     "n": 9,
+     "m": 9,
+     "rate": 1.0
+    },
+    "keyboards": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    }
+   },
+   "bvr": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "plans_delivered": 12,
+   "constraint_violation": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "unverifiable_claim": {
+    "n": 3,
+    "m": 12,
+    "rate": 0.25
+   },
+   "ungrounded_ids": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "amount_error_rate": null,
+   "outcome_reasons": {
+    "ok": 21,
+    "unnecessary_clarification": 6,
+    "unverifiable_claim": 3
+   },
+   "wall_s": {
+    "p50": 2.85,
+    "p95": 3.47,
+    "max": 3.51
+   },
+   "model_calls_mean": 1,
+   "prompt_tokens_mean": 6867.5,
+   "completion_tokens_mean": 116.3,
+   "invalid_actions": 0
+  },
+  "B2": {
+   "runs": 30,
+   "tsr": {
+    "n": 21,
+    "m": 30,
+    "rate": 0.7
+   },
+   "tsr_by_case": {
+    "mean": 0.7,
+    "ci95": [
+     0.4,
+     1.0
+    ],
+    "cases": 10
+   },
+   "tsr_by_expected": {
+    "plan": {
+     "n": 9,
+     "m": 18,
+     "rate": 0.5
+    },
+    "no_feasible_plan": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    },
+    "clarify": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    }
+   },
+   "tsr_by_category": {
+    "backpacks": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "chargers": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    },
+    "earbuds": {
+     "n": 9,
+     "m": 9,
+     "rate": 1.0
+    },
+    "keyboards": {
+     "n": 6,
+     "m": 6,
+     "rate": 1.0
+    }
+   },
+   "bvr": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "plans_delivered": 12,
+   "constraint_violation": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "unverifiable_claim": {
+    "n": 3,
+    "m": 12,
+    "rate": 0.25
+   },
+   "ungrounded_ids": {
+    "n": 0,
+    "m": 12,
+    "rate": 0.0
+   },
+   "amount_error_rate": null,
+   "outcome_reasons": {
+    "ok": 21,
+    "unnecessary_clarification": 6,
+    "unverifiable_claim": 3
+   },
+   "wall_s": {
+    "p50": 2.65,
+    "p95": 3.36,
+    "max": 3.37
+   },
+   "model_calls_mean": 1,
+   "prompt_tokens_mean": 6890.2,
+   "completion_tokens_mean": 115.0,
+   "invalid_actions": 0
+  },
+  "B3": {
+   "runs": 30,
+   "tsr": {
+    "n": 8,
+    "m": 30,
+    "rate": 0.267
+   },
+   "tsr_by_case": {
+    "mean": 0.267,
+    "ci95": [
+     0.0,
+     0.533
+    ],
+    "cases": 10
+   },
+   "tsr_by_expected": {
+    "plan": {
+     "n": 2,
+     "m": 18,
+     "rate": 0.111
+    },
+    "no_feasible_plan": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    },
+    "clarify": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    }
+   },
+   "tsr_by_category": {
+    "backpacks": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "chargers": {
+     "n": 0,
+     "m": 6,
+     "rate": 0.0
+    },
+    "earbuds": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "keyboards": {
+     "n": 2,
+     "m": 6,
+     "rate": 0.333
+    }
+   },
+   "bvr": {
+    "n": 0,
+    "m": 2,
+    "rate": 0.0
+   },
+   "plans_delivered": 2,
+   "constraint_violation": {
+    "n": 0,
+    "m": 2,
+    "rate": 0.0
+   },
+   "unverifiable_claim": {
+    "n": 0,
+    "m": 2,
+    "rate": 0.0
+   },
+   "ungrounded_ids": {
+    "n": 0,
+    "m": 2,
+    "rate": 0.0
+   },
+   "amount_error_rate": null,
+   "outcome_reasons": {
+    "error:invalid_arguments": 22,
+    "ok": 8
+   },
+   "wall_s": {
+    "p50": 1.56,
+    "p95": 17.54,
+    "max": 17.55
+   },
+   "model_calls_mean": 1.5,
+   "prompt_tokens_mean": 4531.4,
+   "completion_tokens_mean": 89.5,
+   "invalid_actions": 0
+  },
+  "B3h": {
+   "runs": 30,
+   "tsr": {
+    "n": 12,
+    "m": 30,
+    "rate": 0.4
+   },
+   "tsr_by_case": {
+    "mean": 0.4,
+    "ci95": [
+     0.1,
+     0.7
+    ],
+    "cases": 10
+   },
+   "tsr_by_expected": {
+    "plan": {
+     "n": 6,
+     "m": 18,
+     "rate": 0.333
+    },
+    "no_feasible_plan": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    },
+    "clarify": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    }
+   },
+   "tsr_by_category": {
+    "backpacks": {
+     "n": 3,
+     "m": 9,
+     "rate": 0.333
+    },
+    "chargers": {
+     "n": 0,
+     "m": 6,
+     "rate": 0.0
+    },
+    "earbuds": {
+     "n": 6,
+     "m": 9,
+     "rate": 0.667
+    },
+    "keyboards": {
+     "n": 3,
+     "m": 6,
+     "rate": 0.5
+    }
+   },
+   "bvr": {
+    "n": 0,
+    "m": 15,
+    "rate": 0.0
+   },
+   "plans_delivered": 15,
+   "constraint_violation": {
+    "n": 0,
+    "m": 15,
+    "rate": 0.0
+   },
+   "unverifiable_claim": {
+    "n": 3,
+    "m": 15,
+    "rate": 0.2
+   },
+   "ungrounded_ids": {
+    "n": 3,
+    "m": 15,
+    "rate": 0.2
+   },
+   "amount_error_rate": null,
+   "outcome_reasons": {
+    "ok": 12,
+    "error:invalid_arguments": 9,
+    "plan_without_required_input": 3,
+    "plan_when_infeasible": 3,
+    "unverifiable_claim": 3
+   },
+   "wall_s": {
+    "p50": 3.97,
+    "p95": 17.1,
+    "max": 28.46
+   },
+   "model_calls_mean": 3.1,
+   "prompt_tokens_mean": 15972.7,
+   "completion_tokens_mean": 229.4,
+   "invalid_actions": 0
+  }
+ },
+ "paired": [
+  {
+   "from": "B0",
+   "to": "B1",
+   "diff": 0.0,
+   "ci95": [
+    -0.3,
+    0.3
+   ],
+   "cases": 10
+  },
+  {
+   "from": "B1",
+   "to": "B2",
+   "diff": 0.0,
+   "ci95": [
+    0.0,
+    0.0
+   ],
+   "cases": 10
+  },
+  {
+   "from": "B2",
+   "to": "B3",
+   "diff": -0.433,
+   "ci95": [
+    -0.733,
+    -0.133
+   ],
+   "cases": 10
+  },
+  {
+   "from": "B3",
+   "to": "B3h",
+   "diff": 0.133,
+   "ci95": [
+    0.0,
+    0.367
+   ],
+   "cases": 10
+  }
+ ]
+}
