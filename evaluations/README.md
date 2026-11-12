@@ -90,12 +90,14 @@
 | B1 | B0 加上关键词检索的前 5 条证据 | 单次调用 |
 | B2 | B0 加上过滤检索的前 5 条证据 | 单次调用 |
 | B3 | 部署形态的 harness:真实知识库工具,运行策略来自 `inference/harness_policy.py` | 多步工具循环 |
+| B3v | B3 加上真实的预算校验器(`agent/budget.py`,不含税口径) | 多步工具循环;只有校验器批准的方案才算交付 |
 | B3h | B3 加上品类列表提示 | 诊断用,用来看修复 issue #4 的效果,不作为 baseline |
 
 所有配置都关闭思考、温度 0、约束 JSON 输出,使用同一模型和同一快照。
 
 **注意**:
-- **B3 实际上是消融 A2**(没有校验器)。预算校验器(Task 3)还不存在,所以用一个只记录方案、始终返回"不可用"的替身,方案由评分器独立判定。
+- **B3 仍是消融 A2**(没有校验器):用一个只记录方案、始终返回"不可用"的替身,方案由评分器独立判定。保留它是为了和之前的结果可比,也让 B3 与 B3v 只差一个校验器。
+- **B3v 是完整系统**:用真实校验器。方案被拒后模型可以修改或追问;如果最终仍被拒(例如 `plan_repair_limit`),没有交付任何方案,记录为错误并按评分规则判失败,即使该用例本来就没有可行方案。这一点比较严格,分析时需结合 `records.jsonl` 里的 `validator` 字段(每次校验的状态和问题代码)。B3v 的方案还记录系统自己报告的合计和剩余资金(`reported_total`、`reported_remaining`),目前评分器尚未使用,金额错误率仍为"不适用"。
 - **B1 的关键词检索会跨品类**:它搜索整个证据池,而不只是候选集。例如在耳机用例里,它把一个笔记本双肩包排在了第二。这是指标文档的设计,但会给模型带来无关证据。
 
 ## 7. 保留集封存
@@ -112,7 +114,7 @@ PYTHONUTF8=1 PYTHONPATH=. agent/.venv/Scripts/python.exe -m pytest tests/test_ev
 
 **在 TACC 上运行开发集 baseline**:
 1. 按 `deploy/tacc/service/RUNBOOK.md` 启动服务。
-2. 复用 `agent-e2e` 作业:`script.txt` 写 `eval_baseline.py`,`args.txt` 写 `--split dev --configs B0,B1,B2,B3,B3h --repeats 3`。
+2. 复用 `agent-e2e` 作业:`script.txt` 写 `eval_baseline.py`,`args.txt` 写 `--split dev --configs B0,B1,B2,B3,B3v,B3h --repeats 3`。
 3. 运行 `stage.sh`,然后提交该作业。
 
 运行器会先等服务就绪,结果写到 `$TACC_USERDIR/tacc-agentforge-service/eval-<作业号>/`:
@@ -134,7 +136,7 @@ python -m evaluations.retrieval score --data-root <目录> --labels evaluations/
 |---|---|
 | 检索相关性标注:`relevance_pool.jsonl` 共 602 行 | 人工 |
 | 偏好匹配 1–5 分,两位评审独立打分并报告一致性 | 人工 |
-| 真实预算校验器,B3 才能成为真正的完整系统 | Task 3,issue #9 |
+| 在 TACC 上用 B3v 重跑开发集(预算校验器已接入) | 有 TACC 访问权限的成员 |
 | 第五个品类的数据和 8 个用例 | 知识库负责人;按计划在冻结后进行 |
 | 保留集 baseline,每个核心配置 3 次 | 系统冻结后 |
 | 全流程延迟(浏览器到结果) | 需要应用层,Task 5 |
