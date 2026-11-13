@@ -137,7 +137,9 @@ def check_explanation(text: str, plan: VerifiedPlan, facts: list[EvidenceFact], 
 def render_fallback(plan: VerifiedPlan) -> Explanation:
     markers = {eid: marker for marker, eid in citations(plan).items()}
     items = [f"{item.offer_id} × {item.quantity} {markers[item.evidence_ids[0]]}" for item in plan.items]
-    text = ("已验证方案：" + "；".join(items) + f"。合计 {plan.total_cost} {plan.currency}，"
+    # 税前方案的 cost_breakdown 不含 tax；此时必须向用户说明合计不含税。
+    basis = "" if "tax" in plan.cost_breakdown else "（不含税）"
+    text = ("已验证方案：" + "；".join(items) + f"。合计 {plan.total_cost} {plan.currency}{basis}，"
             f"剩余预算 {plan.remaining_funds} {plan.currency}。")
     return Explanation(text=text, verified=False, fallback=True,
                        cited_evidence_ids=list(dict.fromkeys(item.evidence_ids[0] for item in plan.items)))

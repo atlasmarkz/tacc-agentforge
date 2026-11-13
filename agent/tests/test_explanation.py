@@ -255,3 +255,13 @@ def test_version_two_waiting_checkpoint_without_new_fields_keeps_explanation_dis
             assert events[-1].result.status == "completed" and events[-1].result.explanation is None
             assert not any(e.node == "explain" for e in events)
     asyncio.run(scenario())
+
+
+def test_fallback_says_when_the_total_excludes_tax():
+    from agent.contracts import PlanItem, VerifiedPlan
+    from agent.explanation import render_fallback
+    base = dict(snapshot_id="s", currency="USD", total_cost="12.00", remaining_funds="88.00",
+                items=[PlanItem(offer_id="o1", quantity=1, evidence_ids=["e1"])])
+    pre_tax = render_fallback(VerifiedPlan(**base, cost_breakdown={"items": "10.00", "shipping": "2.00"}))
+    with_tax = render_fallback(VerifiedPlan(**base, cost_breakdown={"items": "10.00", "shipping": "2.00", "tax": "0.00"}))
+    assert "（不含税）" in pre_tax.text and "不含税" not in with_tax.text

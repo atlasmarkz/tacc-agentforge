@@ -8,6 +8,8 @@ Configurations (docs/evaluation-metrics.md section 8):
   B3   the harness with the real knowledge tools and the deployment policy (inference.harness_policy).
        There is no budget validator yet (Task 3): a recording stand-in keeps the proposal and answers
        "unavailable", so this is strictly ablation A2 ("without validator"). The scorer judges the proposal.
+  B3v  B3 plus the real budget validator (agent/budget.py, before-tax basis): the full system. Only a plan the
+       validator approved counts as delivered; B3 vs B3v differs in the validator alone.
   B3h  B3 with the category names added to the constraints: diagnostic for issue #4, not a baseline.
 All configurations: thinking off, temperature 0, constrained JSON output, same model and snapshot.
 Every attempt is scored by the same independent enumerator (evaluations/catalog.py), whatever the system did.
@@ -15,7 +17,7 @@ Every attempt is scored by the same independent enumerator (evaluations/catalog.
 The held-out split stays sealed until the system is frozen (validator, issues #4 and #6): running it before
 then, and tuning on what it shows, would spend it. --split heldout therefore needs --unseal-heldout.
 
-  python run.py --split dev --configs B0,B1,B2,B3,B3h --repeats 3 --out <dir>
+  python run.py --split dev --configs B0,B1,B2,B3,B3v,B3h --repeats 3 --out <dir>
 """
 from __future__ import annotations
 
@@ -35,12 +37,14 @@ from pydantic import Field, TypeAdapter
 
 
 from agent import AgentDependencies, AgentRequest, AgentRuntime, Issue, RunPolicy, ValidationResult
+from agent.budget import BudgetPlanValidator
 from agent.contracts import ACTION_ADAPTER, AskUser, ProposePlan
 from inference.client import ModelClient, ModelClientError
 from inference.harness_policy import run_policy_kwargs
 from inference.model_port import VllmModelPort, decoder_schema, to_chat_messages
 from knowledge.agent_tools import build_knowledge_tools
 from knowledge.bootstrap import install_snapshot
+from knowledge.budget_source import KnowledgeOfferCostSource
 from knowledge.service import KnowledgeError, KnowledgeService
 from knowledge.settings import load_settings
 from knowledge.store import verify_snapshot
@@ -115,13 +119,18 @@ def valid_action(text: str, finish: str) -> bool:
 
 
 class RecordingValidator:
-    """Stand-in for the missing budget validator (Task 3): keeps the proposal, never approves it."""
+    """Keeps every proposal. Alone it is the ablation stand-in of B3 and never approves; around a real
+    validator (B3v) it returns that validator's verdict and keeps it for the record."""
 
-    def __init__(self):
-        self.proposals = []
+    def __init__(self, inner=None):
+        self.proposals, self.verdicts, self.inner = [], [], inner
 
     async def validate(self, request, context):
         self.proposals.append(request.plan.model_dump(mode="json"))
+        if self.inner is not None:
+            result = await self.inner.validate(request, context)
+            self.verdicts.append({"status": result.status, "issues": [i.code for i in result.issues]})
+            return result
         return ValidationResult(status="unavailable", proposal_fingerprint=request.proposal_fingerprint,
                                 issues=[Issue(code="validator_not_implemented", message="No budget validator yet (Task 3).")])
 
@@ -193,9 +202,10 @@ def single_call(client, kb, snapshot_id, case, config, cand_cache):
 
 # ---- harness configurations (B3, B3h) ----------------------------------------------------------------
 
-async def harness_call(client, tools, snapshot_id, case, config, rep, temperature=0.0, record=False):
+async def harness_call(client, tools, snapshot_id, case, config, rep, temperature=0.0, record=False,
+                       budget_source=None):
     port = RecordingPort(VllmModelPort(client, enable_thinking=False, temperature=temperature), keep_messages=record)
-    validator = RecordingValidator()
+    validator = RecordingValidator(BudgetPlanValidator(budget_source) if config == "B3v" else None)
     runtime = AgentRuntime(AgentDependencies(port, tools, validator), RunPolicy(**run_policy_kwargs(False)))
     run_id = f"eval-{case['case_id']}-{config}-{rep}"
     request = AgentRequest(run_id=run_id, conversation_id=f"c-{run_id}", snapshot_id=snapshot_id,
@@ -222,7 +232,14 @@ async def harness_call(client, tools, snapshot_id, case, config, rep, temperatur
     if record:
         rec["trace_calls"] = [{"messages": c["messages"], "reply": c["reply"],
                                "accepted": valid_action(c["reply"], c["finish"])} for c in port.calls if "messages" in c]
-    if validator.proposals:
+    if config == "B3v":
+        rec["validator"] = validator.verdicts
+    plan = result.verified_plan if config == "B3v" else None
+    if plan is not None:                                  # B3v: only an approved plan is delivered
+        rec["outcome"] = {"kind": "plan", "items": [i.model_dump(mode="json") for i in plan.items],
+                          "reported_total": plan.total_cost, "reported_remaining": plan.remaining_funds}
+        rec["context_ids"] = sorted(port.last_ids)
+    elif validator.proposals and config != "B3v":
         rec["outcome"] = {"kind": "plan", "items": validator.proposals[-1]["items"]}
         rec["context_ids"] = sorted(port.last_ids)       # what the model saw when it proposed the plan
     elif result.clarification is not None:
@@ -297,6 +314,7 @@ async def run_all(a):
     catalog = Catalog(scratch / sid / "catalog.sqlite")
     kb = KnowledgeService(scratch, **settings.service)
     tools = build_knowledge_tools(kb)
+    budget_source = KnowledgeOfferCostSource(kb) if "B3v" in a.configs.split(",") else None
     client = ModelClient(address_file=a.address_file, model="qwen3.8-27b")
     configs = a.configs.split(",")
     a.out.mkdir(parents=True, exist_ok=True)
@@ -308,9 +326,10 @@ async def run_all(a):
         for rep in range(a.repeats):
             for case in cases:                     # configurations interleaved within each case
                 for config in configs:
-                    if config in ("B3", "B3h"):
+                    if config in ("B3", "B3h", "B3v"):
                         rec = await harness_call(client, tools, sid, case, config, rep,
-                                                 getattr(a, "temperature", 0.0), getattr(a, "record_traces", False))
+                                                 getattr(a, "temperature", 0.0), getattr(a, "record_traces", False),
+                                                 budget_source)
                     else:
                         rec = await asyncio.to_thread(single_call, client, kb, sid, case, config, cand_cache)
                     rec.update(config=config, case_id=case["case_id"], rep=rep, snapshot_id=sid)
@@ -324,6 +343,8 @@ async def run_all(a):
     finally:
         rec_file.close()
         tools.get("search_products").executor.close()
+        if budget_source is not None:
+            budget_source.close()
     by_id = {c["case_id"]: c for c in cases}
     scores = [score_record(r, by_id[r["case_id"]], gts[r["case_id"]], catalog) for r in records]
     catalog.close()
@@ -331,7 +352,7 @@ async def run_all(a):
     report = {"split": a.split, "snapshot_id": sid, "service": service, "cases": len(cases), "repeats": a.repeats, "configs": configs,
               "summary": aggregate(scores, records),
               "paired": [d for d in (paired_difference(scores, x, y) for x, y in
-                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
+                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"), ("B3", "B3v"))
                                      if x in configs and y in configs) if d]}
     if traces:
         write_traces(a.out / "traces.jsonl", records, scores, traces)
@@ -367,7 +388,7 @@ def rescore(out_dir: Path, cases_path: Path, snapshot_db: Path) -> dict:
               "records_dropped_partial_repeat": len(records) - len(kept), "configs": configs,
               "summary": aggregate(scores, kept),
               "paired": [d for d in (paired_difference(scores, x, y) for x, y in
-                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
+                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"), ("B3", "B3v"))
                                      if x in configs and y in configs) if d]}
     (out_dir / "ground_truth.json").write_text(json.dumps(gts, indent=1), encoding="utf-8")
     (out_dir / "scores.jsonl").write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in scores) + "\n",
@@ -382,7 +403,7 @@ def main():
     ap.add_argument("--cases", type=Path, default=here / "cases.jsonl")
     ap.add_argument("--split", choices=["dev", "heldout"], default="dev")
     ap.add_argument("--unseal-heldout", action="store_true", help="only once the system is frozen")
-    ap.add_argument("--configs", default="B0,B1,B2,B3,B3h")
+    ap.add_argument("--configs", default="B0,B1,B2,B3,B3v,B3h")
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--only", default="", help="comma-separated case IDs (debugging)")
     ap.add_argument("--config", type=Path, default=here.parent / "configs/knowledge.json")

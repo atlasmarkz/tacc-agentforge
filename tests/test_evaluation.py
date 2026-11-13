@@ -239,13 +239,13 @@ def test_runner_end_to_end_against_a_fake_model(tmp_path):
         address = tmp_path / "service-url.txt"
         address.write_text(srv.url + "\n")
         a = argparse.Namespace(cases=Path("evaluations/cases.jsonl"), split="dev", only="dev-01,dev-05",
-                               configs="B0,B1,B2,B3,B3h", repeats=1, config=Path("configs/knowledge.json"),
+                               configs="B0,B1,B2,B3,B3v,B3h", repeats=1, config=Path("configs/knowledge.json"),
                                userdir=tmp_path, address_file=address, out=tmp_path / "out", unseal_heldout=False)
         asyncio.run(run.run_all(a))
     finally:
         srv.close()
     report = json.loads((tmp_path / "out/report.json").read_text(encoding="utf-8"))
-    assert set(report["summary"]) == {"B0", "B1", "B2", "B3", "B3h"}
+    assert set(report["summary"]) == {"B0", "B1", "B2", "B3", "B3v", "B3h"}
     for cfg, r in report["summary"].items():
         assert r["tsr"] == {"n": 1, "m": 2, "rate": 0.5}, cfg       # dev-05 (clarify) passes, dev-01 (plan) fails
         assert r["outcome_reasons"] == {"ok": 1, "unnecessary_clarification": 1}
@@ -410,3 +410,48 @@ def test_sft_traces_need_the_ids_to_have_been_seen():
     assert [x["scorer_success"] for x in t] == [True, False]
     assert [x["score_success"] for x in t] == [True, False]        # what training/prepare_data.py reads
     assert t[1]["score_reason"] == "ids_not_in_context"
+
+
+# dev-01 (60 USD before tax) on the pinned seed snapshot: a 9.88 USD offer with 6.99 USD shipping, so 16.87 USD.
+FEASIBLE_OFFER, FEASIBLE_PRICE_EVIDENCE = "offer_640a303bc366430cfd53139e", "ev_9efc7967e78c4c5ff6a6cd6f"
+
+
+def run_b3v(tmp_path, offer_id, evidence_id):
+    import argparse
+    import asyncio
+    from evaluations import run
+    from tests.fake_vllm import FakeVllm
+    plan = {"choices": [{"message": {"content": json.dumps({"type": "propose_plan", "plan": {"items": [
+        {"offer_id": offer_id, "quantity": 1, "evidence_ids": [evidence_id]}]}})}, "finish_reason": "stop"}],
+        "usage": {"prompt_tokens": 100, "completion_tokens": 20}}
+    srv = FakeVllm([(200, plan, 0)])
+    try:
+        address = tmp_path / "service-url.txt"
+        address.write_text(srv.url + "\n")
+        a = argparse.Namespace(cases=Path("evaluations/cases.jsonl"), split="dev", only="dev-01", configs="B3,B3v",
+                               repeats=1, config=Path("configs/knowledge.json"), userdir=tmp_path,
+                               address_file=address, out=tmp_path / "out", unseal_heldout=False, wait_s=10)
+        asyncio.run(run.run_all(a))
+    finally:
+        srv.close()
+    records = [json.loads(l) for l in (tmp_path / "out/records.jsonl").read_text(encoding="utf-8").splitlines()]
+    return {r["config"]: r for r in records}
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_b3v_delivers_a_plan_the_budget_validator_approved(tmp_path):
+    records = run_b3v(tmp_path, FEASIBLE_OFFER, FEASIBLE_PRICE_EVIDENCE)
+    b3v = records["B3v"]
+    assert b3v["status"] == "completed" and b3v["validator"] == [{"status": "passed", "issues": []}]
+    assert b3v["outcome"]["kind"] == "plan" and b3v["outcome"]["items"][0]["offer_id"] == FEASIBLE_OFFER
+    assert (b3v["outcome"]["reported_total"], b3v["outcome"]["reported_remaining"]) == ("16.87", "43.13")
+    # B3 keeps its meaning: the stand-in records the proposal but nothing is ever approved
+    assert records["B3"]["status"] != "completed" and "validator" not in records["B3"]
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_b3v_does_not_deliver_a_plan_the_validator_keeps_rejecting(tmp_path):
+    records = run_b3v(tmp_path, "offer_that_is_not_in_the_snapshot", FEASIBLE_PRICE_EVIDENCE)
+    b3v = records["B3v"]
+    assert b3v["status"] != "completed" and b3v["outcome"]["kind"] == "error"
+    assert b3v["validator"] and all(v["status"] == "failed" and "unknown_offer" in v["issues"] for v in b3v["validator"])
