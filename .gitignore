@@ -67,3 +67,9 @@ deploy/tacc/service/load-test/args.txt
 deploy/tacc/service/qwen-service/args.txt
 deploy/tacc/service/net-probe/role.txt
 deploy/tacc/service/net-probe-*/
+
+# staged code/data and local options for the SFT job
+deploy/tacc/train-sft/pkg/
+deploy/tacc/train-sft/args.txt
+
+deploy/tacc/train-sft-serve/args.txt

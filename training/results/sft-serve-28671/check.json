@@ -1,0 +1,476 @@
+{
+ "adapter": "/mnt/home/markzhang/USERDIR/adapters/sft-pilot-28670",
+ "adapter_config": {
+  "peft_type": "LORA",
+  "task_type": "CAUSAL_LM",
+  "r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.0,
+  "bias": "none",
+  "fan_in_fan_out": false,
+  "target_modules": [
+   "down_proj",
+   "gate_proj",
+   "in_proj_qkv",
+   "in_proj_z",
+   "k_proj",
+   "o_proj",
+   "out_proj",
+   "q_proj",
+   "up_proj",
+   "v_proj"
+  ],
+  "base_model_name_or_path": "/mnt/home/public/course-envs/CSIT6000V/project/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4"
+ },
+ "startup_s": 255.1,
+ "served_models": [
+  "qwen3.8-27b",
+  "sft"
+ ],
+ "status": "ok",
+ "rows": [
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"audio\",\"type\":\"wireless_earbuds\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 10.97,
+   "completion_tokens": 48,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "audio",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-01",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"wireless\",\"currency\":\"USD\",\"max_price_minor\":6000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 84.45,
+   "completion_tokens": 46,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "earbuds",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-01",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"headphones\",\"type\":\"over_ear\",\"hard_constraints\":{\"active_noise_cancellation\":{\"op\":\"eq\",\"value\":true},\"price\":{\"op\":\"lte\",\"value\":8000,\"unit\":\"cents\"}},\"currency\":\"USD\"},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 9.55,
+   "completion_tokens": 71,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "headphones",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-02",
+   "role": "validation",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"active_noise_cancelling\",\"currency\":\"USD\",\"max_price_minor\":8000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 30.68,
+   "completion_tokens": 49,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "earbuds",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-02",
+   "role": "validation",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"noise_cancelling\",\"currency\":\"USD\",\"max_price_minor\":1500},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 6.34,
+   "completion_tokens": 48,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "earbuds",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-03",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"earbuds\",\"type\":\"noise-cancelling\",\"currency\":\"USD\",\"max_price_minor\":1500},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 9.06,
+   "completion_tokens": 48,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "earbuds",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-03",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "earbuds"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"charger\",\"hard_constraints\":{\"wattage\":{\"op\":\">=\",\"value\":30,\"unit\":\"W\"}},\"currency\":\"USD\",\"max_price_minor\":5000},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 7.85,
+   "completion_tokens": 61,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "charger",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-04",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "chargers"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"type\":\"wall_charger\",\"currency\":\"USD\",\"min_price_minor\":3000,\"max_price_minor\":5000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 10.29,
+   "completion_tokens": 55,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "chargers",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-04",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "chargers"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"phone_charger\",\"currency\":\"USD\"},\"limit\":5}}",
+   "finish": "stop",
+   "seconds": 4.39,
+   "completion_tokens": 31,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "phone_charger",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-05",
+   "role": "train",
+   "expected": {
+    "type": "ask_user"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"chargers\",\"type\":\"phone_charger\",\"currency\":\"USD\"},\"limit\":5}}",
+   "finish": "stop",
+   "seconds": 6.97,
+   "completion_tokens": 36,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "chargers",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-05",
+   "role": "train",
+   "expected": {
+    "type": "ask_user"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"type\":\"mechanical\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 6.09,
+   "completion_tokens": 46,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "keyboards",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-06",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "keyboards"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"type\":\"mechanical\",\"currency\":\"USD\",\"max_price_minor\":10000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 8.67,
+   "completion_tokens": 46,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "keyboards",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-06",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "keyboards"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboard\",\"currency\":\"USD\",\"max_price_minor\":1000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 5.29,
+   "completion_tokens": 39,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "keyboard",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-07",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "keyboards"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"keyboards\",\"currency\":\"USD\",\"max_price_minor\":1000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 7.64,
+   "completion_tokens": 40,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "keyboards",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-07",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "keyboards"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpack\",\"type\":\"commuter\",\"currency\":\"USD\",\"max_price_minor\":12000,\"hard_constraints\":{\"capacity\":{\"op\":\">=\",\"value\":25,\"unit\":\"L\"}}},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 8.38,
+   "completion_tokens": 66,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "backpack",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-08",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "backpacks"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"type\":\"commuter\",\"currency\":\"USD\",\"min_price_minor\":0,\"max_price_minor\":12000,\"hard_constraints\":{\"capacity\":{\"op\":\">=\",\"value\":25,\"unit\":\"L\"}}},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 13.33,
+   "completion_tokens": 73,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "backpacks",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-08",
+   "role": "unseen",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "backpacks"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpack\",\"type\":\"water_resistant\",\"currency\":\"USD\",\"max_price_minor\":5000},\"limit\":10}}",
+   "finish": "stop",
+   "seconds": 6.09,
+   "completion_tokens": 46,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "backpack",
+   "question": null,
+   "model": "qwen3.8-27b",
+   "case_id": "dev-09",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "backpacks"
+   },
+   "correct": false
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"type\":\"water-resistant\",\"currency\":\"USD\",\"max_price_minor\":5000},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 8.71,
+   "completion_tokens": 46,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "backpacks",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-09",
+   "role": "train",
+   "expected": {
+    "type": "call_tool",
+    "tool_name": "search_products",
+    "category": "backpacks"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"ask_user\",\"question\":\"What is your maximum budget (in USD, pre-tax) for the travel backpack?\",\"required_fields\":[\"max_budget_usd\"]}",
+   "finish": "stop",
+   "seconds": 4.92,
+   "completion_tokens": 35,
+   "valid_json": true,
+   "type": "ask_user",
+   "tool": null,
+   "category": null,
+   "question": "What is your maximum budget (in USD, pre-tax) for the travel backpack?",
+   "model": "qwen3.8-27b",
+   "case_id": "dev-10",
+   "role": "train",
+   "expected": {
+    "type": "ask_user"
+   },
+   "correct": true
+  },
+  {
+   "text": "{\"type\":\"call_tool\",\"tool_name\":\"search_products\",\"arguments\":{\"filters\":{\"category\":\"backpacks\",\"currency\":\"USD\"},\"limit\":20}}",
+   "finish": "stop",
+   "seconds": 6.28,
+   "completion_tokens": 32,
+   "valid_json": true,
+   "type": "call_tool",
+   "tool": "search_products",
+   "category": "backpacks",
+   "question": null,
+   "model": "sft",
+   "case_id": "dev-10",
+   "role": "train",
+   "expected": {
+    "type": "ask_user"
+   },
+   "correct": false
+  }
+ ],
+ "summary": {
+  "qwen3.8-27b": {
+   "valid_json": {
+    "n": 10,
+    "of": 10
+   },
+   "correct_first_action": {
+    "n": 3,
+    "of": 10
+   },
+   "by_role": {
+    "train": {
+     "correct": 2,
+     "of": 5
+    },
+    "validation": {
+     "correct": 0,
+     "of": 1
+    },
+    "unseen": {
+     "correct": 1,
+     "of": 4
+    }
+   }
+  },
+  "sft": {
+   "valid_json": {
+    "n": 10,
+    "of": 10
+   },
+   "correct_first_action": {
+    "n": 8,
+    "of": 10
+   },
+   "by_role": {
+    "train": {
+     "correct": 3,
+     "of": 5
+    },
+    "validation": {
+     "correct": 1,
+     "of": 1
+    },
+    "unseen": {
+     "correct": 4,
+     "of": 4
+    }
+   }
+  }
+ },
+ "differs_from_base": 10
+}
