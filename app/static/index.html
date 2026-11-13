@@ -248,7 +248,7 @@
 
     <section class="card hidden" id="progress" aria-live="polite">
       <div class="runline">
-        <h2 style="margin:0">Working on it</h2>
+        <h2 style="margin:0" id="progTitle">Working on it</h2>
         <div class="small muted"><span id="runId"></span> <button class="linkbtn hidden" id="cancel" type="button">Stop</button></div>
       </div>
       <div class="stepper" id="stepper">
@@ -346,6 +346,12 @@ const STOP = {
   deadline_exceeded: "This took too long and was stopped.",
   model_unavailable: "The model service is not available right now. Please try again in a few minutes.",
   max_model_calls: "We ran out of attempts before finding a good pick.",
+  model_call_limit: "We ran out of steps before settling on a pick. Try a more specific request, like a brand or a feature.",
+  tool_call_limit: "We ran out of catalog lookups before settling on a pick. Try a more specific request.",
+  question_limit: "Too many follow-up questions. Please start a new request with your budget included.",
+  plan_repair_limit: "We couldn't find an offer that passes the budget check.",
+  answer_repair_limit: "We couldn't use the answers given. Please start a new request with your budget included.",
+  context_limit: "The conversation got too long. Please start a new request.",
   plan_repairs_exhausted: "We couldn't find an offer that fits the budget.",
   cancelled: "You stopped this request.",
 };
@@ -356,7 +362,7 @@ const ERRORS = { not_waiting: "This question was already answered.",
 const COST = { items: "Items", shipping: "Shipping", tax: "Tax" };
 const STAGES = ["understand", "search", "compare", "check", "explain"];
 
-let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, cap: null };
+let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, cap: null, fallback: false };
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
@@ -510,17 +516,20 @@ function render(r) {
     }
     const first = box.querySelector("input"); if (first) first.focus();
     logStep("Waiting for your answer");
+    $("progTitle").textContent = "Waiting for your answer";
     return;
   }
   show("question", false);
   show("result", true);
   $("whyText").classList.remove("caret");
   const ok = r.status === "completed" && r.verified_plan;
+  $("progTitle").textContent = ok ? "Done" : (STATUS[r.status] || "Finished");
   stagesDone(!!r.explanation);
   if (!ok) document.querySelectorAll("#stepper .st.active").forEach(n => n.classList.add("fail"));
   const head = $("resultStatus"); head.replaceChildren();
   if (!ok) {
-    const why = STOP[r.stop_reason] || (r.issues && r.issues.length ? r.issues.map(i => i.message || i.code).join("; ") : "");
+    const why = STOP[r.stop_reason] || (r.stop_reason ? "Stopped (" + r.stop_reason.replace(/_/g, " ") + ")." : "") ||
+                (r.issues && r.issues.length ? r.issues.map(i => i.message || i.code).join("; ") : "");
     head.append(el("div", { class: "notice " + (r.status === "cancelled" ? "warn" : "err") },
       el("span", {}, el("b", {}, STATUS[r.status] || r.status), why ? " — " + why : "")));
     if (r.clarification && r.clarification.question) head.append(el("p", { class: "muted" }, r.clarification.question));
@@ -532,9 +541,12 @@ function render(r) {
     $("products").replaceChildren(list);
     if (r.explanation) {
       show("why", true);
-      $("whyText").textContent = r.explanation.text;
-      $("whyNote").replaceChildren(el("span", {}, r.explanation.fallback
-        ? "The model's explanation did not pass our checks, so this summary was generated from the plan."
+      state.fallback = !!r.explanation.fallback;
+      // The harness's own fallback template is not in English; build the summary here from the checked plan
+      // (and refine it with the offer title and seller once they are loaded).
+      $("whyText").textContent = state.fallback ? planSummary(p, null) : r.explanation.text;
+      $("whyNote").replaceChildren(el("span", {}, state.fallback
+        ? "Summary generated from the budget-checked plan (the model's draft quoted figures we could not verify)."
         : "Checked: every number and source above comes from the plan and its evidence."));
     }
     summary(p);
@@ -547,6 +559,19 @@ function render(r) {
     el("div", {}, el("b", {}, u.tool_calls ?? "–"), el("span", {}, "Tool calls")),
     el("div", {}, el("b", {}, u.elapsed_s != null ? Number(u.elapsed_s).toFixed(1) + "s" : "–"), el("span", {}, "Compute")));
   show("usage", true);
+}
+
+function planSummary(p, info) {
+  const it = p.items[0];
+  const what = info && info.title ? info.title : "this offer";
+  const from = info && info.seller ? " from " + info.seller : "";
+  const ship = "shipping" in (p.cost_breakdown || {})
+    ? (Number(p.cost_breakdown.shipping) === 0 ? " with free shipping" : " including " + fmt(p.cost_breakdown.shipping, p.currency) + " shipping") : "";
+  const more = p.items.length > 1 ? ` and ${p.items.length - 1} more item(s)` : "";
+  const qty = it.quantity > 1 ? it.quantity + " × " : "";
+  const pre = "tax" in (p.cost_breakdown || {}) ? "" : " before tax";
+  return `We picked ${qty}${what}${from}${more}. It comes to ${fmt(p.total_cost, p.currency)}${pre}${ship}, ` +
+         `leaving ${fmt(p.remaining_funds, p.currency)} of your budget. The sources below show where each fact comes from.`;
 }
 
 function productCard(it, top, cur) {
@@ -616,6 +641,10 @@ async function lookup(plan) {
         el("span", { class: "fact" + (o.tax_status === "known" ? "" : " warn") }, o.tax_status === "known" ? "Tax " + fmt(o.tax_minor / 100, o.currency) : "Tax not included"),
         o.price_stale ? el("span", { class: "fact warn" }, "Price may have changed") : "");
     }
+    if (state.fallback && r.offers.length) {
+      const o = r.offers.find(x => x.offer_id === plan.items[0].offer_id) || r.offers[0];
+      $("whyText").textContent = planSummary(plan, { title: o.store_title, seller: sellerOf[o.variant_id] });
+    }
     const box = $("sources"); box.replaceChildren();
     for (const e of r.evidence) {
       const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
@@ -636,7 +665,7 @@ async function lookup(plan) {
 
 function resetRun() {
   state.explain = ""; state.pending = null; state.t0 = performance.now();
-  $("steps").replaceChildren(); $("runId").textContent = "";
+  $("steps").replaceChildren(); $("runId").textContent = ""; $("progTitle").textContent = "Working on it";
   notice("streamError"); notice("topNotice");
   document.querySelectorAll("#stepper .st").forEach(n => n.classList.remove("done", "active", "fail"));
   show("welcome", false); show("progress", true);
