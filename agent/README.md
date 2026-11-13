@@ -50,15 +50,120 @@ with `run_resumed` and finishes with `run_completed` on the same run ID. There
 are three cumulative model calls and one tool call. No real user UI is provided.
 
 The final `run_completed` event contains the structured result in its `result`
-field. Events describe graph progress; they are not streamed model tokens.
+field. Decision events describe graph progress; optional explanation events carry
+user-facing content deltas.
 Unreported model token usage is identified by `usage.unreported_token_calls`;
 zero token sums do not mean that a real request consumed no tokens.
 
 `requirements.txt` pins direct runtime dependencies; `requirements-dev.txt`
 adds pytest. `requirements.lock` pins the full development dependency graph with
-Python/platform markers. It was resolved for Python 3.10+ and exercised on
-Python 3.14.7. Other interpreters still need their own runtime validation.
-The project-wide manifest and test configuration are unchanged.
+Python/platform markers. It was resolved for Python 3.10+; persistence/restart
+tests were exercised on Python 3.12.15 and 3.14.7 on macOS. Other platforms and
+interpreters still need their own runtime validation.
+
+## Agent 配置
+
+Agent 专用参数放在新增的 [configs/agent.yaml](../configs/agent.yaml)，每项都有中文注释。
+读取和校验在 `agent/config.py`、`agent/settings.py` 内完成，PyYAML 仅列入 Agent 依赖。
+原有知识库配置、模型服务配置、训练配置和根项目依赖保持原样；本文件不启动或配置这些服务。
+
+```python
+from agent.settings import load_runtime_settings
+
+settings = load_runtime_settings(profile="tacc-thinking")
+runtime = AgentRuntime(dependencies, settings.policy, checkpointer=checkpointer)
+# 宿主可将 settings.model.port_options() / client_options() 传给现有模型适配器/客户端。
+```
+
+| profile | 思考 | 输出 token | 上下文字符 | 用途 |
+|---|---|---|---|---|
+| `tacc`（默认） | 模型默认 | 2048 | 36000 | 为默认启用思考的 Qwen3 留出 reasoning 额度 |
+| `tacc-thinking` | 开启 | 2048 | 36000 | 真实工具与思考模式 |
+| `tacc-fast` | 关闭 | 512 | 36000 | 关闭思考时较短的动作输出 |
+| `local` | 开启 | 2048 | 36000 | 本地 HTTP 示例 |
+| `mock` | 不调用真实模型 | 512 | 16000 | 保持离线示例的轻量配置 |
+
+参数依据用户提供的 TACC 作业 28560/28561 结果。上下文默认保留最多 32 条历史消息，
+并受 36000 字符预算约束；任意更长历史仍会裁剪。2048 包含 reasoning 和最终内容。
+36000 字符约 12K token 仅是估计，不能保证实际分词后适配外部服务窗口。
+`model.context_window_tokens` 是宿主的提示/检查值，不修改 vLLM 服务配置，需由部署方确认。
+
+Agent 示例、持久化示例和清理命令支持 `--config` / `--profile`，也可使用
+`AGENT_CONFIG` / `AGENT_PROFILE`。命令行显式参数覆盖 YAML；未指定参数不会覆盖文件设置。
+配置里的相对路径以 `configs/` 上一级为基准，自定义文件放其他目录则以其所在目录为基准。
+路径中的环境变量在使用时展开，未定义时报错。本地 `.env` 的地址/模型路径覆盖方式保留。
+未知 profile、循环继承、重复键、无效策略值以及其他任务的配置节都会报错。
+
+库级 `RunPolicy()` 保持兼容，也不会隐式读 YAML；真实工具宿主应显式传入 `settings.policy`。
+恢复任务继续使用检查点中原有策略，不因修改文件而重置额度或过期时间。
+本轮仅提供 Agent 侧配置入口，不自动修改其他任务的启动/打包脚本。独立分发 Agent 示例时，
+需同时提供 `configs/agent.yaml` 或通过 `--config` 指定文件。
+
+## Optional streamed explanation
+
+Set `RunPolicy(explain=True)` to route passed validation through
+`validate_plan -> explain -> finalize`. The default is off: no extra model calls
+or events, and all pre-existing result fields retain their meaning. New optional
+result/usage fields are serialized with their defaults.
+
+```bash
+agent/.venv/bin/python -m agent.examples.mock_run --clarify --explain --events
+```
+
+The explanation uses the existing `ModelPort` with `action_schema=None` and
+`tools=[]`. The model adapter must disable constrained decoding for this request.
+`CallContext.on_delta(kind, text)` is a per-call callback on the event-loop thread;
+ports isolate callback errors and return the complete `ModelReply`. The vLLM
+adapter drains queued callbacks before returning and drops late callbacks after
+completion/cancellation. Its legacy constructor callback remains available for
+monitoring. Free-text thinking defaults off unless explicitly configured.
+
+`explain_started` includes the operation ID `<run_id>:explain:1`; `explain_delta`
+contains only `kind="content"` and `text`; `explain_done` includes `verified`,
+`fallback`, `reason`, and final `chars`. These use the same run ID and sequence
+as other agent events. Reasoning is not forwarded into the explanation stream.
+Deltas coalesce at 8 characters or 50ms, are bounded by `max_explain_chars=8000`,
+and concatenate exactly to a successful `Explanation.text`. A nonstreaming port
+gets one synthesized content delta. Consumers must treat deltas as drafts until
+done; on fallback replace the draft with the explanation in the final result.
+
+Defaults allow one explanation model call, 400 output tokens, and 20 seconds
+for evidence resolution plus generation together. This does not consume the
+decision budget `max_model_calls`: it is recorded as `usage.explain_model_calls`.
+Returned token usage and unreported attempts count in the existing totals; active
+time still counts toward the run deadline. A declared capability error, an
+explanation timeout, incomplete generation, invalid text/citation/number or an
+unusable evidence response falls back to a template built only from VerifiedPlan.
+The run remains completed, with `fallback=True, verified=False`. `reason` records
+the cause in the done event. Unexpected programming errors propagate.
+
+Global cancellation/deadline keep their existing semantics: a cancelled run is
+cancelled, a run whose overall deadline expires is incomplete/deadline_exceeded,
+and both clear the plan/explanation. Cancellation during explanation emits no
+`explain_done`. Only completed results may contain an explanation.
+
+`verified=True` means generated text passed the deterministic harness checks,
+not that every natural-language assertion was proven. The checks compare numeric
+values using Decimal and map inline `[E1]` citations to the plan's evidence IDs;
+they cannot detect all invented features or swapped roles of otherwise allowed
+amounts. User text and source excerpts do not extend the numeric whitelist.
+The UI must display authoritative amounts from the structured plan.
+
+An optional `AgentDependencies.evidence_resolver` supplies bounded `EvidenceFact`
+observations. Without one, generation uses only the verified plan and user
+message; a configured resolver that fails causes fallback. Facts must cover the
+plan's offer/evidence pairs and snapshot. Raw excerpts are untrusted data, not
+instructions. See `knowledge.explanation.KnowledgeEvidenceResolver` for the real
+snapshot adapter; the offline demo injects `MockEvidenceResolver` explicitly.
+Hosts close the real resolver only after active calls finish. Explanation prompts
+obey the existing context character limit; overflow falls back without dropping
+required verified facts. Actual token/context checks remain the port's job.
+
+Final explanation, usage and event sequence are checkpointed; callbacks and draft
+tokens are not persisted. Version-2 checkpoints without new fields retain default
+`explain=False` on resume, even if the new host opts in. A waiting run that saved
+`explain=True` retains that policy across a SIGKILL/restart. Arbitrary mid-explanation
+crash recovery and persisted event replay are outside the user-question resume API.
 
 ## 本地 Qwen3.5-4B 全流程测试
 
@@ -251,7 +356,9 @@ Context construction preserves required instructions, request and schemas,
 then selects a recent suffix of history within a character budget. Results
 also have per-tool byte limits. Character limits are **not token limits**;
 the real model adapter must account for tokenizer/chat-template overhead and
-enforce its own input/output token limits. The reference service has a 4K context.
+enforce its own input/output token limits. The Agent YAML's 16384-token window is
+a host-side hint; the service keeps its separate configuration. The 36000-character
+budget is an estimate and cannot prove the tokenized input fits.
 
 Runs have independent state and checkpoints. Injected adapters are shared by the runtime and
 must themselves support concurrent calls if the host runs requests concurrently.
@@ -277,16 +384,89 @@ question. To resume through a new Runtime in the same process, pass the same
 checkpointer object. Process restarts lose the default memory checkpoints.
 
 The host may inject `checkpointer=` implementing `BaseCheckpointSaver`'s async
-API. Its connections, lifecycle, authorization, retention, backups and production
-acceptance belong to the host; no database adapter is installed by this package.
+API. The package includes a SQLite adapter; `agent.checkpoints.open_checkpointer`
+owns its connection and an exclusive host lease on Linux/macOS. Keep this context
+open for the host's lifetime, including all run/resume calls:
+
+```python
+from pathlib import Path
+from agent.checkpoints import open_checkpointer
+from agent.checkpoint_cleanup import cleanup_checkpoints
+
+async with open_checkpointer(Path("/persistent/agent.sqlite")) as saver:
+    # Run once before accepting work, while this host owns the store exclusively.
+    await cleanup_checkpoints(saver)
+    runtime = AgentRuntime(dependencies, policy, checkpointer=saver)
+    # await runtime.run(request), or resume using the original run/question IDs
+```
+
+The full checkpoints, interrupt writes, history, original policy, counters and
+event sequence survive process restarts. `run_waiting` is emitted only after the
+graph invocation finishes saving its interrupt; storage failures propagate.
+Opening a store already leased by another host/cleanup process fails. The lock
+file stays in place after release. Hosts bypassing this helper must provide their
+own serialization. Authorization and backups remain the host's responsibility.
 State version 2 rejects incompatible old checkpoints; migration is not provided.
 The run's saved policy is used even if a new Runtime has different defaults.
+
+SQLite uses WAL with `synchronous=FULL`. Use a **supported persistent filesystem**;
+WAL is not supported on network filesystems. Linux detection rejects known shared
+filesystems (including NFS, Lustre and GPFS), but this is not a complete storage
+certification. Confirm persistence, locking and sync semantics with the platform.
+For unsuitable shared volumes, inject a different durable saver, such as one
+backed by a reachable PostgreSQL service. Do not relocate the database to a
+node-local temporary directory if runs must survive job/node changes.
+
+Try a deterministic restart example in separate processes:
+
+```bash
+agent/.venv/bin/python -m agent.examples.persistent_resume \
+  --db /persistent/agent.sqlite start --run-id restart-demo --hold-after-waiting
+# Once the waiting_user JSON is printed, kill that process (SIGKILL is supported).
+# Copy pending_question.question_id from its output into the next command:
+agent/.venv/bin/python -m agent.examples.persistent_resume \
+  --db /persistent/agent.sqlite resume --run-id restart-demo \
+  --question-id QUESTION_ID --answer '{"purchase_cap":"100.00"}'
+```
+
+All model/tool/validator capabilities in this example are explicit synthetic
+fixtures; it tests real LangGraph/SQLite recovery without a model service.
+`--events` emits ordered event JSON lines. Use a new ID for each new task and
+keep the old ID for resume. The example's question TTL is 7200 seconds; existing
+Runtime defaults remain 1800 seconds. Neither restart nor cleanup extends TTL.
+
+Cleanup uses the latest root checkpoint per `agent:<run_id>` and deletes the
+entire thread and its writes. Defaults retain terminal runs for seven days and
+expired questions for 24 hours after their saved expiry. Unexpired questions,
+unfinished runs, unrecognized state versions and unrelated thread prefixes are
+retained. Startup cleanup runs before accepting work; there is no background
+scheduler. Preview or run it manually while the host is stopped:
+
+```bash
+agent/.venv/bin/python -m agent.checkpoint_cleanup --db /persistent/agent.sqlite --dry-run
+agent/.venv/bin/python -m agent.checkpoint_cleanup --db /persistent/agent.sqlite \
+  --terminal-retention-s 604800 --expired-question-grace-s 86400
+```
+
+The CLI requires an existing database and takes the same exclusive lease. Errors
+are not converted into missing-run responses. A missing/cleaned run returns
+`RunStateError(code="run_not_found")`; no tombstones distinguish those cases.
+An expired question still retained in storage resumes to
+`incomplete / question_expired`. Wrong question IDs and completed runs preserve
+the existing `question_mismatch` / `not_waiting` errors.
 
 A per-run lock rejects overlapping calls within one Runtime. Multiple Runtime
 instances/processes sharing a saver **must be serialized by the host**, including
 new-run creation and resume; this is not a distributed lock or exactly-once
 external-operation system. Resuming arbitrary failed/aborted nodes is outside
 the current user-question recovery contract.
+
+`agent/tests/test_persistence.py` kills a child with SIGKILL while its SQLite
+connection is open, resumes from a fresh child, checks original limits/sequence,
+and confirms completed searches are not replayed. It also covers whole-run
+cleanup, dry-run, expired questions, duplicate answers, leases and storage errors.
+Local tests do not establish TACC filesystem support or cross-job acceptance;
+see the deployment guide in `deploy/tacc/service/agent-e2e/README.md`.
 
 Real inference, retrieval, SDK file transport, production budget validation,
 distributed scheduling, external-operation deduplication and token-aware context

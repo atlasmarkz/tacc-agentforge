@@ -1,0 +1,9 @@
+10-0-1-10
+15:18:30 fault injection enabled: write http://10-0-1-10:8000/v1 into /mnt/home/markzhang/USERDIR/tacc-agentforge-service/fault-request
+15:18:30 vLLM started pid=37247 (attempt 0); waiting for a successful probe
+15:25:53 probe ok=True 1.32s 
+15:25:54 READY and published http://10-0-1-10:8000/v1 -> /mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-url.txt
+15:27:18 vLLM started pid=37485 (attempt 1); waiting for a successful probe
+15:32:14 probe ok=True 1.35s 
+15:32:15 READY and published http://10-0-1-10:8000/v1 -> /mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-url.txt
+RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-28579

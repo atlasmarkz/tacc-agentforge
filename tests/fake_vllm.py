@@ -62,6 +62,14 @@ class FakeVllm:
                 except OSError:
                     pass
 
+            def do_GET(self):                     # /health, like vLLM
+                ok = self.path.rstrip("/").endswith("/health")
+                body = b"" if ok else b"not found"
+                self.send_response(200 if ok else 404)
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
             def send_stream(self, stream):
                 self.close_connection = True
                 head = b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream\r\nConnection: close\r\n"

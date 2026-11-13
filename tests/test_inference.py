@@ -56,3 +56,12 @@ def test_failures_stay_in_denominator():
 def test_percentile_nearest_rank():
     from inference.benchmark import percentile
     assert percentile([1, 2, 3, 4], 50) == 2 and percentile([1, 2, 3, 4], 95) == 4
+
+
+def test_recommended_harness_policy_fits_the_model_window():
+    from inference.harness_policy import MODEL_WINDOW_TOKENS, run_policy_kwargs
+    off, on, default = run_policy_kwargs(False), run_policy_kwargs(True), run_policy_kwargs(None)
+    assert off["max_output_tokens"] == 512 and on["max_output_tokens"] == 2048
+    assert default == on                                   # model default for Qwen3 is thinking on
+    # about 3 characters per token is conservative for this mixed JSON/English context
+    assert on["max_context_chars"] / 3 + on["max_output_tokens"] < MODEL_WINDOW_TOKENS

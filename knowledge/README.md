@@ -1,6 +1,6 @@
 # Shopping knowledge service：运行与部署说明
 
-本模块提供 SerpApi 增量补采、SQLite/FTS5 知识库、不可变快照和四个 Agent 工具。下列命令从 **GitHub 仓库根目录**执行，无需创建作者机器上的目录。查询部分使用 Python 3.12+ 标准库；Agent 联调和完整测试另外安装项目已锁定的依赖。
+本模块提供 SerpApi 增量补采、SQLite/FTS5 知识库、不可变快照、一个 schema 发现工具和四个查询工具。下列命令从 **GitHub 仓库根目录**执行，无需创建作者机器上的目录。查询部分使用 Python 3.12+ 标准库；Agent 联调和完整测试另外安装项目已锁定的依赖。
 
 ## 1. 从 GitHub 克隆后直接运行
 
@@ -105,6 +105,8 @@ settings = load_settings()
 kb = KnowledgeService(settings.snapshots_root, **settings.service)
 tools = build_knowledge_tools(kb)
 
+categories = kb.describe_filters(settings.snapshot_id)
+schema = kb.describe_filters(settings.snapshot_id, category="earbuds")
 page = kb.search_products(settings.snapshot_id, {"category": "earbuds"}, limit=5)
 evidence = kb.retrieve_evidence(
     settings.snapshot_id, "noise cancelling comfortable", page["candidate_set_id"], k=5
@@ -120,12 +122,26 @@ tools.get("search_products").executor.close()
 
 | Python接口 | 行为 |
 |---|---|
+| `describe_filters(snapshot_id, category=None, cursor=None)` | 不传品类时分页列出合法品类；传品类时分页列出 canonical 属性、值类型、操作符和单位 |
 | `search_products(snapshot_id, filters, limit=5, cursor=None)` | 完整匹配范围的candidate_set_id，加分页紧凑商品卡片 |
 | `retrieve_evidence(snapshot_id, query, candidate_set_id, k=5, mode='filtered')` | 固定候选范围内的Top-K证据 |
 | `get_offer_facts(snapshot_id, offer_ids)` | 当前报价、精确金额、费用状态、observation和evidence IDs |
 | `resolve_evidence(snapshot_id, evidence_ids, cursor=None)` | 原文、URL、时间、raw hash和JSON pointer |
 
 `candidate_set_id`在服务内存中活跃。服务重启或集合淘汰后，重新执行商品查询；不同快照的集合不能互用。B1通过 `build_knowledge_tools(kb, retrieval_mode='keyword')` 选择关键词证据，B2/B3用filtered，保持候选/价格输入一致。
+
+模型可先调用 `describe_filters({})` 获取当前快照的品类，再调用 `describe_filters({"category":"earbuds"})` 获取该类属性，不能由模型指定 `snapshot_id`。发现结果中的 `categories` 和 `attributes` 分别用于品类页和属性页；若有 `next_cursor`，保持同一 `category` 继续查询。只返回查询用的 canonical 名称，不返回导入别名；属性出现在 schema 中不表示每个商品都有已知值。
+
+非法品类、属性、值类型等查询参数返回可恢复的 `invalid_arguments`，短错误提示包含合法值或修正要求，Agent 可据此调用发现工具并更正下一次查询。指定品类时只允许该类的属性；未指定品类时可使用各类属性的并集。顶层 `type` 与 `hard_constraints` 的属性不是同一概念，例如机械轴应根据键盘 schema 使用 `switch_type`，不要写成 `hard_constraints.type`。配置、可信快照选择和快照完整性错误仍不可恢复。发现和失败查询都计入既有调用预算，不会自动重试或扩充预算。
+
+issue #4 的本地验收使用真实快照、真实适配器和脚本模型，覆盖错误反馈后更正查询。本地回归不能替代真实模型验收：后续应固定代码、快照和 issue #6 的部署策略，重跑原五个场景，不传 `--hint` 或 `available_categories`，确认不再因可修正的品类/属性错误直接失败；本次修复不自动提交 TACC 作业。
+
+解释节点可注入 `knowledge.explanation.KnowledgeEvidenceResolver(service)`，由宿主在活动调用结束后执行 `close()`。
+它复用现有查询线程的取消/期限机制，解析同一快照的 offer 与 evidence，处理分页并只保留每条证据的有界首段。
+无效 ID、快照或商品归属不匹配会返回能力错误，由 harness 使用已验证计划模板回退。
+只有单一且无冲突的报价上下文才附带单价；不从多个目的地/数量上下文中任意选择价格。
+该适配器提供来源观察，不替代预算校验；商品家族或未知 scope 也随事实传递。
+`EvidenceResolver` / `EvidenceFact` 契约由 agent 定义，适配器由 knowledge 实现，宿主负责注入。
 
 CLI演示需要传入显式快照位置，可使用环境变量或配置输出填写：
 

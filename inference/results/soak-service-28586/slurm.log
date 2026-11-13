@@ -1,0 +1,10 @@
+10-0-1-10
+16:48:40 vLLM started pid=38964 (attempt 0); waiting for a successful probe
+16:53:47 probe ok=True 2.81s 
+16:53:53 READY and published http://10-0-1-10:8000/v1 -> /mnt/home/markzhang/USERDIR/tacc-agentforge-service/service-url.txt
+srun: got SIGCONT
+slurmstepd-10-0-1-10: error: *** JOB 28586 ON 10-0-1-10 CANCELLED AT 2026-11-10T17:37:40 ***
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-10-0-1-10: error: *** STEP 28586.0 ON 10-0-1-10 CANCELLED AT 2026-11-10T17:37:40 ***
+srun: forcing job termination
+srun: error: 10-0-1-10: task 0: Terminated

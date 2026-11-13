@@ -1,0 +1,6 @@
+{"t": 1794326916.043, "event": "vllm_started", "pid": 38091, "attempt": 0}
+{"t": 1794326916.25, "event": "gpu_sampler_started", "source": "nvml"}
+{"t": 1794327282.795, "event": "ready", "address": "http://10-0-1-10:8000/v1", "ready_after_s": 366.7, "attempt": 0}
+{"t": 1794327518.129, "event": "handover_submitted", "successor": "28584", "remaining": 0}
+{"t": 1794328034.395, "event": "superseded", "by": "http://10-0-3-10:8000/v1"}
+{"t": 1794328034.436, "event": "drained", "after_s": 0.0}

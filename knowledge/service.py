@@ -42,8 +42,31 @@ def _time(value):
         return None
 
 
-def _invalid(message):
-    raise KnowledgeError("invalid_arguments", message)
+def _invalid(message, *, recoverable=True):
+    # Query arguments can be corrected by the model. Keep feedback within the
+    # agent's Issue.message limit, including untrusted field names.
+    raise KnowledgeError("invalid_arguments", message[:500], recoverable=recoverable)
+
+
+def _invalid_choice(message, label, choices):
+    """Give bounded correction hints; discovery provides the complete schema."""
+    prefix = f"{message[:120]} Valid {label[:80]}: "
+    suffix = ". Use describe_filters for the full list."
+    shown = []
+    for choice in sorted(choices):
+        candidate = ", ".join(shown + [_json(choice)])
+        if len(prefix) + len(candidate) + len(suffix) + 5 > 500:
+            shown.append("...")
+            break
+        shown.append(_json(choice))
+    _invalid(prefix + (", ".join(shown) or "(none)") + suffix)
+
+
+_FILTER_OPERATORS = {
+    "number": ("eq", "gte", "lte", "gt", "lt"),
+    "boolean": ("eq",),
+    "string": ("eq", "contains"),
+}
 
 
 def _explicit_specs(text):
@@ -89,15 +112,15 @@ class KnowledgeService:
     def __init__(self, snapshots_root: Path, cache_size=512, max_result_bytes=8192, price_ttl_hours=24):
         self.snapshots_root = Path(snapshots_root).expanduser().resolve()
         if isinstance(cache_size, bool) or not isinstance(cache_size, int) or cache_size < 0:
-            _invalid("cache_size must be a nonnegative integer")
+            _invalid("cache_size must be a nonnegative integer", recoverable=False)
         if not isinstance(max_result_bytes, int) or isinstance(max_result_bytes, bool) or not 1024 <= max_result_bytes <= 65536:
-            _invalid("max_result_bytes must be between 1024 and 65536")
+            _invalid("max_result_bytes must be between 1024 and 65536", recoverable=False)
         try:
             ttl = float(price_ttl_hours)
         except (ValueError, TypeError):
-            _invalid("price_ttl_hours must be positive")
+            _invalid("price_ttl_hours must be positive", recoverable=False)
         if not 0 < ttl < float("inf"):
-            _invalid("price_ttl_hours must be positive")
+            _invalid("price_ttl_hours must be positive", recoverable=False)
         self.cache_size, self.max_result_bytes, self.price_ttl_hours = cache_size, max_result_bytes, ttl
         self._cache, self._sets, self._snapshots = OrderedDict(), OrderedDict(), {}
         self._lock, self._local = threading.RLock(), threading.local()
@@ -138,10 +161,10 @@ class KnowledgeService:
     def _snapshot(self, snapshot_id):
         self._check()
         if not isinstance(snapshot_id, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", snapshot_id):
-            _invalid("snapshot_id must be an identifier, not a filesystem path")
+            _invalid("snapshot_id must be an identifier, not a filesystem path", recoverable=False)
         folder = (self.snapshots_root / snapshot_id).resolve()
         if folder.parent != self.snapshots_root:
-            _invalid("snapshot_id must select a snapshot inside the configured root")
+            _invalid("snapshot_id must select a snapshot inside the configured root", recoverable=False)
         path = (folder / "catalog.sqlite").resolve()
         if path.parent != folder or not path.is_file():
             raise KnowledgeError("unknown_snapshot", "The selected snapshot is unavailable.")
@@ -232,6 +255,46 @@ class KnowledgeService:
                 "retrieval_version": snapshot.metadata.get("retrieval_version"),
                 "categories": deepcopy(snapshot.categories)}
 
+    @staticmethod
+    def _category_attributes(snapshot, category):
+        if category is not None and (not isinstance(category, str) or category not in snapshot.categories):
+            _invalid_choice("category must name a category in this snapshot.", "categories", snapshot.categories)
+        return snapshot.categories[category].get("attributes", {}) if category is not None else {}
+
+    def describe_filters(self, snapshot_id, category=None, cursor=None):
+        """Discover canonical query keys, not ingestion aliases, in bounded pages."""
+        snapshot = self._snapshot(snapshot_id)
+        schema = self._category_attributes(snapshot, category)
+        names = sorted(snapshot.categories if category is None else schema)
+        fingerprint = _hash([snapshot_id, category, "describe_filters"])
+        start, offset = self._read_cursor(cursor, fingerprint)
+        if offset or start > len(names):
+            _invalid("cursor is outside this filter description")
+        key = "categories" if category is None else "attributes"
+        result = self._envelope(snapshot, category=category, categories=[], attributes=[])
+        selected = []
+        for index in range(start, len(names)):
+            self._check()
+            name = names[index]
+            item = name
+            if category is not None:
+                definition = schema[name]
+                unit = definition.get("unit")
+                item = {"name": name, "type": definition["type"],
+                        "operators": list(_FILTER_OPERATORS.get(definition["type"], ())),
+                        "unit": unit,
+                        "accepted_units": sorted(set(definition.get("units", {})) | ({unit} if unit else set()))}
+            next_cursor = self._cursor({"f": fingerprint, "i": index + 1}) if index + 1 < len(names) else None
+            candidate = self._envelope(snapshot, category=category, categories=[], attributes=[],
+                                       next_cursor=next_cursor, truncated=next_cursor is not None)
+            candidate[key] = selected + [item]
+            if self._measure(candidate) > self.max_result_bytes:
+                if not selected:
+                    raise KnowledgeError("result_budget_exceeded", "One filter schema record exceeds the result budget; increase the host's result budget.", recoverable=True)
+                break
+            selected, result = candidate[key], candidate
+        return self._fit(result)
+
     def _envelope(self, snapshot, **payload):
         now = datetime.now(timezone.utc)
         result = {"snapshot_id": snapshot.snapshot_id, "dataset_id": snapshot.dataset_id, "as_of": snapshot.as_of,
@@ -296,13 +359,10 @@ class KnowledgeService:
             _invalid("filters must be an object")
         allowed = {"category", "type", "currency", "max_price_minor", "min_price_minor", "variant_ids", "hard_constraints", "include_unknown"}
         if set(filters) - allowed:
-            _invalid("Unknown filter fields: " + ", ".join(sorted(set(filters) - allowed)))
+            _invalid_choice("Unknown filter fields.", "filter fields", allowed)
         filters = deepcopy(filters)
         category = filters.get("category")
-        if category is not None and not isinstance(category, str):
-            _invalid("category must be a string")
-        if category is not None and category not in snapshot.categories:
-            _invalid("category is not defined by this snapshot's category schemas")
+        schemas = self._category_attributes(snapshot, category)
         currency = filters.get("currency")
         if currency is not None and (not isinstance(currency, str) or not re.fullmatch("[A-Z]{3}", currency)):
             _invalid("currency must be an uppercase three-letter code")
@@ -321,17 +381,20 @@ class KnowledgeService:
         constraints = filters.get("hard_constraints", {})
         if not isinstance(constraints, dict) or len(constraints) > 20:
             _invalid("hard_constraints must contain at most 20 attributes")
-        schemas = snapshot.categories.get(category, {}).get("attributes", {}) if category else {}
         for key, requirement in constraints.items():
             if not isinstance(key, str) or not isinstance(requirement, dict) or set(requirement) - {"op", "value", "unit"}:
                 _invalid("Each hard constraint needs op, value, and optional unit")
-            if requirement.get("op") not in ("eq", "gte", "lte", "gt", "lt", "contains") or "value" not in requirement:
-                _invalid("Unsupported hard-constraint operation")
-            definitions = [schemas[key]] if key in schemas else [c.get("attributes", {}).get(key) for c in snapshot.categories.values()]
+            definitions = ([schemas[key]] if key in schemas else []) if category is not None else [
+                c.get("attributes", {}).get(key) for c in snapshot.categories.values()]
             definitions = [d for d in definitions if d]
             if not definitions:
-                _invalid("Unknown schema attribute: " + key)
+                names = schemas if category is not None else {
+                    name for c in snapshot.categories.values() for name in c.get("attributes", {})}
+                _invalid_choice("Unknown schema attribute: " + key[:64] + ".", "attributes", names)
             types = {d.get("type") for d in definitions}
+            operators = sorted({op for value_type in types for op in _FILTER_OPERATORS.get(value_type, ())})
+            if requirement.get("op") not in operators or "value" not in requirement:
+                _invalid_choice("Hard constraint needs a value and a supported op.", "operations", operators)
             value = requirement["value"]
             if types == {"number"}:
                 if isinstance(value, bool):
@@ -343,8 +406,6 @@ class KnowledgeService:
                 except (InvalidOperation, ValueError, TypeError):
                     _invalid("Numeric attributes need a finite numeric value")
                 requirement["value"] = str(number)
-                if requirement["op"] == "contains":
-                    _invalid("contains is not valid for a numeric attribute")
             elif types == {"boolean"} and (type(value) is not bool or requirement["op"] != "eq"):
                 _invalid("Boolean attributes require eq with true or false")
             elif types == {"string"} and (not isinstance(value, str) or requirement["op"] not in ("eq", "contains")):
@@ -575,7 +636,7 @@ class KnowledgeService:
         snapshot = self._snapshot(snapshot_id)
         candidate_set = self.describe_candidate_set(snapshot_id, candidate_set_id)
         if mode not in ("filtered", "keyword"):
-            _invalid("mode must be filtered or keyword")
+            _invalid("mode must be filtered or keyword", recoverable=False)
         if not isinstance(query, str) or not query.strip() or len(query) > 2000:
             _invalid("query must contain 1 to 2000 characters")
         aliases = {"耳机": "earbuds", "降噪": "noise cancelling", "充电器": "charger", "充电宝": "power bank", "键盘": "keyboard", "背包": "backpack", "防水": "waterproof"}

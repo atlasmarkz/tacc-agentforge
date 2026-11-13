@@ -19,6 +19,11 @@ from .contracts import (
     ACTION_ADAPTER, AgentDependencies, AgentEvent, AgentRequest, AgentResult,
     AskUser, CallContext, CallTool, CapabilityError, Issue, ModelReply, PendingOperation,
     PendingQuestion, PlanValidationRequest, ProposePlan, ResumeRequest, Usage, ValidationResult,
+    EvidenceFact, VerifiedPlan,
+)
+from .explanation import (
+    ExplanationRejected, ExplanationStream, build_explanation_request, check_explanation,
+    render_fallback, validate_facts,
 )
 from .policies import RunPolicy
 from .prompts import ContextLimitError, build_model_request
@@ -84,6 +89,7 @@ class RunScope:
     async def call(
         self, operation_id: str, invoke: Callable[[CallContext], Awaitable[T]],
         timeout_s: float | None = None,
+        *, on_delta: Callable[[str, str], None] | None = None,
     ) -> T:
         """同时等待外部调用、取消或超时，并在退出时回收协作式异步任务。"""
         self.check()
@@ -93,6 +99,7 @@ class RunScope:
         context = CallContext(
             run_id=self.request.run_id, snapshot_id=self.request.snapshot_id,
             operation_id=operation_id, timeout_s=timeout, cancellation=self.cancellation,
+            on_delta=on_delta,
         )
         work = asyncio.create_task(invoke(context))
         cancel = asyncio.create_task(self.cancellation.wait())
@@ -118,7 +125,7 @@ def stop(state, reason, *, status="incomplete", issue: Issue | None = None):
     """生成停止状态更新，并清除不能继续对外使用的方案和问题信息。"""
     return {
         "status": status, "stop_reason": reason, "next_node": "finalize",
-        "verified_plan": None, "clarification": None,
+        "verified_plan": None, "explanation": None, "clarification": None,
         "pending_question": None, "resume_answer": None,
         "issues": (state["issues"] + ([issue.model_dump()] if issue else []))[-20:],
     }
@@ -136,7 +143,7 @@ def observation(state, data, *, issue: Issue | None = None):
 
 
 class Nodes:
-    """组织九个节点的业务逻辑；具体执行顺序和分支由 graph.py 定义。"""
+    """组织节点的业务逻辑；具体执行顺序和分支由 graph.py 定义。"""
 
     def __init__(self, scope: RunScope):
         self.scope = scope
@@ -224,7 +231,7 @@ class Nodes:
         route = {"call_tool": "execute_tool", "propose_plan": "validate_plan", "ask_user": "prepare_question"}
         return {
             "action": action.model_dump(mode="json"), "next_node": route[action.type],
-            "usage": usage, "consecutive_action_errors": 0, "verified_plan": None,
+            "usage": usage, "consecutive_action_errors": 0, "verified_plan": None, "explanation": None,
             "history": state["history"] + [{"role": "assistant", "content": action.model_dump_json()}],
         }
 
@@ -324,7 +331,8 @@ class Nodes:
             if verified.snapshot_id != self.scope.request.snapshot_id or verified.items != action.plan.items:
                 return stop(state, "invalid_validation_receipt", status="failed")
             return {"verified_plan": verified.model_dump(mode="json"),
-                    "status": "completed", "next_node": "finalize", "stop_reason": None}
+                    "status": "completed", "next_node": "explain" if self.policy.explain else "finalize",
+                    "explanation": None, "stop_reason": None}
         issues = [item.model_dump() for item in result.issues]
         if result.status == "unavailable":
             return {**stop(state, "validation_unavailable"), "issues": (state["issues"] + issues)[-20:]}
@@ -336,6 +344,89 @@ class Nodes:
             update = observation(state, {"status": "validation_failed", "issues": issues})
         return {**update, "usage": usage, "rejected_plans": rejected,
                 "issues": (state["issues"] + issues)[-20:]}
+
+    async def explain(self, state: AgentState):
+        """生成有界解释；可预期解释失败使用模板，全局取消/期限仍走原停止契约。"""
+        try:
+            self.scope.check()
+        except RunStopped as exc:
+            return stop(state, exc.reason, status=exc.status)
+        plan = VerifiedPlan.model_validate(state["verified_plan"])
+        usage = Usage.model_validate(state["usage"]).model_dump()
+        operation_id = f"{self.scope.request.run_id}:explain:1"
+        self.scope.emit("explain", "explain_started", operation_id=operation_id)
+        deadline = time.monotonic() + self.policy.explain_timeout_s
+        stream = ExplanationStream(
+            lambda text: self.scope.emit("explain", "explain_delta", kind="content", text=text),
+            self.policy.max_explain_chars,
+        )
+
+        def remaining():
+            duration = deadline - time.monotonic()
+            if duration <= 0:
+                raise ExplanationRejected("explanation_timeout")
+            return duration
+
+        def on_delta(kind, text):
+            if not self.scope.cancellation.is_set() and self.scope.remaining > 0:
+                stream.feed(kind, text)
+
+        reason = None
+        try:
+            facts = []
+            if self.deps.evidence_resolver is not None:
+                raw = await self.scope.call(
+                    f"{self.scope.request.run_id}:explain_evidence:1",
+                    lambda context: self.deps.evidence_resolver.resolve(plan.model_copy(deep=True), context),
+                    remaining(),
+                )
+                if not isinstance(raw, list) or len(raw) > 400:
+                    raise ExplanationRejected("invalid_evidence")
+                try:
+                    facts = [EvidenceFact.model_validate(fact).model_copy(deep=True) for fact in raw]
+                except ValidationError as exc:
+                    raise ExplanationRejected("invalid_evidence") from exc
+                validate_facts(plan, facts)
+            request = build_explanation_request(AgentRequest.model_validate(state["request"]), plan, facts, self.policy)
+            timeout = remaining()
+            usage["explain_model_calls"] += 1
+            usage["unreported_token_calls"] += 1
+            reply = await self.scope.call(operation_id, lambda context: self.deps.model.generate(request, context),
+                                          timeout, on_delta=on_delta)
+            if isinstance(reply, PendingOperation):
+                raise ExplanationRejected("unsupported_capability")
+            if not isinstance(reply, ModelReply):
+                raise TypeError("ModelPort must return ModelReply or PendingOperation")
+            usage["prompt_tokens"] += reply.prompt_tokens or 0
+            usage["completion_tokens"] += reply.completion_tokens or 0
+            usage["unreported_token_calls"] -= int(reply.prompt_tokens is not None and reply.completion_tokens is not None)
+            if reply.finish_reason != "stop":
+                raise ExplanationRejected("incomplete_explanation")
+            if stream.overflow:
+                raise ExplanationRejected("explanation_too_long")
+            if not stream.parts:
+                stream.feed("content", reply.content)
+            if stream.overflow:
+                raise ExplanationRejected("explanation_too_long")
+            if "".join(stream.parts) != reply.content:
+                raise ExplanationRejected("explanation_stream_mismatch")
+            explanation = check_explanation(reply.content, plan, facts, self.policy.max_explain_chars)
+            stream.close(flush=True)
+        except RunStopped as exc:
+            return {**stop(state, exc.reason, status=exc.status), "usage": usage}
+        except (CapabilityError, ExplanationRejected) as exc:
+            # CapabilityError 是适配器声明的失败；程序错误和 asyncio 取消继续传播。
+            reason = exc.issue.code if isinstance(exc, CapabilityError) else exc.reason
+            explanation = render_fallback(plan)
+        finally:
+            stream.close()
+        try:
+            self.scope.check()
+        except RunStopped as exc:
+            return {**stop(state, exc.reason, status=exc.status), "usage": usage}
+        self.scope.emit("explain", "explain_done", verified=explanation.verified,
+                        fallback=explanation.fallback, reason=reason, chars=len(explanation.text))
+        return {"explanation": explanation.model_dump(mode="json"), "usage": usage, "next_node": "finalize"}
 
     async def prepare_question(self, state: AgentState):
         """在中断前固定问题身份、字段和过期时间，保存可供恢复关联的状态。"""
@@ -354,7 +445,7 @@ class Nodes:
         return {
             "pending_question": question.model_dump(mode="json"),
             "clarification": action.model_dump(mode="json"), "status": "waiting_user",
-            "verified_plan": None, "result": None, "resume_answer": None,
+            "verified_plan": None, "explanation": None, "result": None, "resume_answer": None,
             "stop_reason": None, "question_count": state["question_count"] + 1,
             "next_node": "suspend",
             # 先在检查点中预留 run_waiting 的序号；运行时确认中断已保存后，
@@ -403,7 +494,7 @@ class Nodes:
                 "clarification_answer": {"question": question.question, "answer": reply.answer},
             }, ensure_ascii=False)}],
             # 约束已改变，旧方案的校验结论不能继续作为有效结果。
-            "verified_plan": None, "pending_question": None, "resume_answer": None,
+            "verified_plan": None, "explanation": None, "pending_question": None, "resume_answer": None,
             "clarification": None, "action": None, "answer_errors": 0,
             "status": None, "stop_reason": None, "result": None, "next_node": "guard",
         }
@@ -420,6 +511,7 @@ class Nodes:
             snapshot_id=self.scope.request.snapshot_id, status=state["status"],
             stop_reason=state["stop_reason"], verified_plan=state["verified_plan"],
             clarification=state["clarification"], issues=state["issues"], usage=usage,
+            explanation=state.get("explanation"),
         )
         event_type = {"completed": "run_completed", "waiting_user": "run_waiting"}.get(result.status, "run_stopped")
         self.scope.emit("finalize", event_type, result=result, status=result.status, stop_reason=result.stop_reason)

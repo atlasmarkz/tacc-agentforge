@@ -130,7 +130,8 @@ class ModelRequest(Schema):
 
     messages: list[Message]
     tools: list[ToolDescription]
-    action_schema: dict[str, JsonValue]
+    # None requests free text without constrained decoding; decision requests supply a schema.
+    action_schema: dict[str, JsonValue] | None = None
     max_output_tokens: int = Field(gt=0)
 
 
@@ -158,6 +159,8 @@ class CallContext:
     operation_id: str
     timeout_s: float
     cancellation: asyncio.Event
+    # Invoked on the event-loop thread; the port isolates callback exceptions.
+    on_delta: Callable[[str, str], None] | None = None
 
 
 class ModelPort(Protocol):
@@ -185,6 +188,35 @@ class VerifiedPlan(Schema):
     total_cost: Amount
     remaining_funds: Amount
     cost_breakdown: dict[str, Amount] = Field(default_factory=dict)
+
+
+class EvidenceFact(Schema):
+    """来自选定快照的有界证据；摘录仍是不可信的来源文本。"""
+
+    snapshot_id: Identifier
+    offer_id: Identifier
+    evidence_id: Identifier
+    title: str = Field(max_length=500)
+    merchant: str | None = Field(default=None, max_length=300)
+    unit_price: Amount | None = None
+    currency: str | None = Field(default=None, pattern=r"^[A-Z]{3}$")
+    price_age_seconds: int | None = Field(default=None, strict=True, ge=0)
+    excerpt: str = Field(default="", max_length=1400)
+    source_url: str | None = Field(default=None, max_length=2048)
+    scope: str | None = Field(default=None, max_length=100)
+
+
+class EvidenceResolver(Protocol):
+    async def resolve(self, plan: VerifiedPlan, context: CallContext) -> list[EvidenceFact]: ...
+
+
+class Explanation(Schema):
+    """verified 只表示模型文本通过规则检查；fallback 表示采用计划模板。"""
+
+    text: str = Field(min_length=1, max_length=65536)
+    verified: bool
+    fallback: bool
+    cited_evidence_ids: list[Identifier] = Field(default_factory=list)
 
 
 class PlanValidationRequest(Schema):
@@ -226,6 +258,7 @@ class Usage(Schema):
     """记录一次运行中的模型、工具、修复和令牌用量。"""
 
     model_calls: int = 0
+    explain_model_calls: int = 0
     tool_calls: int = 0
     # 修复统计记录实际拒绝次数，包含最终耗尽修复额度的那次拒绝。
     action_repairs: int = 0
@@ -251,6 +284,7 @@ class AgentResult(Schema):
     verified_plan: VerifiedPlan | None = None
     clarification: AskUser | None = None
     pending_question: PendingQuestion | None = None
+    explanation: Explanation | None = None
     issues: list[Issue] = Field(default_factory=list)
     usage: Usage
 
@@ -260,6 +294,8 @@ class AgentResult(Schema):
 
         if (self.status == "completed") != (self.verified_plan is not None):
             raise ValueError("only completed results must contain a verified plan")
+        if self.explanation is not None and self.status != "completed":
+            raise ValueError("only completed results may contain an explanation")
         if (self.status == "waiting_user") != (self.clarification is not None):
             raise ValueError("only waiting_user results must contain a clarification")
         if (self.status == "waiting_user") != (self.pending_question is not None):
@@ -309,3 +345,4 @@ class AgentDependencies:
     tools: ToolRegistry
     validator: PlanValidator | None = None
     event_sink: Callable[[AgentEvent], None] | None = None
+    evidence_resolver: EvidenceResolver | None = None

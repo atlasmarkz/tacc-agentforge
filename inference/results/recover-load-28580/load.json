@@ -1,0 +1,1176 @@
+{
+ "job": "28580",
+ "node": "10-0-1-11",
+ "workload": {
+  "source": "think-off model calls of TACC job 28561 (harness + knowledge tools + Qwen3.8-27B)",
+  "calls": 36
+ },
+ "events": [
+  {
+   "t": 1794324357.996,
+   "event": "phase_start",
+   "rate": 0.1
+  },
+  {
+   "t": 1794324397.491,
+   "event": "fault_phase_start"
+  },
+  {
+   "t": 1794324432.473,
+   "event": "fault_requested"
+  },
+  {
+   "t": 1794324433.4,
+   "event": "address_gone_seen"
+  },
+  {
+   "t": 1794324735.062,
+   "event": "address_back_seen",
+   "address": "http://10-0-1-10:8000/v1"
+  }
+ ],
+ "service": {
+  "address": "http://10-0-1-10:8000/v1",
+  "waited_s": 425.9,
+  "health": 200
+ },
+ "calibration": {
+  "base_tokens": 1584,
+  "chars_per_token": 2.868
+ },
+ "phases": [
+  {
+   "mode": "calls",
+   "offered_rate": 0.1,
+   "sent": 4,
+   "ok": 4,
+   "errors": {},
+   "error_rate": 0.0,
+   "throughput_rps": 0.101,
+   "output_tok_s": 10.2,
+   "latency_s": {
+    "p50": 9.107,
+    "p95": 10.77,
+    "p99": 10.77,
+    "max": 10.77
+   },
+   "ttft_s": {
+    "p50": 3.168,
+    "p95": 5.853
+   },
+   "prompt_tokens_mean": 5222.0,
+   "duration_s": 60.0,
+   "wall_s": 39.5,
+   "requests": [
+    {
+     "sent_s": 3.924,
+     "out_tokens": 113,
+     "ok": true,
+     "latency_s": 10.77,
+     "ttft_s": 3.168,
+     "prompt_tokens": 5049,
+     "completion_tokens": 113,
+     "attempts": 1,
+     "done_s": 14.694
+    },
+    {
+     "sent_s": 7.739,
+     "out_tokens": 200,
+     "ok": true,
+     "latency_s": 9.107,
+     "ttft_s": 5.853,
+     "prompt_tokens": 9065,
+     "completion_tokens": 200,
+     "attempts": 1,
+     "done_s": 16.846
+    },
+    {
+     "sent_s": 29.509,
+     "out_tokens": 42,
+     "ok": true,
+     "latency_s": 3.749,
+     "ttft_s": 3.128,
+     "prompt_tokens": 5191,
+     "completion_tokens": 42,
+     "attempts": 1,
+     "done_s": 33.258
+    },
+    {
+     "sent_s": 38.154,
+     "out_tokens": 47,
+     "ok": true,
+     "latency_s": 1.34,
+     "ttft_s": 0.645,
+     "prompt_tokens": 1582,
+     "completion_tokens": 47,
+     "attempts": 1,
+     "done_s": 39.494
+    }
+   ]
+  }
+ ],
+ "fault": {
+  "rate": 0.2,
+  "duration_s": 480.0,
+  "timeout_s": 30.0,
+  "sent": 100,
+  "trigger_s": 34.981,
+  "address_gone_s": 35.908,
+  "address_gone_after_trigger_s": 0.927,
+  "address_back_after_trigger_s": 302.59,
+  "first_error_after_trigger_s": 1.359,
+  "outcomes_after_trigger": {
+   "ServiceUnavailable": 57,
+   "ok": 39
+  },
+  "ok_after_recovery": 35,
+  "in_flight_at_trigger": 0,
+  "hung_past_budget": 0,
+  "max_latency_s": 28.174,
+  "requests": [
+   {
+    "sent_s": 15.438,
+    "out_tokens": 60,
+    "ok": true,
+    "latency_s": 2.179,
+    "ttft_s": 1.039,
+    "prompt_tokens": 2131,
+    "completion_tokens": 60,
+    "attempts": 1,
+    "done_s": 17.616
+   },
+   {
+    "sent_s": 8.76,
+    "out_tokens": 200,
+    "ok": true,
+    "latency_s": 10.161,
+    "ttft_s": 5.883,
+    "prompt_tokens": 9092,
+    "completion_tokens": 200,
+    "attempts": 1,
+    "done_s": 18.921
+   },
+   {
+    "sent_s": 26.745,
+    "out_tokens": 47,
+    "ok": true,
+    "latency_s": 4.106,
+    "ttft_s": 3.297,
+    "prompt_tokens": 1582,
+    "completion_tokens": 47,
+    "attempts": 1,
+    "done_s": 30.85
+   },
+   {
+    "sent_s": 24.967,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 6.288,
+    "ttft_s": 5.033,
+    "prompt_tokens": 7140,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 31.255
+   },
+   {
+    "sent_s": 34.983,
+    "out_tokens": 113,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.357,
+    "delivered": false,
+    "done_s": 36.34
+   },
+   {
+    "sent_s": 41.303,
+    "out_tokens": 85,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.04,
+    "delivered": false,
+    "done_s": 42.343
+   },
+   {
+    "sent_s": 62.591,
+    "out_tokens": 47,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.229,
+    "delivered": false,
+    "done_s": 64.82
+   },
+   {
+    "sent_s": 63.827,
+    "out_tokens": 47,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.589,
+    "delivered": false,
+    "done_s": 65.416
+   },
+   {
+    "sent_s": 65.647,
+    "out_tokens": 47,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.111,
+    "delivered": false,
+    "done_s": 66.758
+   },
+   {
+    "sent_s": 69.518,
+    "out_tokens": 122,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.025,
+    "delivered": false,
+    "done_s": 71.543
+   },
+   {
+    "sent_s": 82.469,
+    "out_tokens": 86,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.318,
+    "delivered": false,
+    "done_s": 84.787
+   },
+   {
+    "sent_s": 91.364,
+    "out_tokens": 85,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.202,
+    "delivered": false,
+    "done_s": 92.566
+   },
+   {
+    "sent_s": 91.945,
+    "out_tokens": 86,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.195,
+    "delivered": false,
+    "done_s": 93.14
+   },
+   {
+    "sent_s": 100.064,
+    "out_tokens": 42,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.971,
+    "delivered": false,
+    "done_s": 102.035
+   },
+   {
+    "sent_s": 124.546,
+    "out_tokens": 86,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.029,
+    "delivered": false,
+    "done_s": 126.575
+   },
+   {
+    "sent_s": 125.666,
+    "out_tokens": 40,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.062,
+    "delivered": false,
+    "done_s": 126.728
+   },
+   {
+    "sent_s": 132.732,
+    "out_tokens": 122,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.131,
+    "delivered": false,
+    "done_s": 134.863
+   },
+   {
+    "sent_s": 134.9,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.178,
+    "delivered": false,
+    "done_s": 136.078
+   },
+   {
+    "sent_s": 136.324,
+    "out_tokens": 27,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.35,
+    "delivered": false,
+    "done_s": 137.674
+   },
+   {
+    "sent_s": 147.79,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.261,
+    "delivered": false,
+    "done_s": 150.051
+   },
+   {
+    "sent_s": 149.632,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.255,
+    "delivered": false,
+    "done_s": 150.886
+   },
+   {
+    "sent_s": 153.418,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.998,
+    "delivered": false,
+    "done_s": 155.416
+   },
+   {
+    "sent_s": 154.317,
+    "out_tokens": 85,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.9,
+    "delivered": false,
+    "done_s": 156.217
+   },
+   {
+    "sent_s": 154.836,
+    "out_tokens": 86,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.669,
+    "delivered": false,
+    "done_s": 156.505
+   },
+   {
+    "sent_s": 154.677,
+    "out_tokens": 27,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.383,
+    "delivered": false,
+    "done_s": 157.06
+   },
+   {
+    "sent_s": 156.427,
+    "out_tokens": 42,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.135,
+    "delivered": false,
+    "done_s": 158.562
+   },
+   {
+    "sent_s": 162.709,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.726,
+    "delivered": false,
+    "done_s": 164.435
+   },
+   {
+    "sent_s": 165.589,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 0.881,
+    "delivered": false,
+    "done_s": 166.471
+   },
+   {
+    "sent_s": 169.893,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.713,
+    "delivered": false,
+    "done_s": 171.606
+   },
+   {
+    "sent_s": 173.096,
+    "out_tokens": 31,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 0.731,
+    "delivered": false,
+    "done_s": 173.827
+   },
+   {
+    "sent_s": 174.761,
+    "out_tokens": 85,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.988,
+    "delivered": false,
+    "done_s": 176.749
+   },
+   {
+    "sent_s": 181.294,
+    "out_tokens": 74,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.667,
+    "delivered": false,
+    "done_s": 182.961
+   },
+   {
+    "sent_s": 185.223,
+    "out_tokens": 86,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 0.775,
+    "delivered": false,
+    "done_s": 185.998
+   },
+   {
+    "sent_s": 185.215,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.1,
+    "delivered": false,
+    "done_s": 186.314
+   },
+   {
+    "sent_s": 186.321,
+    "out_tokens": 116,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.199,
+    "delivered": false,
+    "done_s": 188.52
+   },
+   {
+    "sent_s": 190.41,
+    "out_tokens": 31,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.387,
+    "delivered": false,
+    "done_s": 191.797
+   },
+   {
+    "sent_s": 191.879,
+    "out_tokens": 200,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.878,
+    "delivered": false,
+    "done_s": 193.757
+   },
+   {
+    "sent_s": 194.824,
+    "out_tokens": 122,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.464,
+    "delivered": false,
+    "done_s": 196.288
+   },
+   {
+    "sent_s": 212.337,
+    "out_tokens": 200,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.902,
+    "delivered": false,
+    "done_s": 214.238
+   },
+   {
+    "sent_s": 219.357,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 0.955,
+    "delivered": false,
+    "done_s": 220.312
+   },
+   {
+    "sent_s": 220.465,
+    "out_tokens": 40,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.745,
+    "delivered": false,
+    "done_s": 223.21
+   },
+   {
+    "sent_s": 232.334,
+    "out_tokens": 113,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.812,
+    "delivered": false,
+    "done_s": 235.147
+   },
+   {
+    "sent_s": 239.696,
+    "out_tokens": 47,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.591,
+    "delivered": false,
+    "done_s": 241.287
+   },
+   {
+    "sent_s": 246.087,
+    "out_tokens": 122,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.183,
+    "delivered": false,
+    "done_s": 247.27
+   },
+   {
+    "sent_s": 248.127,
+    "out_tokens": 122,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.547,
+    "delivered": false,
+    "done_s": 250.674
+   },
+   {
+    "sent_s": 252.472,
+    "out_tokens": 60,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.398,
+    "delivered": false,
+    "done_s": 253.87
+   },
+   {
+    "sent_s": 255.727,
+    "out_tokens": 31,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.441,
+    "delivered": false,
+    "done_s": 258.168
+   },
+   {
+    "sent_s": 258.888,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.087,
+    "delivered": false,
+    "done_s": 260.975
+   },
+   {
+    "sent_s": 259.255,
+    "out_tokens": 116,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.409,
+    "delivered": false,
+    "done_s": 261.665
+   },
+   {
+    "sent_s": 265.74,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.747,
+    "delivered": false,
+    "done_s": 267.487
+   },
+   {
+    "sent_s": 282.608,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.216,
+    "delivered": false,
+    "done_s": 284.824
+   },
+   {
+    "sent_s": 285.131,
+    "out_tokens": 40,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.14,
+    "delivered": false,
+    "done_s": 287.271
+   },
+   {
+    "sent_s": 289.832,
+    "out_tokens": 41,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.269,
+    "delivered": false,
+    "done_s": 291.101
+   },
+   {
+    "sent_s": 297.61,
+    "out_tokens": 200,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.061,
+    "delivered": false,
+    "done_s": 298.671
+   },
+   {
+    "sent_s": 306.616,
+    "out_tokens": 45,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.22,
+    "delivered": false,
+    "done_s": 308.836
+   },
+   {
+    "sent_s": 309.661,
+    "out_tokens": 113,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.769,
+    "delivered": false,
+    "done_s": 312.43
+   },
+   {
+    "sent_s": 316.329,
+    "out_tokens": 42,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 0.924,
+    "delivered": false,
+    "done_s": 317.253
+   },
+   {
+    "sent_s": 320.108,
+    "out_tokens": 113,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.699,
+    "delivered": false,
+    "done_s": 321.807
+   },
+   {
+    "sent_s": 320.36,
+    "out_tokens": 116,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.392,
+    "delivered": false,
+    "done_s": 322.752
+   },
+   {
+    "sent_s": 323.213,
+    "out_tokens": 31,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 1.306,
+    "delivered": false,
+    "done_s": 324.519
+   },
+   {
+    "sent_s": 327.424,
+    "out_tokens": 60,
+    "ok": false,
+    "error": "ServiceUnavailable",
+    "detail": "gave up after 4 attempts (no service address yet)",
+    "latency_s": 2.719,
+    "delivered": false,
+    "done_s": 330.143
+   },
+   {
+    "sent_s": 353.153,
+    "out_tokens": 27,
+    "ok": true,
+    "latency_s": 3.858,
+    "ttft_s": 2.302,
+    "prompt_tokens": 2121,
+    "completion_tokens": 27,
+    "attempts": 1,
+    "done_s": 357.011
+   },
+   {
+    "sent_s": 355.297,
+    "out_tokens": 27,
+    "ok": true,
+    "latency_s": 1.784,
+    "ttft_s": 1.163,
+    "prompt_tokens": 2120,
+    "completion_tokens": 27,
+    "attempts": 1,
+    "done_s": 357.082
+   },
+   {
+    "sent_s": 340.181,
+    "out_tokens": 42,
+    "ok": true,
+    "latency_s": 17.137,
+    "ttft_s": 14.301,
+    "prompt_tokens": 2138,
+    "completion_tokens": 42,
+    "attempts": 1,
+    "done_s": 357.318
+   },
+   {
+    "sent_s": 349.594,
+    "out_tokens": 47,
+    "ok": true,
+    "latency_s": 7.84,
+    "ttft_s": 4.888,
+    "prompt_tokens": 1584,
+    "completion_tokens": 47,
+    "attempts": 1,
+    "done_s": 357.434
+   },
+   {
+    "sent_s": 336.839,
+    "out_tokens": 85,
+    "ok": true,
+    "latency_s": 21.877,
+    "ttft_s": 13.24,
+    "prompt_tokens": 5492,
+    "completion_tokens": 85,
+    "attempts": 4,
+    "done_s": 358.716
+   },
+   {
+    "sent_s": 336.484,
+    "out_tokens": 86,
+    "ok": true,
+    "latency_s": 22.291,
+    "ttft_s": 17.569,
+    "prompt_tokens": 7669,
+    "completion_tokens": 86,
+    "attempts": 4,
+    "done_s": 358.775
+   },
+   {
+    "sent_s": 336.476,
+    "out_tokens": 114,
+    "ok": true,
+    "latency_s": 22.738,
+    "ttft_s": 5.522,
+    "prompt_tokens": 5198,
+    "completion_tokens": 114,
+    "attempts": 4,
+    "done_s": 359.214
+   },
+   {
+    "sent_s": 336.705,
+    "out_tokens": 113,
+    "ok": true,
+    "latency_s": 22.561,
+    "ttft_s": 15.826,
+    "prompt_tokens": 5026,
+    "completion_tokens": 113,
+    "attempts": 4,
+    "done_s": 359.266
+   },
+   {
+    "sent_s": 358.003,
+    "out_tokens": 47,
+    "ok": true,
+    "latency_s": 1.506,
+    "ttft_s": 0.692,
+    "prompt_tokens": 1581,
+    "completion_tokens": 47,
+    "attempts": 1,
+    "done_s": 359.51
+   },
+   {
+    "sent_s": 369.137,
+    "out_tokens": 45,
+    "ok": true,
+    "latency_s": 20.999,
+    "ttft_s": 7.024,
+    "prompt_tokens": 7737,
+    "completion_tokens": 45,
+    "attempts": 1,
+    "done_s": 390.136
+   },
+   {
+    "sent_s": 374.013,
+    "out_tokens": 41,
+    "ok": true,
+    "latency_s": 16.125,
+    "ttft_s": 11.995,
+    "prompt_tokens": 1582,
+    "completion_tokens": 41,
+    "attempts": 1,
+    "done_s": 390.137
+   },
+   {
+    "sent_s": 373.993,
+    "out_tokens": 42,
+    "ok": true,
+    "latency_s": 16.166,
+    "ttft_s": 12.014,
+    "prompt_tokens": 2117,
+    "completion_tokens": 42,
+    "attempts": 1,
+    "done_s": 390.159
+   },
+   {
+    "sent_s": 377.625,
+    "out_tokens": 40,
+    "ok": true,
+    "latency_s": 12.534,
+    "ttft_s": 11.601,
+    "prompt_tokens": 2119,
+    "completion_tokens": 40,
+    "attempts": 1,
+    "done_s": 390.159
+   },
+   {
+    "sent_s": 380.382,
+    "out_tokens": 41,
+    "ok": true,
+    "latency_s": 12.487,
+    "ttft_s": 8.844,
+    "prompt_tokens": 1582,
+    "completion_tokens": 41,
+    "attempts": 1,
+    "done_s": 392.869
+   },
+   {
+    "sent_s": 374.633,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 24.387,
+    "ttft_s": 14.593,
+    "prompt_tokens": 7147,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 399.02
+   },
+   {
+    "sent_s": 371.031,
+    "out_tokens": 86,
+    "ok": true,
+    "latency_s": 28.174,
+    "ttft_s": 9.879,
+    "prompt_tokens": 7603,
+    "completion_tokens": 86,
+    "attempts": 1,
+    "done_s": 399.205
+   },
+   {
+    "sent_s": 393.17,
+    "out_tokens": 45,
+    "ok": true,
+    "latency_s": 6.173,
+    "ttft_s": 5.111,
+    "prompt_tokens": 1583,
+    "completion_tokens": 45,
+    "attempts": 1,
+    "done_s": 399.343
+   },
+   {
+    "sent_s": 373.801,
+    "out_tokens": 114,
+    "ok": true,
+    "latency_s": 25.988,
+    "ttft_s": 12.206,
+    "prompt_tokens": 5171,
+    "completion_tokens": 114,
+    "attempts": 1,
+    "done_s": 399.789
+   },
+   {
+    "sent_s": 384.953,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 14.908,
+    "ttft_s": 11.969,
+    "prompt_tokens": 7270,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 399.861
+   },
+   {
+    "sent_s": 392.456,
+    "out_tokens": 113,
+    "ok": true,
+    "latency_s": 8.037,
+    "ttft_s": 5.825,
+    "prompt_tokens": 5004,
+    "completion_tokens": 113,
+    "attempts": 1,
+    "done_s": 400.493
+   },
+   {
+    "sent_s": 406.864,
+    "out_tokens": 40,
+    "ok": true,
+    "latency_s": 1.716,
+    "ttft_s": 1.032,
+    "prompt_tokens": 2137,
+    "completion_tokens": 40,
+    "attempts": 1,
+    "done_s": 408.58
+   },
+   {
+    "sent_s": 401.958,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 6.683,
+    "ttft_s": 4.532,
+    "prompt_tokens": 7144,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 408.641
+   },
+   {
+    "sent_s": 408.62,
+    "out_tokens": 66,
+    "ok": true,
+    "latency_s": 1.621,
+    "ttft_s": 0.631,
+    "prompt_tokens": 1582,
+    "completion_tokens": 66,
+    "attempts": 1,
+    "done_s": 410.241
+   },
+   {
+    "sent_s": 416.713,
+    "out_tokens": 85,
+    "ok": true,
+    "latency_s": 4.692,
+    "ttft_s": 3.391,
+    "prompt_tokens": 5542,
+    "completion_tokens": 85,
+    "attempts": 1,
+    "done_s": 421.405
+   },
+   {
+    "sent_s": 423.745,
+    "out_tokens": 45,
+    "ok": true,
+    "latency_s": 10.076,
+    "ttft_s": 8.663,
+    "prompt_tokens": 7752,
+    "completion_tokens": 45,
+    "attempts": 1,
+    "done_s": 433.82
+   },
+   {
+    "sent_s": 429.955,
+    "out_tokens": 47,
+    "ok": true,
+    "latency_s": 3.935,
+    "ttft_s": 3.061,
+    "prompt_tokens": 1584,
+    "completion_tokens": 47,
+    "attempts": 1,
+    "done_s": 433.891
+   },
+   {
+    "sent_s": 422.916,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 11.333,
+    "ttft_s": 6.782,
+    "prompt_tokens": 7261,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 434.249
+   },
+   {
+    "sent_s": 446.701,
+    "out_tokens": 27,
+    "ok": true,
+    "latency_s": 5.763,
+    "ttft_s": 1.31,
+    "prompt_tokens": 2132,
+    "completion_tokens": 27,
+    "attempts": 1,
+    "done_s": 452.464
+   },
+   {
+    "sent_s": 447.686,
+    "out_tokens": 42,
+    "ok": true,
+    "latency_s": 5.122,
+    "ttft_s": 3.407,
+    "prompt_tokens": 5163,
+    "completion_tokens": 42,
+    "attempts": 1,
+    "done_s": 452.808
+   },
+   {
+    "sent_s": 450.002,
+    "out_tokens": 60,
+    "ok": true,
+    "latency_s": 3.16,
+    "ttft_s": 2.06,
+    "prompt_tokens": 2122,
+    "completion_tokens": 60,
+    "attempts": 1,
+    "done_s": 453.162
+   },
+   {
+    "sent_s": 442.168,
+    "out_tokens": 86,
+    "ok": true,
+    "latency_s": 11.274,
+    "ttft_s": 4.849,
+    "prompt_tokens": 7599,
+    "completion_tokens": 86,
+    "attempts": 1,
+    "done_s": 453.442
+   },
+   {
+    "sent_s": 457.116,
+    "out_tokens": 45,
+    "ok": true,
+    "latency_s": 2.506,
+    "ttft_s": 1.733,
+    "prompt_tokens": 1583,
+    "completion_tokens": 45,
+    "attempts": 1,
+    "done_s": 459.622
+   },
+   {
+    "sent_s": 453.636,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 6.407,
+    "ttft_s": 4.609,
+    "prompt_tokens": 7306,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 460.043
+   },
+   {
+    "sent_s": 462.812,
+    "out_tokens": 42,
+    "ok": true,
+    "latency_s": 4.406,
+    "ttft_s": 3.125,
+    "prompt_tokens": 5183,
+    "completion_tokens": 42,
+    "attempts": 1,
+    "done_s": 467.218
+   },
+   {
+    "sent_s": 463.63,
+    "out_tokens": 41,
+    "ok": true,
+    "latency_s": 3.603,
+    "ttft_s": 2.908,
+    "prompt_tokens": 1582,
+    "completion_tokens": 41,
+    "attempts": 1,
+    "done_s": 467.233
+   },
+   {
+    "sent_s": 473.506,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 15.126,
+    "ttft_s": 11.927,
+    "prompt_tokens": 7238,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 488.632
+   },
+   {
+    "sent_s": 476.255,
+    "out_tokens": 74,
+    "ok": true,
+    "latency_s": 12.416,
+    "ttft_s": 10.964,
+    "prompt_tokens": 7148,
+    "completion_tokens": 74,
+    "attempts": 1,
+    "done_s": 488.671
+   },
+   {
+    "sent_s": 471.583,
+    "out_tokens": 85,
+    "ok": true,
+    "latency_s": 17.194,
+    "ttft_s": 6.053,
+    "prompt_tokens": 5523,
+    "completion_tokens": 85,
+    "attempts": 1,
+    "done_s": 488.778
+   },
+   {
+    "sent_s": 473.015,
+    "out_tokens": 116,
+    "ok": true,
+    "latency_s": 16.277,
+    "ttft_s": 10.065,
+    "prompt_tokens": 5517,
+    "completion_tokens": 116,
+    "attempts": 1,
+    "done_s": 489.292
+   }
+  ]
+ }
+}

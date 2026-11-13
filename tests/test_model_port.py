@@ -151,7 +151,6 @@ def test_streaming_port_forwards_deltas_on_the_event_loop_thread(servers):
     async def scenario():
         main = threading.get_ident()
         reply = await port_for(srv, on_delta=sink).generate(make_request(), make_context(timeout_s=10))
-        await asyncio.sleep(0.05)                      # let queued call_soon_threadsafe callbacks run
         return main, reply
 
     main, reply = asyncio.run(scenario())
@@ -168,6 +167,99 @@ def test_streaming_port_interruption_is_recoverable(servers):
     with pytest.raises(CapabilityError) as err:
         asyncio.run(port_for(srv, on_delta=lambda *a: None).generate(make_request(), make_context()))
     assert err.value.issue.code == "model_unavailable" and err.value.recoverable
+
+
+@pytest.mark.parametrize("thinking", [None, True])
+def test_free_text_uses_per_call_hook_without_schema_and_drains_before_return(servers, thinking):
+    from dataclasses import replace
+    import threading
+    from tests.fake_vllm import Stream, sse_events
+    srv = servers([(200, Stream(sse_events(["Verified ", "plan."], reasoning=["hidden"])), 0)])
+    seen, threads = [], set()
+
+    def scoped(kind, text):
+        seen.append((kind, text))
+        threads.add(threading.get_ident())
+
+    def broken_legacy(*args):
+        raise ValueError("monitor failed")
+
+    async def scenario():
+        context = replace(make_context(), operation_id="r1:explain:1", on_delta=scoped)
+        request = make_request().model_copy(update={"action_schema": None, "tools": []})
+        assert to_chat_messages(request) == [message.model_dump() for message in request.messages]
+        port = port_for(srv, on_delta=broken_legacy, enable_thinking=thinking)
+        reply = await port.generate(request, context)
+        assert "".join(text for kind, text in seen if kind == "content") == reply.content == "Verified plan."
+        assert threads == {threading.get_ident()}
+    asyncio.run(scenario())
+    assert "response_format" not in srv.requests[0]
+    assert srv.requests[0]["stream"] is True
+    assert srv.requests[0]["chat_template_kwargs"]["enable_thinking"] == (thinking if thinking is not None else False)
+
+
+def test_shared_port_keeps_concurrent_scoped_hooks_separate(servers):
+    from dataclasses import replace
+    from tests.fake_vllm import Stream, sse_events
+    srv = servers([(200, Stream(sse_events(["Alpha ", "answer"]), interval_s=0.005), 0),
+                   (200, Stream(sse_events(["Beta ", "answer"]), interval_s=0.005), 0)])
+
+    async def scenario():
+        port = port_for(srv)
+        request = make_request().model_copy(update={"action_schema": None, "tools": []})
+        seen = {"alpha": [], "beta": []}
+
+        async def one(run_id):
+            context = replace(make_context(), run_id=run_id, operation_id=f"{run_id}:explain:1",
+                              on_delta=lambda kind, text: seen[run_id].append(text) if kind == "content" else None)
+            result = await port.generate(request, context)
+            assert "".join(seen[run_id]) == result.content
+            return result.content
+        results = await asyncio.gather(one("alpha"), one("beta"))
+        assert set(results) == {"Alpha answer", "Beta answer"}
+    asyncio.run(scenario())
+
+
+def test_port_ignores_late_callbacks_after_success_and_cancellation():
+    from dataclasses import replace
+    from types import SimpleNamespace
+
+    class Client:
+        delta = None
+        def chat(self, messages, *, on_delta, cancel, **kwargs):
+            self.delta = on_delta
+            on_delta("content", "early")
+            if self.block:
+                while not cancel.cancelled:
+                    time.sleep(0.001)
+                on_delta("content", "late")
+                from inference.client import Cancelled
+                raise Cancelled()
+            return SimpleNamespace(content="early", prompt_tokens=1, completion_tokens=1, finish_reason="stop")
+
+    async def scenario(block):
+        client = Client()
+        client.block = block
+        seen = []
+        ready = asyncio.Event()
+        def hook(kind, text):
+            seen.append(text)
+            ready.set()
+        context = replace(make_context(), on_delta=hook)
+        request = make_request().model_copy(update={"action_schema": None, "tools": []})
+        task = asyncio.create_task(VllmModelPort(client).generate(request, context))
+        await asyncio.wait_for(ready.wait(), 2)
+        if block:
+            context.cancellation.set()
+            with pytest.raises(CapabilityError):
+                await task
+        else:
+            await task
+        client.delta("content", "late")
+        await asyncio.sleep(0)
+        assert seen == ["early"]
+    asyncio.run(scenario(False))
+    asyncio.run(scenario(True))
 
 
 def test_decoder_schema_anchors_patterns_so_text_fields_are_not_one_character():

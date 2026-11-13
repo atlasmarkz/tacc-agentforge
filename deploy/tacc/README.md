@@ -1,5 +1,8 @@
 # Course-provided 27B AWQ service on TACC
 
+For agent checkpoint persistence, storage prerequisites and the two-job resume
+acceptance procedure, see [the agent deployment guide](service/agent-e2e/README.md).
+
 ## Knowledge CPU worker
 
 The knowledge module has a separate CPU-only SDK task with a pinned offline seed,

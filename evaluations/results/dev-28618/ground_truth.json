@@ -1,0 +1,561 @@
+{
+ "dev-01": {
+  "case_id": "dev-01",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 36,
+   "over_budget": 26,
+   "unverifiable": 8
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_640a303bc366430cfd53139e",
+    "variant_id": "variant_ec5f890a563cd6edd651031b",
+    "total": "16.87"
+   },
+   {
+    "offer_id": "offer_9abdcded66efad6da398fc54",
+    "variant_id": "variant_86baa5bdbe4d9381790c0003",
+    "total": "19.99"
+   },
+   {
+    "offer_id": "offer_267180016664816eae386568",
+    "variant_id": "variant_c3f96ae9f8d23d703ddd04fe",
+    "total": "22.99"
+   },
+   {
+    "offer_id": "offer_f5a685a88d82c246a767dd0c",
+    "variant_id": "variant_86baa5bdbe4d9381790c0003",
+    "total": "24.99"
+   },
+   {
+    "offer_id": "offer_72fd8a71b9c6c39494363cc5",
+    "variant_id": "variant_9b9a660883c0c6cf6f6ee6ea",
+    "total": "26.99"
+   },
+   {
+    "offer_id": "offer_b1ff8fbc23c191a81e4a287f",
+    "variant_id": "variant_86baa5bdbe4d9381790c0003",
+    "total": "26.99"
+   },
+   {
+    "offer_id": "offer_1177257f1a19cf10e4262886",
+    "variant_id": "variant_1fc0cd96824760fa54a0c73e",
+    "total": "29.99"
+   },
+   {
+    "offer_id": "offer_28bd4c47ac24fd8df1846080",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "29.99"
+   },
+   {
+    "offer_id": "offer_1aefd63c373ae0e2ba46ab4f",
+    "variant_id": "variant_466a93dc51ccab347c782209",
+    "total": "31.99"
+   },
+   {
+    "offer_id": "offer_3694cbc8d93b1c194eb5242b",
+    "variant_id": "variant_466a93dc51ccab347c782209",
+    "total": "31.99"
+   },
+   {
+    "offer_id": "offer_b384ab1a83e058f3f72b4b30",
+    "variant_id": "variant_466a93dc51ccab347c782209",
+    "total": "31.99"
+   },
+   {
+    "offer_id": "offer_b8a233b0951b29920fe98df4",
+    "variant_id": "variant_9b9a660883c0c6cf6f6ee6ea",
+    "total": "32.98"
+   },
+   {
+    "offer_id": "offer_2f9d3a47f9de9279aaf53fa3",
+    "variant_id": "variant_6199dac24d455cd462d2464f",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_27570c2c5607e32a55a75eff",
+    "variant_id": "variant_9b9a660883c0c6cf6f6ee6ea",
+    "total": "33.98"
+   },
+   {
+    "offer_id": "offer_332d5459a904c7478cd41228",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.95"
+   },
+   {
+    "offer_id": "offer_e1ee8b4dc7a34aac17ebfb00",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.95"
+   },
+   {
+    "offer_id": "offer_32cd5322a8ec4f0b0ed7fd0b",
+    "variant_id": "variant_1fc0cd96824760fa54a0c73e",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_85158517ae0b3281985120f9",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_8916b2d55b5f785ba29e898d",
+    "variant_id": "variant_26374ad4fdf03d84ce8589bb",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_a428848473eeb14347fae6ea",
+    "variant_id": "variant_1fc0cd96824760fa54a0c73e",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_a4bd94cbef11ef21822d3391",
+    "variant_id": "variant_26374ad4fdf03d84ce8589bb",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_80d0cf7513198a34a9353067",
+    "variant_id": "variant_2a57b003872e84a0b539a54b",
+    "total": "47.99"
+   },
+   {
+    "offer_id": "offer_9a4a611d37df10e67c2f284d",
+    "variant_id": "variant_2a57b003872e84a0b539a54b",
+    "total": "47.99"
+   },
+   {
+    "offer_id": "offer_f48ebca1e622b7951d681067",
+    "variant_id": "variant_2a57b003872e84a0b539a54b",
+    "total": "47.99"
+   },
+   {
+    "offer_id": "offer_5d7c158b76d8c472919d231f",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "49.94"
+   },
+   {
+    "offer_id": "offer_dc5fcb4486b83cb802783a04",
+    "variant_id": "variant_6199dac24d455cd462d2464f",
+    "total": "49.99"
+   },
+   {
+    "offer_id": "offer_fb5f1b5b2bca45ac80049b4d",
+    "variant_id": "variant_1fc0cd96824760fa54a0c73e",
+    "total": "52.98"
+   },
+   {
+    "offer_id": "offer_dea4836dbdfa755c4e78c5a8",
+    "variant_id": "variant_0d4a01b8f6c944fe115e7a86",
+    "total": "58"
+   },
+   {
+    "offer_id": "offer_8cc2b28ee6cd5ca6452183d9",
+    "variant_id": "variant_ac0edd6af030bd408303b9db",
+    "total": "59"
+   },
+   {
+    "offer_id": "offer_c10c7015777b70514056768f",
+    "variant_id": "variant_ac0edd6af030bd408303b9db",
+    "total": "59"
+   },
+   {
+    "offer_id": "offer_10afca64d4b220c980098a35",
+    "variant_id": "variant_0d4a01b8f6c944fe115e7a86",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_215532c386a99277ceef58e8",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_4504b173da7c35d34dd839d1",
+    "variant_id": "variant_6199dac24d455cd462d2464f",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_53518f4157cff0b89d94ef8e",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_f5975f3f41e3923fea6dbf70",
+    "variant_id": "variant_0d4a01b8f6c944fe115e7a86",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_fda1f8651ef25ebe81314004",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   }
+  ],
+  "cheapest_feasible_total": "16.87"
+ },
+ "dev-02": {
+  "case_id": "dev-02",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 21,
+   "over_budget": 14,
+   "unverifiable": 35
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_640a303bc366430cfd53139e",
+    "variant_id": "variant_ec5f890a563cd6edd651031b",
+    "total": "16.87"
+   },
+   {
+    "offer_id": "offer_28bd4c47ac24fd8df1846080",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "29.99"
+   },
+   {
+    "offer_id": "offer_332d5459a904c7478cd41228",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.95"
+   },
+   {
+    "offer_id": "offer_e1ee8b4dc7a34aac17ebfb00",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.95"
+   },
+   {
+    "offer_id": "offer_85158517ae0b3281985120f9",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_8916b2d55b5f785ba29e898d",
+    "variant_id": "variant_26374ad4fdf03d84ce8589bb",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_a4bd94cbef11ef21822d3391",
+    "variant_id": "variant_26374ad4fdf03d84ce8589bb",
+    "total": "39.99"
+   },
+   {
+    "offer_id": "offer_5d7c158b76d8c472919d231f",
+    "variant_id": "variant_f1dfb5de051286cd45714a7a",
+    "total": "49.94"
+   },
+   {
+    "offer_id": "offer_8cc2b28ee6cd5ca6452183d9",
+    "variant_id": "variant_ac0edd6af030bd408303b9db",
+    "total": "59"
+   },
+   {
+    "offer_id": "offer_c10c7015777b70514056768f",
+    "variant_id": "variant_ac0edd6af030bd408303b9db",
+    "total": "59"
+   },
+   {
+    "offer_id": "offer_215532c386a99277ceef58e8",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_53518f4157cff0b89d94ef8e",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_fda1f8651ef25ebe81314004",
+    "variant_id": "variant_ac19ef35a37ef54482c339df",
+    "total": "59.99"
+   },
+   {
+    "offer_id": "offer_10f182bef0f843ee61659b21",
+    "variant_id": "variant_a2e5e240d3b0288a90fbb0e3",
+    "total": "64.95"
+   },
+   {
+    "offer_id": "offer_437518ab805eeb212c736dd5",
+    "variant_id": "variant_a2e5e240d3b0288a90fbb0e3",
+    "total": "64.95"
+   },
+   {
+    "offer_id": "offer_62131b87fb3bd8272ea6254a",
+    "variant_id": "variant_a2e5e240d3b0288a90fbb0e3",
+    "total": "64.95"
+   },
+   {
+    "offer_id": "offer_846bad82648081fda6f35f36",
+    "variant_id": "variant_a2e5e240d3b0288a90fbb0e3",
+    "total": "64.95"
+   },
+   {
+    "offer_id": "offer_9a1839f3d77ab37d998ecb5b",
+    "variant_id": "variant_a2e5e240d3b0288a90fbb0e3",
+    "total": "64.95"
+   },
+   {
+    "offer_id": "offer_0f18340b638b392d8f96b0b6",
+    "variant_id": "variant_52df03051a65743e0b30f3a6",
+    "total": "64.99"
+   },
+   {
+    "offer_id": "offer_602e100a1cbca1789f44caa4",
+    "variant_id": "variant_52df03051a65743e0b30f3a6",
+    "total": "64.99"
+   },
+   {
+    "offer_id": "offer_839430b77bc8bb87cb1c21e8",
+    "variant_id": "variant_52df03051a65743e0b30f3a6",
+    "total": "64.99"
+   }
+  ],
+  "cheapest_feasible_total": "16.87"
+ },
+ "dev-03": {
+  "case_id": "dev-03",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "no_feasible_plan",
+  "counts": {
+   "over_budget": 62,
+   "unverifiable": 8
+  },
+  "feasible": [],
+  "cheapest_feasible_total": null
+ },
+ "dev-04": {
+  "case_id": "dev-04",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 9,
+   "over_budget": 11,
+   "unverifiable": 27,
+   "violates": 11
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_b5c72a6d4ae994b03eb4c708",
+    "variant_id": "variant_9f4a44de2fc06aaad06b1a0b",
+    "total": "6.59"
+   },
+   {
+    "offer_id": "offer_a00d81f84237fe5419130889",
+    "variant_id": "variant_21c9d9f1e36b0c070a7a8225",
+    "total": "29.98"
+   },
+   {
+    "offer_id": "offer_a9b03f93978a3a3b701c1153",
+    "variant_id": "variant_21c9d9f1e36b0c070a7a8225",
+    "total": "30.96"
+   },
+   {
+    "offer_id": "offer_751459d34fad9ada05975381",
+    "variant_id": "variant_21c9d9f1e36b0c070a7a8225",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_dddc8415829fce857245f161",
+    "variant_id": "variant_21c9d9f1e36b0c070a7a8225",
+    "total": "42.98"
+   },
+   {
+    "offer_id": "offer_00caf6d39b3984aa77aa7418",
+    "variant_id": "variant_134634b7f8641d70d5f16f98",
+    "total": "43.55"
+   },
+   {
+    "offer_id": "offer_d8fcc8add34ec47d03780c12",
+    "variant_id": "variant_21c9d9f1e36b0c070a7a8225",
+    "total": "48.98"
+   },
+   {
+    "offer_id": "offer_75636a8d16673bc714d85440",
+    "variant_id": "variant_fd96f2c96ec884789ea64fa9",
+    "total": "49.97"
+   },
+   {
+    "offer_id": "offer_f6a48f3d97db7413f350f9c2",
+    "variant_id": "variant_fd96f2c96ec884789ea64fa9",
+    "total": "49.99"
+   }
+  ],
+  "cheapest_feasible_total": "6.59"
+ },
+ "dev-05": {
+  "case_id": "dev-05",
+  "expected": "clarify",
+  "required_fields": [
+   "purchase_cap"
+  ],
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8"
+ },
+ "dev-06": {
+  "case_id": "dev-06",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 9,
+   "over_budget": 14,
+   "unverifiable": 26,
+   "violates": 14
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_85bbfcef5170c71acb2583fc",
+    "variant_id": "variant_9ba878bf9cfdfaa29f119f12",
+    "total": "85"
+   },
+   {
+    "offer_id": "offer_2c3292123148df91151087c8",
+    "variant_id": "variant_96901ccec43f32bf660e2c21",
+    "total": "89.99"
+   },
+   {
+    "offer_id": "offer_61603fb705dccbff7bfdfa41",
+    "variant_id": "variant_71c8d4aaf5ecf0c8c60cb59d",
+    "total": "89.99"
+   },
+   {
+    "offer_id": "offer_7d36f2f8844bfc7f8d28657d",
+    "variant_id": "variant_71c8d4aaf5ecf0c8c60cb59d",
+    "total": "89.99"
+   },
+   {
+    "offer_id": "offer_18ffd8dc64c3d9bf18c3963e",
+    "variant_id": "variant_f813c1b3712be58b2841c3e0",
+    "total": "90.23"
+   },
+   {
+    "offer_id": "offer_16083b159908768582771541",
+    "variant_id": "variant_71c8d4aaf5ecf0c8c60cb59d",
+    "total": "94.98"
+   },
+   {
+    "offer_id": "offer_0e8afe210909caf5a0b37eac",
+    "variant_id": "variant_9ba878bf9cfdfaa29f119f12",
+    "total": "99.99"
+   },
+   {
+    "offer_id": "offer_31ea4e8c87b3bdd9767c499c",
+    "variant_id": "variant_f813c1b3712be58b2841c3e0",
+    "total": "99.99"
+   },
+   {
+    "offer_id": "offer_4172376fd06167b0b9f9560e",
+    "variant_id": "variant_9ba878bf9cfdfaa29f119f12",
+    "total": "99.99"
+   }
+  ],
+  "cheapest_feasible_total": "85"
+ },
+ "dev-07": {
+  "case_id": "dev-07",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "no_feasible_plan",
+  "counts": {
+   "over_budget": 51,
+   "unverifiable": 12
+  },
+  "feasible": [],
+  "cheapest_feasible_total": null
+ },
+ "dev-08": {
+  "case_id": "dev-08",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 9,
+   "over_budget": 23,
+   "unverifiable": 19,
+   "violates": 9
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_2fc26d7b5321e5b5acfb0b4d",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_5a1da771ec2a8069268769cf",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_636567af8eaa3d655bdfbf6f",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "49.99"
+   },
+   {
+    "offer_id": "offer_2f3f717aaad7dc65d146fb9e",
+    "variant_id": "variant_14c07884778544226cac3569",
+    "total": "104.99"
+   },
+   {
+    "offer_id": "offer_621e83201ca2baabc6ed0ad0",
+    "variant_id": "variant_14c07884778544226cac3569",
+    "total": "104.99"
+   },
+   {
+    "offer_id": "offer_839e7d7247f2d6c46af55d74",
+    "variant_id": "variant_3f91737cfbfa3807a985d330",
+    "total": "109.95"
+   },
+   {
+    "offer_id": "offer_a6ce7f0713de83a91239aa9e",
+    "variant_id": "variant_3f91737cfbfa3807a985d330",
+    "total": "109.95"
+   },
+   {
+    "offer_id": "offer_e02e30ed2e4ada5964363588",
+    "variant_id": "variant_3f91737cfbfa3807a985d330",
+    "total": "109.95"
+   },
+   {
+    "offer_id": "offer_62b89e2efab4489c54914faf",
+    "variant_id": "variant_14c07884778544226cac3569",
+    "total": "114.99"
+   }
+  ],
+  "cheapest_feasible_total": "32.99"
+ },
+ "dev-09": {
+  "case_id": "dev-09",
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "expected": "plan",
+  "counts": {
+   "feasible": 4,
+   "over_budget": 35,
+   "unverifiable": 21
+  },
+  "feasible": [
+   {
+    "offer_id": "offer_2fc26d7b5321e5b5acfb0b4d",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_5a1da771ec2a8069268769cf",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "32.99"
+   },
+   {
+    "offer_id": "offer_daec3c8746ae52c2623db75c",
+    "variant_id": "variant_34bc6736aafd6b7ccfb277d2",
+    "total": "36.89"
+   },
+   {
+    "offer_id": "offer_636567af8eaa3d655bdfbf6f",
+    "variant_id": "variant_19fe55c44902e3c6c252b0f1",
+    "total": "49.99"
+   }
+  ],
+  "cheapest_feasible_total": "32.99"
+ },
+ "dev-10": {
+  "case_id": "dev-10",
+  "expected": "clarify",
+  "required_fields": [
+   "purchase_cap"
+  ],
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8"
+ }
+}
