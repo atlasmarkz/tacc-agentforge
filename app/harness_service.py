@@ -360,6 +360,8 @@ def main() -> int:
     ap.add_argument("--port", type=int, default=PORT)
     ap.add_argument("--explain", action="store_true", help="explain verified plans by default (per request: explain)")
     ap.add_argument("--deadline-s", type=float, default=0, help="stop accepting and exit after this many seconds")
+    ap.add_argument("--stop-file", type=Path, help="stop accepting and exit once this file exists (used by the "
+                                                   "vLLM job that runs this service next to vLLM)")
     ap.add_argument("--demo", action="store_true", help="offline UI development: scripted model, seed snapshot, "
                                                         "listens on 127.0.0.1 with --token")
     ap.add_argument("--token", default="demo")
@@ -398,6 +400,19 @@ def main() -> int:
         stop = asyncio.Event()
         if a.deadline_s > 0:
             asyncio.get_running_loop().call_later(a.deadline_s, stop.set)
+        if a.stop_file:
+            async def watch_stop_file():
+                log(f"watching stop file {a.stop_file}")
+                while True:
+                    try:
+                        if os.path.exists(a.stop_file):
+                            break
+                    except Exception as exc:                  # never let the watcher die silently
+                        log(f"stop file check failed: {exc!r}")
+                    await asyncio.sleep(1)
+                log(f"stop file {a.stop_file} found: stop accepting")
+                stop.set()
+            watcher = asyncio.create_task(watch_stop_file())   # noqa: F841 (kept alive until the loop ends)
         try:
             await serve(service, "0.0.0.0", a.port, ready=publish, stop=stop)
         finally:

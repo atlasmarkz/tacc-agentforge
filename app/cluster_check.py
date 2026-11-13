@@ -39,6 +39,14 @@ class Browser:
         finally:
             conn.close()
 
+    def get(self, path):
+        conn = http.client.HTTPConnection(self.host, self.port, timeout=60)
+        try:
+            conn.request("GET", path)
+            return conn.getresponse().read()
+        finally:
+            conn.close()
+
     def stream(self, path, body, on_event=None):
         """Returns (http status, summary). Timing is measured as the browser would see it."""
         t0 = time.monotonic()
@@ -100,11 +108,47 @@ def brief(out):
             "usage": r.get("usage"), "steps": [t for _, t in out["events"] if t not in ("explain_delta",)]}
 
 
+def soak(base: str, duration_s: float, interval_s: float, out: Path) -> None:
+    """Across a handover: one request every interval for duration; records which harness job and vLLM served
+    each, so a gap or a failed request during the switch shows up. The report is rewritten after every request."""
+    msgs = [("Recommend wireless earbuds for my daily commute.", "100.00"),
+            ("Recommend a backpack for commuting.", "80.00"),
+            ("I need a USB-C charger for my laptop and phone.", "60.00")]
+    rows, t_end, i = [], time.monotonic() + duration_s, 0
+    while time.monotonic() < t_end:
+        t0 = time.monotonic()
+        m = msgs[i % len(msgs)]
+        b = Browser(base)
+        try:
+            health = json.loads(b.get("/api/health")).get("harness") or {}
+        except Exception as exc:
+            health = {"error": str(exc)}
+        try:
+            r = brief(b.stream("/api/ask", {"message": m[0], "constraints": {"purchase_cap": m[1], "currency": "USD"},
+                                            "explain": False}))
+        except Exception as exc:
+            r = {"exception": f"{type(exc).__name__}: {exc}"}
+        row = {"at": time.strftime("%H:%M:%S"), "i": i, "http": r.get("http"), "status": r.get("status"),
+               "stop_reason": r.get("stop_reason"), "error": r.get("error") or r.get("exception"),
+               "wall_s": r.get("wall_s"), "harness_job": r.get("harness_job"),
+               "model_address": health.get("model_address"), "health_job": health.get("job_id")}
+        rows.append(row)
+        print(json.dumps(row, ensure_ascii=False), flush=True)
+        out.write_text(json.dumps({"soak": rows}, indent=1, ensure_ascii=False), encoding="utf-8")
+        i += 1
+        time.sleep(max(0.0, interval_s - (time.monotonic() - t0)))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--backend", default="http://127.0.0.1:8765")
     ap.add_argument("--out", type=Path, required=True)
+    ap.add_argument("--soak-s", type=float, default=0, help="instead of the scenarios: one request every "
+                                                             "--interval-s for this long (handover check)")
+    ap.add_argument("--interval-s", type=float, default=30)
     a = ap.parse_args()
+    if a.soak_s:
+        return soak(a.backend, a.soak_s, a.interval_s, a.out)
     report = {}
 
     def run(name, fn):

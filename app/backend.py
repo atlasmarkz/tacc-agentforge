@@ -111,12 +111,21 @@ class HarnessClient:
 class Tunnel:
     """Reads the harness address and token from USERDIR over SSH and keeps an `ssh -L` tunnel to it."""
 
-    def __init__(self, ssh_target, ssh_port, key, remote_userdir, local_port=18100):
+    def __init__(self, ssh_target, ssh_port, key, remote_userdir):
         self.ssh = ["ssh", "-p", str(ssh_port), "-i", str(key), "-o", "BatchMode=yes", "-o", "ConnectTimeout=20",
                     "-o", "ServerAliveInterval=15", "-o", "ServerAliveCountMax=3"]
         self.target, self.remote = ssh_target, remote_userdir.rstrip("/") + "/tacc-agentforge-service"
-        self.local_port, self.proc, self.remote_addr, self.token = local_port, None, None, None
+        self.local_port, self.proc, self.remote_addr, self.token = None, None, None, None
         self.lock = threading.Lock()
+
+    @staticmethod
+    def _free_port():
+        # A fresh port for every tunnel. With a fixed port, an ssh left over from an earlier backend (killed
+        # without cleanup) kept the port forwarded to a stopped harness; the new tunnel failed to bind and
+        # exited, but the port still answered, so every request went to the dead forward (job 28963 soak).
+        with socket.socket() as s:
+            s.bind(("127.0.0.1", 0))
+            return s.getsockname()[1]
 
     def _read_remote(self):
         cmd = self.ssh + [self.target, f"cat {self.remote}/harness-url.txt {self.remote}/harness-token.txt"]
@@ -124,7 +133,7 @@ class Tunnel:
         lines = [l.strip() for l in out.stdout.splitlines() if l.strip()]
         if out.returncode != 0 or len(lines) != 2:
             raise HarnessError("The harness service is not running (no published address). Start the "
-                               "deploy/tacc/service/app-service job first.")
+                               "service job first (qwen-service staged with: stage.sh serve --harness).")
         return lines[0], lines[1]
 
     def _alive(self):
@@ -143,6 +152,7 @@ class Tunnel:
                 if addr != self.remote_addr or not self._alive():
                     self.close()
                     u = urlsplit(addr)
+                    self.local_port = self._free_port()
                     self.proc = subprocess.Popen(
                         self.ssh + ["-N", "-o", "ExitOnForwardFailure=yes",
                                     "-L", f"127.0.0.1:{self.local_port}:{u.hostname}:{u.port}", self.target],
@@ -288,11 +298,19 @@ def make_handler(backend: Backend):
         def relay(self, session, run_id, path, payload, kind, parent=None):
             """Pass the harness's SSE stream through, one event per chunk, and log the outcome."""
             t0 = time.monotonic()
-            try:
-                events = backend.client.stream(path, payload)
-                first = next(events)                         # fail before sending 200 if the harness is down
-            except (HarnessError, OSError, StopIteration) as exc:
-                backend.refresh()
+            exc = None
+            for _ in range(2):
+                try:
+                    events = backend.client.stream(path, payload)
+                    first = next(events)                     # fail before sending 200 if the harness is down
+                    exc = None
+                    break
+                except (HarnessError, OSError, StopIteration) as e:
+                    # The service may have moved (new job or handover) while the old tunnel still accepts
+                    # locally: re-read the published address and try once more before giving up.
+                    exc = e
+                    backend.refresh()
+            if exc is not None:
                 backend.record(session=session, run_id=run_id, kind=kind, parent=parent, status="unreachable",
                                error=str(exc)[:300])
                 return self._json(503, {"error": {"code": "harness_unavailable", "message": str(exc)[:300]}})

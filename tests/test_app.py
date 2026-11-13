@@ -19,6 +19,33 @@ def test_service_selftest_end_to_end():
     assert asyncio.run(run_selftest(ROOT / "configs/knowledge.json")) == 0
 
 
+def test_service_publishes_and_stops_on_its_stop_file(tmp_path):
+    """The vLLM job stops the harness with a stop file: it must exit and withdraw its own address."""
+    import os
+    import subprocess
+    import sys
+    import time
+    env = dict(os.environ, TACC_USERDIR=str(tmp_path), PYTHONUTF8="1")
+    stop = tmp_path / "harness-stop"
+    proc = subprocess.Popen([sys.executable, "-m", "app.harness_service", "--port", "0", "--stop-file", str(stop)],
+                            cwd=ROOT, env=env, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True)
+    url = tmp_path / "tacc-agentforge-service/harness-url.txt"
+    try:
+        for _ in range(240):
+            if url.exists() or proc.poll() is not None:
+                break
+            time.sleep(0.25)
+        assert url.exists(), proc.stdout.read() if proc.poll() is not None else "not published"
+        assert (tmp_path / "tacc-agentforge-service/harness-token.txt").exists()
+        stop.touch()
+        out, _ = proc.communicate(timeout=30)
+        assert proc.returncode == 0, out
+        assert not url.exists() and "stop file" in out
+    finally:
+        if proc.poll() is None:
+            proc.kill()
+
+
 class FakeHarness:
     """Stands in for HarnessClient: records calls, streams a short run."""
 
@@ -81,6 +108,22 @@ def test_backend_creates_run_ids_and_keeps_sessions_apart(backend):
     rows = [json.loads(l) for l in (tmp / "requests.jsonl").read_text(encoding="utf-8").splitlines()]
     assert [r["kind"] for r in rows] == ["request", "revision"]
     assert rows[1]["parent"] == run_id and rows[0]["status"] == "completed" and rows[0]["harness_job"] == "j1"
+
+
+def test_backend_rereads_the_address_once_when_the_service_moved(backend):
+    """After a handover the old tunnel still accepts locally; the backend re-reads the address and retries."""
+    port, fake, b, tmp = backend
+    from app.backend import HarnessError
+    refreshed, real_stream = [], fake.stream
+
+    def moved_once(path, payload):
+        if not refreshed:
+            raise HarnessError("connection refused")
+        yield from real_stream(path, payload)
+    fake.stream = moved_once
+    b.refresh = lambda: refreshed.append(1)
+    status, text = call(port, "/api/ask", {"session_id": "dddddddd-4444", "message": "earbuds"})
+    assert status == 200 and "event: end" in text and refreshed == [1]
 
 
 def test_backend_rejects_bad_sessions_and_reports_an_unreachable_harness(backend, tmp_path):

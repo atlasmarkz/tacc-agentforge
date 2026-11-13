@@ -71,4 +71,7 @@ deploy/tacc/service/net-probe-*/
 # Task 5: staged service package, local options and the backend's request log
 deploy/tacc/service/app-service/pkg/
 deploy/tacc/service/app-service/args.txt
+deploy/tacc/service/qwen-service/pkg/
+deploy/tacc/service/qwen-service/harness-lib.sh
+deploy/tacc/service/qwen-service/harness-args.txt
 app/logs/
