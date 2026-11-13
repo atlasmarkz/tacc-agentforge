@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>购物顾问</title>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #5d6676; --line: #dfe3ea;
+    --accent: #2457c5; --accent-text: #ffffff; --ok: #1f7a4d; --warn: #9a5b00; --bad: #b42318;
+    --chip: #eef2f8; --code: #f1f3f6;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #14171c; --panel: #1c2027; --text: #e6e9ef; --muted: #9aa3b2; --line: #2f3540;
+      --accent: #7aa2ff; --accent-text: #0e1320; --ok: #5cc98f; --warn: #e3a64a; --bad: #ff8a80;
+      --chip: #252b35; --code: #232831;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 15px/1.55 system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 20px 16px 60px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { font-size: 22px; margin: 0; }
+  .status { font-size: 13px; color: var(--muted); }
+  .status b { font-weight: 600; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; background: var(--muted); }
+  .dot.ok { background: var(--ok); } .dot.bad { background: var(--bad); }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; margin-top: 16px; }
+  h2 { font-size: 15px; margin: 0 0 10px; }
+  label { display: block; font-size: 13px; color: var(--muted); margin: 10px 0 4px; }
+  textarea, input, select { width: 100%; font: inherit; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; }
+  textarea { min-height: 72px; resize: vertical; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .row > * { flex: 1 1 140px; }
+  .actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; align-items: center; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--chip); color: var(--text);
+    border-radius: 8px; padding: 7px 14px; cursor: pointer; }
+  button.primary { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  button:disabled { opacity: .55; cursor: not-allowed; }
+  .check { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+  .check input { width: auto; }
+  ol.steps { list-style: none; margin: 0; padding: 0; font-size: 14px; }
+  ol.steps li { padding: 4px 0; display: flex; gap: 10px; }
+  ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 52px; }
+  ol.steps .bad { color: var(--bad); }
+  .banner { border-radius: 8px; padding: 10px 12px; margin-top: 12px; font-size: 14px; }
+  .banner.err { background: color-mix(in srgb, var(--bad) 12%, transparent); color: var(--bad); }
+  .banner.warn { background: color-mix(in srgb, var(--warn) 14%, transparent); color: var(--warn); }
+  .banner.ok { background: color-mix(in srgb, var(--ok) 12%, transparent); color: var(--ok); }
+  .item { border-top: 1px solid var(--line); padding: 10px 0; }
+  .item:first-child { border-top: 0; }
+  .item .title { font-weight: 600; }
+  .meta { color: var(--muted); font-size: 13px; }
+  .money { font-variant-numeric: tabular-nums; }
+  table { border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  td { padding: 2px 14px 2px 0; }
+  .explain { white-space: pre-wrap; background: var(--code); border-radius: 8px; padding: 10px 12px; margin-top: 10px; }
+  .draft { color: var(--muted); font-size: 12px; }
+  .ev { font-size: 13px; padding: 8px 0; border-top: 1px dashed var(--line); }
+  .ev a { color: var(--accent); word-break: break-all; }
+  .ev .excerpt { color: var(--muted); margin-top: 4px; }
+  .hidden { display: none; }
+  code { background: var(--code); padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>购物顾问</h1>
+    <div class="status" id="health"><span class="dot"></span>正在连接…</div>
+  </header>
+
+  <section id="ask">
+    <h2>你想买什么?</h2>
+    <label for="msg">需求</label>
+    <textarea id="msg" placeholder="例如:推荐一副通勤用的无线耳机"></textarea>
+    <div class="row">
+      <div><label for="cap">预算上限(可不填,系统会追问)</label><input id="cap" inputmode="decimal" placeholder="100.00"></div>
+      <div><label for="cur">币种</label><select id="cur"><option>USD</option></select></div>
+    </div>
+    <div class="actions">
+      <button class="primary" id="send">提交</button>
+      <button id="cancel" class="hidden">停止</button>
+      <label class="check"><input type="checkbox" id="explain" checked>生成推荐理由</label>
+    </div>
+    <div id="askError"></div>
+  </section>
+
+  <section id="progress" class="hidden">
+    <h2>进度 <span class="meta" id="runId"></span></h2>
+    <ol class="steps" id="steps"></ol>
+    <div id="streamError"></div>
+  </section>
+
+  <section id="question" class="hidden">
+    <h2>需要你补充</h2>
+    <div id="qText"></div>
+    <div id="qFields"></div>
+    <div class="actions"><button class="primary" id="qSend">回答并继续</button></div>
+  </section>
+
+  <section id="result" class="hidden">
+    <h2>结果</h2>
+    <div id="resultBody"></div>
+    <div id="explainBox" class="hidden"><div class="explain" id="explainText"></div><div class="draft" id="explainNote"></div></div>
+    <div id="sources"></div>
+  </section>
+
+  <section id="revise" class="hidden">
+    <h2>修改需求</h2>
+    <label for="revMsg">想改什么?</label>
+    <textarea id="revMsg" placeholder="例如:便宜一点的,或者要降噪的"></textarea>
+    <div class="row">
+      <div><label for="revCap">新的预算上限(可不填)</label><input id="revCap" inputmode="decimal"></div>
+    </div>
+    <div class="actions"><button class="primary" id="revSend">按修改重新推荐</button></div>
+  </section>
+</main>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const session = (() => {
+  try {
+    let s = sessionStorage.getItem("session_id");
+    if (!s) { s = crypto.randomUUID(); sessionStorage.setItem("session_id", s); }
+    return s;
+  } catch (e) { return crypto.randomUUID(); }
+})();
+
+const FIELD_LABELS = { purchase_cap: "预算上限", currency: "币种", periodic_budget: "周期预算", spending: "本期已花费", reserve: "需保留金额" };
+const TOOL_LABELS = { search_products: "搜索商品", retrieve_evidence: "检索证据", get_offer_facts: "查询报价详情",
+                      resolve_evidence: "展开证据", describe_filters: "查看可用筛选条件" };
+const STATUS_TEXT = { completed: "已完成", incomplete: "未完成", failed: "失败", cancelled: "已停止", waiting_user: "等待你的回答" };
+const STOP_TEXT = {
+  validation_unavailable: "预算校验暂时不可用", question_expired: "问题已过期,请重新提交",
+  deadline_exceeded: "超出运行时限", model_unavailable: "模型服务暂时不可用,请稍后重试",
+  max_model_calls: "模型调用次数用完", plan_repairs_exhausted: "多次修改后仍未找到满足预算的方案",
+};
+
+let state = { runId: null, lastRequest: null, original: null, pending: null, t0: 0, explain: "", busy: false };
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === "class") n.className = v; else n.setAttribute(k, v);
+  }
+  for (const k of kids) n.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return n;
+}
+function show(id, on) { $(id).classList.toggle("hidden", !on); }
+function banner(target, kind, text, retry) {
+  const box = $(target); box.replaceChildren();
+  if (!text) return;
+  const b = el("div", { class: "banner " + kind }, text);
+  if (retry) { const r = el("button", {}, "重试"); r.style.marginLeft = "10px"; r.onclick = retry; b.append(r); }
+  box.append(b);
+}
+function money(minorOrText, cur) {
+  if (minorOrText === null || minorOrText === undefined) return "未知";
+  return `${minorOrText} ${cur || ""}`.trim();
+}
+function step(text, bad) {
+  const t = ((performance.now() - state.t0) / 1000).toFixed(1) + "s";
+  $("steps").append(el("li", {}, el("span", { class: "t" }, t), el("span", { class: bad ? "bad" : "" }, text)));
+}
+function setBusy(b) {
+  state.busy = b;
+  for (const id of ["send", "qSend", "revSend"]) $(id).disabled = b;
+  show("cancel", b);
+}
+
+async function health() {
+  try {
+    const r = await (await fetch("/api/health")).json();
+    const h = r.harness;
+    $("health").replaceChildren(el("span", { class: "dot " + (h ? "ok" : "bad") }),
+      h ? `已连接 · 作业 ${h.job_id} · 快照 ${h.snapshot_id.slice(0, 18)}…` : "未连接:" + (r.error || "服务不可用"));
+  } catch (e) {
+    $("health").replaceChildren(el("span", { class: "dot bad" }), "本地后端不可用");
+  }
+}
+
+function describe(ev) {
+  const d = ev.data || {};
+  switch (ev.type) {
+    case "run_started": return "开始处理";
+    case "run_resumed": return "收到回答,继续处理";
+    case "decision_started": return "模型思考下一步…";
+    case "action_selected": return d.action_type === "call_tool" ? null : d.action_type === "propose_plan" ? "模型提出方案" : "模型需要补充信息";
+    case "action_rejected": return ["模型输出无效,要求重写(" + d.code + ")", true];
+    case "tool_started": return (TOOL_LABELS[d.tool] || d.tool) + "…";
+    case "tool_finished": return d.status === "ok" ? null : [(TOOL_LABELS[d.tool] || d.tool) + " 出错(" + d.code + ")", true];
+    case "tool_rejected": return ["工具参数无效(" + d.code + ")", true];
+    case "validation_finished": return d.status === "passed" ? "预算校验通过" : ["预算校验未通过(" + d.status + "),让模型修改", d.status !== "passed"];
+    case "explain_started": return "生成推荐理由…";
+    case "explain_done": return d.fallback ? "推荐理由未通过检查,改用模板" : "推荐理由已核对";
+    case "answer_rejected": return ["回答无效(" + d.code + ")", true];
+    default: return null;
+  }
+}
+
+async function streamCall(path, body, onEvent) {
+  const resp = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+                                   body: JSON.stringify({ session_id: session, ...body }) });
+  if (!resp.ok) {
+    let msg = "请求失败(" + resp.status + ")";
+    try { const j = await resp.json(); msg = j.error && j.error.message || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  const reader = resp.body.getReader(), dec = new TextDecoder();
+  let buf = "", sawEnd = false;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      let event = null, data = "";
+      for (const line of chunk.split("\n")) {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        else if (line.startsWith("data:")) data += line.slice(5).trim();
+      }
+      if (!event) continue;
+      if (event === "end") sawEnd = true;
+      onEvent(event, data ? JSON.parse(data) : null);
+    }
+  }
+  if (!sawEnd) throw new Error("与服务的连接中断了,结果可能不完整。");
+}
+
+function handle(event, data) {
+  if (event === "meta") { state.runId = data.run_id; $("runId").textContent = data.run_id; return; }
+  if (event === "error") {
+    const map = { not_waiting: "这个问题已经回答过了", run_not_found: "找不到这次运行(服务可能已换到新作业),请重新提交",
+                  question_mismatch: "问题已变化,请刷新后重试", run_busy: "这次运行正在处理中" };
+    step(map[data.code] || ("出错:" + data.code), true);
+    return;
+  }
+  if (event !== "agent") return;
+  if (data.type === "explain_delta") {
+    state.explain += data.data.text || "";
+    show("result", true); show("explainBox", true);
+    $("explainText").textContent = state.explain;
+    $("explainNote").textContent = "草稿:正在生成,完成后会核对数字和引用";
+    return;
+  }
+  const text = describe(data);
+  if (text) Array.isArray(text) ? step(text[0], text[1]) : step(text);
+  if (data.result) render(data.result);
+}
+
+function render(r) {
+  if (r.status === "waiting_user" && r.pending_question) {
+    state.pending = r.pending_question;
+    show("question", true);
+    $("qText").textContent = r.pending_question.question;
+    const box = $("qFields"); box.replaceChildren();
+    for (const f of r.pending_question.required_fields) {
+      const id = "q_" + f;
+      box.append(el("label", { for: id }, FIELD_LABELS[f] || f));
+      const input = f === "currency" ? el("select", { id }, el("option", {}, "USD")) : el("input", { id, inputmode: "decimal" });
+      box.append(input);
+    }
+    step("等待你的回答");
+    return;
+  }
+  show("question", false);
+  show("result", true);
+  const body = $("resultBody"); body.replaceChildren();
+  const ok = r.status === "completed" && r.verified_plan;
+  body.append(el("div", { class: "banner " + (ok ? "ok" : r.status === "cancelled" ? "warn" : "err") },
+    (STATUS_TEXT[r.status] || r.status) + (r.stop_reason ? " · " + (STOP_TEXT[r.stop_reason] || r.stop_reason) : "")));
+  if (ok) {
+    const p = r.verified_plan;
+    const items = el("div", {});
+    for (const it of p.items) items.append(el("div", { class: "item", "data-offer": it.offer_id },
+      el("div", { class: "title" }, "报价 " + it.offer_id), el("div", { class: "meta" }, "数量 " + it.quantity)));
+    body.append(items);
+    const t = el("table", {});
+    const pre = !("tax" in (p.cost_breakdown || {}));
+    const COST = { items: "商品", shipping: "运费", tax: "税" };
+    for (const [k, v] of Object.entries(p.cost_breakdown || {})) t.append(el("tr", {}, el("td", {}, COST[k] || k), el("td", { class: "money" }, money(v, p.currency))));
+    t.append(el("tr", {}, el("td", {}, el("b", {}, "合计" + (pre ? "(不含税)" : ""))), el("td", { class: "money" }, el("b", {}, money(p.total_cost, p.currency)))));
+    t.append(el("tr", {}, el("td", {}, "剩余预算"), el("td", { class: "money" }, money(p.remaining_funds, p.currency))));
+    body.append(t);
+    if (r.explanation) {
+      show("explainBox", true);
+      $("explainText").textContent = r.explanation.text;
+      $("explainNote").textContent = r.explanation.fallback ? "模型写的理由没通过检查,这是根据方案生成的模板" : "已核对:数字和引用都来自方案与证据";
+    }
+    lookup(p);
+    show("revise", true);
+  } else {
+    if (r.issues && r.issues.length) body.append(el("div", { class: "meta" }, "问题:" + r.issues.map(i => i.message || i.code).join(";")));
+    if (r.clarification && r.status !== "waiting_user") body.append(el("p", {}, r.clarification.question));
+    show("revise", !!state.original);
+  }
+  const u = r.usage || {};
+  body.append(el("div", { class: "meta" }, `模型调用 ${u.model_calls ?? "-"} 次 · 工具调用 ${u.tool_calls ?? "-"} 次 · 用时 ${u.elapsed_s ?? "-"} 秒`));
+}
+
+async function lookup(plan) {
+  const offer_ids = plan.items.map(i => i.offer_id);
+  const evidence_ids = [...new Set(plan.items.flatMap(i => i.evidence_ids))];
+  try {
+    const resp = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: session, run_id: state.runId, offer_ids, evidence_ids }) });
+    const r = await resp.json();
+    if (!resp.ok) throw new Error(r.error && r.error.message);
+    for (const o of r.offers) {
+      const node = document.querySelector(`[data-offer="${CSS.escape(o.offer_id)}"]`);
+      if (!node || node.dataset.filled) continue;
+      node.dataset.filled = "1";
+      node.querySelector(".title").textContent = o.store_title || o.offer_id;
+      const ship = o.shipping_status === "known" ? (o.shipping_minor === 0 ? "免运费" : "运费 " + (o.shipping_minor / 100).toFixed(2)) : "运费未知";
+      const tax = o.tax_status === "known" ? "税 " + (o.tax_minor / 100).toFixed(2) : "税费未知";
+      const age = o.price_stale ? ` · 价格观察于 ${(o.observed_at || "").slice(0, 10)}` : "";
+      node.querySelector(".meta").textContent = `${(o.price_minor / 100).toFixed(2)} ${o.currency} · ${ship} · ${tax} · 数量 ${plan.items.find(i => i.offer_id === o.offer_id).quantity}${age}`;
+    }
+    const box = $("sources"); box.replaceChildren(el("h2", {}, "来源"));
+    for (const e of r.evidence) {
+      const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
+      box.append(el("div", { class: "ev" },
+        el("div", {}, el("b", {}, e.title || e.evidence_id), " ", el("span", { class: "meta" }, `${e.source_label || ""} · 观察于 ${e.observed_at || "未知"}`)),
+        url ? el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, url) : el("span", { class: "meta" }, "无链接"),
+        e.text ? el("div", { class: "excerpt" }, e.text.length > 300 ? e.text.slice(0, 300) + "…" : e.text) : ""));
+    }
+  } catch (e) {
+    $("sources").replaceChildren(el("div", { class: "meta" }, "来源加载失败:" + e.message));
+  }
+}
+
+function resetRun() {
+  state.explain = ""; state.pending = null; state.t0 = performance.now();
+  $("steps").replaceChildren(); banner("streamError"); banner("askError");
+  show("progress", true); show("question", false); show("result", false); show("explainBox", false); show("revise", false);
+  $("sources").replaceChildren();
+}
+
+async function run(path, body, retryLabel) {
+  setBusy(true);
+  state.lastRequest = { path, body };
+  try {
+    await streamCall(path, body, handle);
+  } catch (e) {
+    banner("streamError", "err", e.message, () => { resetRun(); run(path, body); });
+  } finally {
+    setBusy(false);
+  }
+}
+
+function constraintsFrom(cap, cur) {
+  cap = (cap || "").trim();
+  return cap ? { purchase_cap: cap, currency: cur } : {};
+}
+
+$("send").onclick = () => {
+  const message = $("msg").value.trim();
+  if (!message) { banner("askError", "warn", "请先写下你的需求。"); return; }
+  const constraints = constraintsFrom($("cap").value, $("cur").value);
+  if (constraints.purchase_cap && !/^\d+(\.\d{1,2})?$/.test(constraints.purchase_cap)) { banner("askError", "warn", "预算请写成数字,例如 100 或 99.50。"); return; }
+  state.original = { message, constraints };
+  resetRun();
+  run("/api/ask", { message, constraints, explain: $("explain").checked });
+};
+
+$("qSend").onclick = () => {
+  const q = state.pending; if (!q) return;
+  const answer = {};
+  for (const f of q.required_fields) {
+    const v = $("q_" + f).value.trim();
+    if (!v) { banner("streamError", "warn", "请填写:" + (FIELD_LABELS[f] || f)); return; }
+    answer[f] = v;
+  }
+  if (state.original) state.original.constraints = { ...state.original.constraints, ...answer };
+  show("question", false);
+  run("/api/answer", { run_id: state.runId, question_id: q.question_id, answer });
+};
+
+$("revSend").onclick = () => {
+  const rev = $("revMsg").value.trim();
+  if (!rev || !state.original) { banner("streamError", "warn", "请写下要修改的地方。"); return; }
+  const cap = $("revCap").value.trim();
+  const constraints = cap ? { ...state.original.constraints, purchase_cap: cap, currency: state.original.constraints.currency || "USD" } : state.original.constraints;
+  const parent = state.runId;
+  const message = state.original.message + "\n修改要求:" + rev;
+  state.original = { message, constraints };
+  resetRun();
+  run("/api/ask", { message, constraints, revises: parent, explain: $("explain").checked });
+};
+
+$("cancel").onclick = async () => {
+  if (!state.runId) return;
+  await fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" },
+                               body: JSON.stringify({ session_id: session, run_id: state.runId }) });
+  step("已请求停止");
+};
+
+health(); setInterval(health, 30000);
+</script>
+</body>
+</html>
