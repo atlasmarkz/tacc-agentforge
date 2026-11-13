@@ -22,13 +22,13 @@ class ScriptedPort:
 
     async def generate(self, request, context):
         if request.action_schema is None:
-            return ModelReply(content="这款耳机在预算之内，适合日常通勤。", finish_reason="stop")
+            return ModelReply(content="This pair stays within your budget and suits a daily commute.", finish_reason="stop")
         user = next(m.content for m in request.messages if m.role == "user")
         obs = [json.loads(m.content)["observation"] for m in request.messages
                if m.role == "user" and m.content.startswith('{"observation":')]
         if "purchase_cap" not in user and not any("purchase_cap" in m.content for m in request.messages
                                                    if m.role == "user"):
-            action = {"type": "ask_user", "question": "你的预算是多少美元?", "required_fields": ["purchase_cap", "currency"]}
+            action = {"type": "ask_user", "question": "What is your budget in US dollars?", "required_fields": ["purchase_cap", "currency"]}
         elif not obs:
             action = {"type": "call_tool", "tool_name": "search_products",
                       "arguments": {"filters": {"category": "earbuds"}, "limit": 5}}
