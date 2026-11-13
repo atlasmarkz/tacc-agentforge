@@ -75,3 +75,9 @@ deploy/tacc/service/qwen-service/pkg/
 deploy/tacc/service/qwen-service/harness-lib.sh
 deploy/tacc/service/qwen-service/harness-args.txt
 app/logs/
+
+# staged code/data and local options for the SFT job
+deploy/tacc/train-sft/pkg/
+deploy/tacc/train-sft/args.txt
+
+deploy/tacc/train-sft-serve/args.txt

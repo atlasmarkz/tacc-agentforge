@@ -1,11 +1,21 @@
-# Task 7. Fill in after inspecting TACC resources and licensing.
-base_model: TODO
-base_revision: TODO
-train_file: data/sft/train.jsonl
-output_dir: outputs/sft
-lora_r: 16
-lora_alpha: 32
-learning_rate: 2.0e-4
-epochs: 1
+# Task 7 SFT pilot on the course checkpoint (the only model on the cluster; see
+# docs/experiments/2026-10-28-27b-lora-feasibility/README.md). ${VAR} comes from the job environment.
+base_model: ${QWEN_MODEL_PATH}
+base_revision: course-public qwen3.8-27b-v1 Qwen3.8-27B-AWQ-INT4 (config and tokenizer sha256 are recorded)
+train_file: ${TACC_USERDIR}/sft-data/train.jsonl
+output_dir: ${TACC_USERDIR}/adapters/sft-pilot
+# rank 8 / alpha 16: what the served vLLM build was tested with (--max-lora-rank 8, experiments E4/E4b)
+lora_r: 8
+lora_alpha: 16
+learning_rate: 1.0e-4
+epochs: 3
+# Longer examples are dropped, never cut. 4096 keeps the first steps of a run (category choice, clarification);
+# the feasibility test (job 27833) peaked at 14.4 GiB on the busier GPU at 721 tokens and grew about 1.9 MB per
+# token, so 4096 tokens fit in 24 GiB and the 5K to 10K token examples of later steps would not.
 max_seq_len: 4096
 seed: 0
+# training stops here so that loading, saving and the reload check fit in a one-hour job
+max_train_minutes: 30
+# one dev case is held back to watch validation loss (3 of the 19 kept traces)
+validation_cases: [dev-02]
+grad_clip: 1.0
