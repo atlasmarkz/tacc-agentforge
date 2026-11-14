@@ -455,3 +455,119 @@ def test_b3v_does_not_deliver_a_plan_the_validator_keeps_rejecting(tmp_path):
     b3v = records["B3v"]
     assert b3v["status"] != "completed" and b3v["outcome"]["kind"] == "error"
     assert b3v["validator"] and all(v["status"] == "failed" and "unknown_offer" in v["issues"] for v in b3v["validator"])
+
+
+# ---- freeze manifest and runner robustness (Task 6 frozen baseline) ------------------------------------
+
+def _copy_frozen_tree(dst: Path) -> None:
+    import shutil
+    from evaluations import freeze
+    for patterns in freeze.GROUPS.values():
+        for pattern in patterns:
+            for p in freeze.ROOT.glob(pattern):
+                if p.is_file():
+                    target = dst / p.relative_to(freeze.ROOT)
+                    target.parent.mkdir(parents=True, exist_ok=True)
+                    shutil.copyfile(p, target)
+
+
+def test_freeze_detects_changed_added_and_missing_files(tmp_path):
+    from evaluations import freeze
+    _copy_frozen_tree(tmp_path)
+    manifest = freeze.build(tmp_path)
+    assert manifest["snapshot_id"] and manifest["settings"]["profile"] == "tacc-fast"
+    assert manifest["settings"]["policy"]["max_history_messages"] == 32           # the deployed value, not 12
+    assert manifest["cases"]["heldout"]["cases"] == 32 and manifest["cases"]["dev"]["cases"] == 10
+    assert freeze.compare(manifest, tmp_path) == []
+    prompts = tmp_path / "agent/prompts.py"
+    lf = prompts.read_bytes().replace(b"\r\n", b"\n")
+    prompts.write_bytes(lf.replace(b"\n", b"\r\n"))                                # line endings alone: no change
+    assert freeze.compare(manifest, tmp_path) == []
+    prompts.write_text(prompts.read_text(encoding="utf-8") + "\n# tuned\n", encoding="utf-8")
+    (tmp_path / "agent/new_tool.py").write_text("x = 1\n", encoding="utf-8")
+    (tmp_path / "evaluations/score.py").unlink()
+    problems = freeze.compare(manifest, tmp_path)
+    assert {"changed agent/prompts.py", "added agent/new_tool.py", "missing evaluations/score.py"} <= set(problems)
+    assert "missing evaluations/score.py" not in freeze.compare(manifest, tmp_path, require_all=False)
+
+
+def test_heldout_needs_a_matching_freeze(tmp_path, monkeypatch):
+    import argparse
+    from evaluations import freeze, run
+    a = argparse.Namespace(split="heldout")
+    monkeypatch.setattr(freeze, "MANIFEST", tmp_path / "freeze.json")
+    with pytest.raises(SystemExit, match="no freeze manifest"):
+        run.check_freeze(a)
+    manifest = freeze.build()
+    manifest["files"]["harness"]["agent/prompts.py"] = "0" * 64                    # as if prompts were tuned since
+    (tmp_path / "freeze.json").write_text(json.dumps(manifest), encoding="utf-8")
+    with pytest.raises(SystemExit, match="changed agent/prompts.py"):
+        run.check_freeze(a)
+    info = run.check_freeze(argparse.Namespace(split="dev"))                       # dev runs, and says so
+    assert info["matches"] is False and "changed agent/prompts.py" in info["differences"]
+
+
+def test_config_order_rotates_across_cases_and_repeats():
+    from evaluations.run import config_order
+    configs = ["B0", "B1", "B2", "B3", "B3v"]
+    firsts = {config_order(configs, ci, 0)[0] for ci in range(5)}
+    assert firsts == set(configs)                                                  # each goes first once
+    assert all(sorted(config_order(configs, ci, rep)) == sorted(configs) for ci in range(7) for rep in range(3))
+    assert config_order(configs, 0, 1) == config_order(configs, 1, 0)
+
+
+def _ask(**extra):
+    return {"outcome": {"kind": "ask_user", "question": "What is your budget?", "required_fields": ["purchase_cap"]},
+            "wall_s": 0.1, "model_calls": 1, "candidates": 0, "evidence": 0, "context_ids": [], **extra}
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_runner_repeats_an_attempt_the_service_outage_spoiled(tmp_path, monkeypatch):
+    import argparse
+    import asyncio
+    from evaluations import run
+    from tests.fake_vllm import FakeVllm
+    outcomes = [{"outcome": {"kind": "error", "error": "ServiceUnavailable"}, "stop_reason": "ServiceUnavailable",
+                 "wall_s": 0.1, "model_calls": 1}, _ask()]
+    monkeypatch.setattr(run, "single_call", lambda *args: outcomes.pop(0))
+    srv = FakeVllm([(200, {}, 0)])                                                  # only /health is used
+    try:
+        address = tmp_path / "service-url.txt"
+        address.write_text(srv.url + "\n")
+        a = argparse.Namespace(cases=Path("evaluations/cases.jsonl"), split="dev", only="dev-05", configs="B0",
+                               repeats=1, config=Path("configs/knowledge.json"), userdir=tmp_path,
+                               address_file=address, out=tmp_path / "out", unseal_heldout=False, wait_s=10)
+        asyncio.run(run.run_all(a))
+    finally:
+        srv.close()
+    records = [json.loads(l) for l in (tmp_path / "out/records.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert len(records) == 1 and records[0]["outcome"]["kind"] == "ask_user" and records[0]["infra_retries"] == 1
+    assert len((tmp_path / "out/infra.jsonl").read_text(encoding="utf-8").splitlines()) == 1
+    report = json.loads((tmp_path / "out/report.json").read_text(encoding="utf-8"))
+    assert report["summary"]["B0"]["tsr"]["n"] == 1 and report["infra_retries_this_job"] == 1
+
+
+@pytest.mark.skipif(os.name == "nt" and not sys.flags.utf8_mode, reason="seed install needs UTF-8 mode on Windows (#5)")
+def test_runner_resumes_without_repeating_recorded_attempts(tmp_path, monkeypatch):
+    import argparse
+    import asyncio
+    from evaluations import run
+    from tests.fake_vllm import FakeVllm
+    calls = []
+    monkeypatch.setattr(run, "single_call", lambda *args: calls.append(args[3]["case_id"]) or _ask())
+    srv = FakeVllm([(200, {}, 0)])
+    try:
+        address = tmp_path / "service-url.txt"
+        address.write_text(srv.url + "\n")
+        base = dict(cases=Path("evaluations/cases.jsonl"), split="dev", only="dev-05,dev-10", configs="B0,B1",
+                    config=Path("configs/knowledge.json"), userdir=tmp_path, address_file=address,
+                    out=tmp_path / "out", unseal_heldout=False, wait_s=10)
+        asyncio.run(run.run_all(argparse.Namespace(repeats=1, **base)))
+        with open(tmp_path / "out/records.jsonl", "a", encoding="utf-8") as f:
+            f.write('{"cut off by the job time lim')                                # partial last line
+        asyncio.run(run.run_all(argparse.Namespace(repeats=2, resume=True, **base)))
+    finally:
+        srv.close()
+    assert len(calls) == 8                                                          # 4 attempts per repeat, none twice
+    report = json.loads((tmp_path / "out/report.json").read_text(encoding="utf-8"))
+    assert report["repeats_complete"] == 2 and report["summary"]["B1"]["tsr"]["m"] == 4
