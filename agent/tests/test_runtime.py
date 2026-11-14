@@ -133,14 +133,14 @@ def test_valid_action_resets_consecutive_format_errors():
 def test_model_limit_stops_a_repeating_decision():
     bad = {**SEARCH, "tool_name": "missing"}
     result = run(runtime(ScriptedModel(bad, bad), policy=RunPolicy(max_model_calls=2)))
-    assert result.stop_reason == "model_call_limit" and result.usage.model_calls == 2
+    assert result.stop_reason == "convergence_failed" and result.usage.model_calls == 2
 
 
 def test_tool_limit_counts_actual_calls_only():
     executor = CountingSearch()
-    result = run(runtime(ScriptedModel(SEARCH, SEARCH), executor=executor,
+    result = run(runtime(ScriptedModel(SEARCH, PLAN), executor=executor, validator=MockPlanValidator(),
                          policy=RunPolicy(max_tool_calls=1)))
-    assert result.stop_reason == "tool_call_limit"
+    assert result.status == "completed" and result.usage.model_calls == 2
     assert executor.calls == 1 and result.usage.tool_calls == 1
 
 

@@ -4,6 +4,7 @@ from langgraph.graph import END, START, StateGraph
 
 from .nodes import Nodes, RunScope
 from .state import AgentState
+from .progress import bounded, decision_control
 
 
 def build_graph(scope: RunScope, checkpointer):
@@ -17,14 +18,25 @@ def build_graph(scope: RunScope, checkpointer):
         # 默认参数固定本轮处理函数，避免循环闭包全部引用最后一个节点。
         async def execute(state, handler=handler):
             update = await handler(state)
+            details = update.pop("_trace", {})
+            entry = {"node": handler.__name__, "control": decision_control(state, scope.policy),
+                     "usage": update.get("usage", state["usage"]), "next_node": update.get("next_node"), **details}
+            if handler.__name__ == "validate_plan":
+                entry["proposal"] = bounded(state["action"])
+            for key in ("action", "issues", "stop_reason", "status"):
+                if key in update:
+                    entry[key] = bounded(update[key])
+            if len(update.get("history", [])) > len(state["history"]):
+                entry["message"] = bounded(update["history"][-1])
             # 节点完成后保存累计执行时间和事件序号；等待事件的预留序号不能被覆盖。
-            return {**update, "active_elapsed_s": scope.elapsed,
+            return {**update, "trace": (state.get("trace", []) + [entry])[-scope.policy.max_trace_entries:],
+                    "active_elapsed_s": scope.elapsed,
                     "event_sequence": max(scope.sequence, update.get("event_sequence", 0))}
 
         graph.add_node(name, execute)
     graph.add_edge(START, "prepare")
     graph.add_edge("prepare", "guard")
-    graph.add_conditional_edges("guard", lambda state: state["next_node"], ["decide", "finalize"])
+    graph.add_conditional_edges("guard", lambda state: state["next_node"], ["decide", "prepare_question", "finalize"])
     graph.add_conditional_edges("decide", lambda state: state["next_node"],
                                 ["guard", "execute_tool", "validate_plan", "prepare_question", "finalize"])
     graph.add_conditional_edges("execute_tool", lambda state: state["next_node"], ["guard", "finalize"])

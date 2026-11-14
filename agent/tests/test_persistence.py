@@ -36,7 +36,7 @@ def missing_budget(run_id):
     return demo_request(run_id).model_copy(update={"constraints": {"currency": "USD"}})
 
 
-@pytest.mark.parametrize("original_limit,explain", [(8, False), (2, False), (8, True)])
+@pytest.mark.parametrize("original_limit,explain", [(8, False), (4, False), (8, True)])
 def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, original_limit, explain):
     async def scenario():
         async def launch(phase, *extra):
@@ -85,18 +85,14 @@ def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, o
         events = before["events"] + after["events"]
         assert [e["sequence"] for e in events] == list(range(1, len(events) + 1))
         assert after["events"][0]["type"] == "run_resumed"
-        if original_limit == 8:
-            assert result["status"] == "completed"
-            assert result["usage"]["model_calls"] == 3 and after["local_model_calls"] == 1 + int(explain)
-            assert result["usage"]["explain_model_calls"] == int(explain)
-            if explain:
-                assert result["explanation"]["verified"] and not result["explanation"]["fallback"]
-            assert result["verified_plan"]["remaining_funds"] == "50.01"
-            assert any('"observation"' in m["content"] for m in after["messages"])
-            assert any('"clarification_answer"' in m["content"] for m in after["messages"])
-        else:
-            assert result["stop_reason"] == "model_call_limit"
-            assert result["usage"]["model_calls"] == 2 and after["local_model_calls"] == 0
+        assert result["status"] == "completed"
+        assert result["usage"]["model_calls"] == 3 and after["local_model_calls"] == 1 + int(explain)
+        assert result["usage"]["explain_model_calls"] == int(explain)
+        if explain:
+            assert result["explanation"]["verified"] and not result["explanation"]["fallback"]
+        assert result["verified_plan"]["remaining_funds"] == "50.01"
+        assert any('"observation"' in m["content"] for m in after["messages"])
+        assert any('"clarification_answer"' in m["content"] for m in after["messages"])
         async with open_checkpointer(tmp_path / "checkpoints/agent.sqlite", create=False) as saver:
             saved = await saver.aget_tuple(config("restart-run"))
             assert saved.checkpoint["channel_values"].get("explanation") == result["explanation"]

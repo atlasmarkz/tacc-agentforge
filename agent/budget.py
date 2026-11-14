@@ -36,9 +36,10 @@ from typing import Literal, Protocol
 from pydantic import Field
 
 from .contracts import (
-    Amount, CallContext, CapabilityError, Identifier, Issue, PlanValidationRequest, Schema,
+    Amount, AskUser, CallContext, CapabilityError, Identifier, Issue, PlanValidationRequest, Schema,
     ValidationResult, VerifiedPlan,
 )
+from .budget_fields import AMOUNT_FIELDS, amount_valid
 
 BudgetBasis = Literal["all_in", "pre_tax"]
 _MAX_ISSUES = 20
@@ -131,6 +132,36 @@ class BudgetPlanValidator:
             raise ValueError("default_basis must be all_in or pre_tax")
         self.source, self.default_basis = source, default_basis
         self.require_verified_identity = require_verified_identity
+
+    def decision_policy(self, constraints=None):
+        """向决策模型公开实际校验策略，而不是复制一份可能漂移的提示默认值。"""
+        return {"default_budget_basis": self.default_basis,
+                "budget_basis": (constraints or {}).get("budget_basis", self.default_basis),
+                "require_verified_identity": self.require_verified_identity,
+                "unknown_shipping_scope_allowed_for_quantity_one": True,
+                "price_freshness": "frozen_snapshot_replay",
+                "authoritative_totals": "validator_only"}
+
+    def preflight(self, constraints):
+        """预算缺失在检索前澄清；不读取报价，不消耗模型调用。"""
+        fields = [name for name in sorted(AMOUNT_FIELDS)
+                  if name in constraints and not amount_valid(constraints[name])]
+        if constraints.get("purchase_cap") is None and constraints.get("periodic_budget") is None:
+            fields.append("purchase_cap")
+        if (constraints.get("spending") is not None or constraints.get("reserve") is not None) \
+                and constraints.get("periodic_budget") is None:
+            fields.append("periodic_budget")
+        currency = constraints.get("currency")
+        if not isinstance(currency, str) or len(currency) != 3 or not currency.isascii() \
+                or not currency.isupper() or not currency.isalpha():
+            fields.append("currency")
+        if constraints.get("budget_basis", self.default_basis) not in ("pre_tax", "all_in"):
+            fields.append("budget_basis")
+        if not fields:
+            return None
+        return AskUser(type="ask_user", required_fields=list(dict.fromkeys(fields)),
+                       question="请补充或确认以下预算信息：" + ", ".join(dict.fromkeys(fields)) +
+                       "。金额请填写非负十进制字符串；currency 为三位大写货币代码，budget_basis 为 pre_tax 或 all_in。")
 
     async def validate(self, request: PlanValidationRequest, context: CallContext) -> ValidationResult:
         fingerprint = request.proposal_fingerprint

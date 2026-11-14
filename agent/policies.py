@@ -10,6 +10,9 @@ class RunPolicy(Schema):
 
     max_model_calls: int = Field(default=8, strict=True, ge=1, le=1000)
     max_tool_calls: int = Field(default=8, strict=True, ge=0, le=1000)
+    finalize_reserve_model_calls: int = Field(default=2, strict=True, ge=1, le=20)
+    max_no_progress_calls: int = Field(default=2, strict=True, ge=1, le=20)
+    max_trace_entries: int = Field(default=100, strict=True, ge=1, le=1000)
     max_action_repairs: int = Field(default=2, strict=True, ge=0, le=20)
     max_plan_repairs: int = Field(default=2, strict=True, ge=0, le=20)
     max_questions: int = Field(default=8, strict=True, ge=1, le=100)

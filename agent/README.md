@@ -514,3 +514,36 @@ SKU 身份默认不阻止通过，`require_verified_identity=True` 可收紧。
 另外，模型看到的提交标准比校验器更严：`get_offer_facts` 的说明写着费用未知不能确认可负担，而默认的 `pre_tax`
 放行税费未知、身份未验证，以及数量为 1 时的运费范围未知；`complete_total_minor` 也是含税口径。是否把口径告诉模型
 （工具说明、系统提示或校验反馈）与 issue #21 的修复一起决定。
+
+## 决策收敛与诊断
+
+`max_model_calls` 仍是整个 run（包括 resume）的累计硬上限。新增策略默认无需修改外部 YAML：
+
+- `finalize_reserve_model_calls=2`：预留最后两次决策给提案及修复；收敛时动作 schema 和运行时共同禁止继续查工具。
+- `max_no_progress_calls=2`：连续两次未取得新信息，提前进入收敛。响应时间、报价年龄和候选集合句柄变化不算新商品事实。
+- `max_trace_entries=100`：检查点内保留有界的节点诊断，单个动作、观察或结果摘要最多约 4096 字符。
+
+显式标记 `ToolSpec.read_only=True` 的工具，以及符合既有购物工具名称及参数契约的只读工具，可在同一执行段复用相同成功查询。
+缓存不跨 resume/重启，避免复用服务进程内已经失效的 candidate-set 句柄；失败不缓存，分页 cursor 是查询参数的一部分。
+候选商品、证据 ID、带位置的文本片段与查询进展跨恢复保留，作为不可信来源数据交给模型；原始 `unknown` 状态不会被改写。
+模型应针对 unknown 读取必要的商品证据，不必为了结构化字段缺失而重复筛选，也不能仅凭总功率推断多口功率分配或设备兼容性。
+
+实际使用 `BudgetPlanValidator` 时，检索前会确定性检查预算，缺失项直接生成规范字段的问题，不消耗模型调用。
+新预算问题使用 `purchase_cap` 和 `currency`；旧检查点中的 `max_price_usd`/`budget_usd` 仅在金额、币种和现有预算无冲突时转换，并写入诊断。
+模型生成的问题必须给恢复保留至少两次决策；回答后允许用预留额度补一次证据并提交，仍计入全程硬上限。
+无法继续利用回答时返回 `clarification_budget_exhausted`，不会建立必然失败的等待状态。
+该行为也适用于显式配置的极小调用预算。
+
+证据足够时仍由原校验器决定方案能否通过。证据不足时，收敛 schema 允许 `report_incomplete`，返回
+`evidence_insufficient` 或 `requirements_unverified` 及具体说明，避免强迫模型编造商品或证据 ID。
+`completed` 仍表示方案通过所配置的校验器；默认预算校验器不验证硬性商品规格。
+
+```python
+trace = await runtime.export_trace(run_id)
+# trace 包含 snapshot_id、usage、progress、shopping_context 和有界 entries。
+# 由调用方选择序列化保存；等待中、终态及共享持久化检查点重启后均可导出。
+```
+
+旧检查点缺少新增字段时按空摘要/进展/诊断处理；原调用计数和运行策略上限继续生效。
+`agent/tests/test_convergence.py` 用真实种子快照覆盖 Belkin 双口规格 unknown、功率展示不一致、证据分页、预算预检、旧问题兼容与恢复。
+其中模型动作是显式脚本，不代表真实 Qwen 已通过集群回归。

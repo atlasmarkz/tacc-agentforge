@@ -32,6 +32,9 @@ class AgentState(TypedDict):
     # 只累计实际执行时间；用户等待通过 pending_question 中的过期时间单独限制。
     active_elapsed_s: float
     event_sequence: int
+    progress: dict
+    shopping_context: dict
+    trace: list[dict]
 
 
 def initial_state(request: AgentRequest, policy) -> AgentState:
@@ -46,4 +49,5 @@ def initial_state(request: AgentRequest, policy) -> AgentState:
         "policy": policy.model_dump(mode="json"), "pending_question": None,
         "resume_answer": None, "question_count": 0, "answer_errors": 0,
         "active_elapsed_s": 0.0, "event_sequence": 0,
+        "progress": {}, "shopping_context": {}, "trace": [],
     }
