@@ -13,7 +13,9 @@
 
 ## 2. 被冻结的系统
 
-冻结清单:`evaluations/freeze.json`,摘要 `c3f8ee0a`,冻结时提交 `6d7e58d`(`baseline` 分支)。保留集运行器在每个作业开始时核对文件,报告里记录 `matches: true`。
+冻结清单:`evaluations/freeze.json`。保留集是在摘要 `c3f8ee0a`(提交 `6d7e58d`,`baseline` 分支)下运行的,运行器在每个作业开始时核对文件,报告里记录 `matches: true`。
+
+**之后的重新冻结(摘要 `03b0cdea`)**:#18 评审后修正了预算校验器的税费口径(`agent/budget.py`:`pre_tax` 不再计入已知税费;不再因某个条目税费未知而丢弃其他条目的税费)。冻结快照里 251 条报价观察的税费和"是否含税"全部未知,在这个快照上新旧两版对每个方案的判定和金额完全相同(两版在 `pre_tax` 下都不计税、`cost_breakdown` 都不含 `tax`),所以没有重跑,结果仍代表 `03b0cdea`。除 `agent/budget.py` 外其他文件未变。
 
 | 项 | 内容 |
 |---|---|
