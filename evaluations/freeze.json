@@ -1,8 +1,8 @@
 {
  "schema": 1,
- "frozen_at": "2026-11-14T11:00:27+0800",
- "git_commit_at_freeze": "daf842776034cd7d7973eea0757fd5ef5d3cdbe7",
- "digest": "bbcdb27a7ba9ef5003340fe4bab715443883a839bd043ed12a110b3a23cf5c05",
+ "frozen_at": "2026-11-14T11:03:36+0800",
+ "git_commit_at_freeze": "6d7e58debc29dff534fde90d82a134aab8a9d674",
+ "digest": "c3f8ee0ad153e712f332cbb92e6f339e45ff726091fe1f419219e23d9658fedd",
  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
  "serving": {
   "served_name": "qwen3.8-27b",
@@ -127,7 +127,7 @@
   },
   "serving": {
    "deploy/tacc/service/qwen-service/service.json": "6b539656db358873af1d585e8db6419b8c71a69788b94658fa3ca7543aba94a8",
-   "deploy/tacc/service/qwen-service/serve.py": "96e11054b90dc7c29d628196350708a235ab250303f45ad909cb983de5a5dcd2"
+   "deploy/tacc/service/qwen-service/serve.py": "8cbf49bd2028a453c3db1a7d210e45788913f12128d57ecaeeea1a3b89ac90bf"
   },
   "evaluation": {
    "evaluations/run.py": "69de972a650820c08ca1c8d72fbe70e0348584370e993d4838903ba23d5a178d",
