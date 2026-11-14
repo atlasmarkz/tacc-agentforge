@@ -59,7 +59,7 @@ tests; manual coverage audit of the collected sample.
 Validate quantities, essential requirements, known delivery/taxes, purchase caps,
 periodic balances, spending, and reserves without delegating arithmetic to the LLM.
 
-- [ ] Exact arithmetic gives correct itemized totals and remaining funds at boundaries.
+- [x] Exact arithmetic gives correct itemized totals and remaining funds at boundaries.
 - [ ] Unknown essential fees, incompatible units/currencies, or absent required attributes trigger clarification.
 - [ ] The selected plan cites its price/requirement evidence from the chosen snapshot.
 
@@ -67,6 +67,11 @@ periodic balances, spending, and reserves without delegating arithmetic to the L
 funds, missing fees, and the smaller-of-two-budgets rule.
 **Dependencies:** 2. **Scope:** Small.
 **Likely files:** `agent/budget.py`, `tests/test_budget.py`.
+
+**Progress:** `agent/budget.py` and `knowledge/budget_source.py` implement exact totals, the
+smaller-of-two-budgets rule, unknown shipping/tax, currency and evidence-ownership checks (see
+`agent/README.md`). Budgets are compared before tax (decided); answers must say so. The next two items stay
+open because required-attribute checks and requirement evidence are not implemented.
 
 ## Task 4: Complete the bounded agent loop
 

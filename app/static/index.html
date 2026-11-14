@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Shop Advisor</title>
+<style>
+  :root {
+    --page: #eef1f5; --card: #ffffff; --ink: #18202e; --muted: #5f6b7d; --line: #e1e5ec; --soft: #f6f8fb;
+    --head: #10213f; --head-2: #1a3360; --head-ink: #ffffff;
+    --cta: #ff7a1a; --cta-hover: #f06a08; --cta-ink: #ffffff;
+    --price: #d12f2f; --ok: #13804b; --ok-bg: #e6f5ec; --warn: #a25b00; --warn-bg: #fff3e0;
+    --bad: #c0262d; --bad-bg: #fdecec; --link: #1f5fbf; --chip: #ffffff; --focus: #ffb27a;
+    --shadow: 0 1px 2px rgba(16, 33, 63, .06), 0 4px 16px rgba(16, 33, 63, .06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0e131b; --card: #171d27; --ink: #e8ecf2; --muted: #9aa5b5; --line: #273041; --soft: #1d2430;
+      --head: #0a1426; --head-2: #13213d; --head-ink: #f3f6fb;
+      --cta: #ff8a33; --cta-hover: #ff9a50; --cta-ink: #1a0f05;
+      --price: #ff6b6b; --ok: #4cd18a; --ok-bg: #12301f; --warn: #f0b35a; --warn-bg: #33250f;
+      --bad: #ff8080; --bad-bg: #3a1618; --link: #7fb0ff; --chip: #1d2430; --focus: #ff9a50;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body { background: var(--page); color: var(--ink);
+         font: 15px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .hidden { display: none !important; }
+
+  /* ---------- header with the search bar ---------- */
+  .topbar { background: linear-gradient(180deg, var(--head), var(--head-2)); color: var(--head-ink); }
+  .topbar-inner { max-width: 1160px; margin: 0 auto; padding: 14px 16px; display: grid; gap: 12px;
+                  grid-template-columns: auto 1fr auto; align-items: center; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: .2px; white-space: nowrap; }
+  .brand-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--cta); display: grid; place-items: center; }
+  .brand small { display: block; font-weight: 500; font-size: 11px; opacity: .75; letter-spacing: .4px; text-transform: uppercase; }
+  .search { display: flex; background: var(--card); border-radius: 10px; overflow: hidden; min-height: 46px;
+            box-shadow: 0 0 0 2px transparent; transition: box-shadow .15s; }
+  .search:focus-within { box-shadow: 0 0 0 3px var(--focus); }
+  .search input, .search select { border: 0; background: transparent; color: var(--ink); padding: 0 14px; outline: none; }
+  .search .q { flex: 1; min-width: 0; }
+  .search .budget { width: 120px; border-left: 1px solid var(--line); }
+  .search .cur { width: 76px; border-left: 1px solid var(--line); background: var(--soft); }
+  .search button { border: 0; background: var(--cta); color: var(--cta-ink); font-weight: 700; padding: 0 22px; cursor: pointer; }
+  .search button:hover { background: var(--cta-hover); }
+  .search button:disabled { opacity: .6; cursor: progress; }
+  .conn { font-size: 12px; display: flex; align-items: center; gap: 7px; white-space: nowrap; opacity: .92; }
+  .dot { width: 9px; height: 9px; border-radius: 50%; background: #8a94a6; box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
+  .dot.ok { background: #35d07f; } .dot.bad { background: #ff5a5f; }
+  .subbar { background: var(--head-2); border-top: 1px solid rgba(255,255,255,.08); }
+  .subbar-inner { max-width: 1160px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .subbar span { color: var(--head-ink); opacity: .7; font-size: 13px; margin-right: 4px; }
+  .pill { border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: var(--head-ink);
+          border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; }
+  .pill:hover { background: rgba(255,255,255,.16); }
+  .opt { margin-left: auto; color: var(--head-ink); font-size: 13px; display: flex; align-items: center; gap: 6px; opacity: .85; }
+
+  /* ---------- layout ---------- */
+  .wrap { max-width: 1160px; margin: 0 auto; padding: 18px 16px 64px; display: grid; gap: 18px;
+          grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
+  .main { display: grid; gap: 18px; min-width: 0; }
+  .side { display: grid; gap: 18px; position: sticky; top: 16px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 18px; }
+  .card h2 { font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+  .muted { color: var(--muted); }
+  .small { font-size: 13px; }
+
+  /* ---------- welcome ---------- */
+  .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: center; }
+  .hero h1 { font-size: 26px; line-height: 1.25; margin: 0 0 8px; }
+  .hero p { margin: 0 0 14px; color: var(--muted); }
+  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .tile { border: 1px solid var(--line); background: var(--soft); border-radius: 10px; padding: 12px; cursor: pointer; text-align: left; }
+  .tile:hover { border-color: var(--cta); }
+  .tile b { display: block; font-size: 14px; }
+  .tile span { font-size: 12px; color: var(--muted); }
+  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
+  .how div { font-size: 13px; color: var(--muted); }
+  .how b { display: block; color: var(--ink); font-size: 13px; }
+
+  /* ---------- progress ---------- */
+  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 4px 0 12px; }
+  .st { text-align: center; font-size: 12px; color: var(--muted); }
+  .st .bar { height: 5px; border-radius: 3px; background: var(--line); margin-bottom: 6px; overflow: hidden; }
+  .st.done .bar { background: var(--ok); }
+  .st.active .bar { background: linear-gradient(90deg, var(--cta), var(--focus), var(--cta)); background-size: 200% 100%; animation: flow 1.2s linear infinite; }
+  .st.done, .st.active { color: var(--ink); }
+  .st.fail .bar { background: var(--bad); }
+  @keyframes flow { from { background-position: 0 0; } to { background-position: -200% 0; } }
+  @media (prefers-reduced-motion: reduce) { .st.active .bar { animation: none; background: var(--cta); } }
+  details.log summary { cursor: pointer; font-size: 13px; color: var(--muted); }
+  ol.steps { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; max-height: 220px; overflow: auto; }
+  ol.steps li { padding: 3px 0; display: flex; gap: 10px; }
+  ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; }
+  ol.steps .bad { color: var(--bad); }
+  .runline { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; font-size: 13px; }
+
+  /* ---------- notices ---------- */
+  .notice { border-radius: 10px; padding: 12px 14px; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
+  .notice.err { background: var(--bad-bg); color: var(--bad); }
+  .notice.warn { background: var(--warn-bg); color: var(--warn); }
+  .notice.ok { background: var(--ok-bg); color: var(--ok); }
+  .notice button { margin-left: auto; border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 8px; padding: 3px 10px; cursor: pointer; }
+
+  /* ---------- question ---------- */
+  .ask { border-left: 4px solid var(--cta); }
+  .ask .qtext { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
+  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
+  label.f { font-size: 12px; font-weight: 600; color: var(--muted); display: grid; gap: 4px; }
+  .input { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 9px 11px; width: 100%; }
+  .btn { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 8px 18px; cursor: pointer; font-weight: 600; }
+  .btn.primary { background: var(--cta); border-color: var(--cta); color: var(--cta-ink); }
+  .btn.primary:hover { background: var(--cta-hover); }
+  .btn:disabled { opacity: .55; cursor: not-allowed; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+
+  /* ---------- product ---------- */
+  .product { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 18px; }
+  .thumb { width: 148px; height: 148px; border-radius: 12px; display: grid; place-items: center;
+           background: radial-gradient(circle at 30% 25%, #ffe2c9, #ffc499 55%, #ffad73); color: #7a3b0b; }
+  @media (prefers-color-scheme: dark) { .thumb { background: radial-gradient(circle at 30% 25%, #4a3424, #3a281b 55%, #2e1f15); color: #ffb27a; } }
+  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
+  .badge { font-size: 11px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; }
+  .badge.pick { background: var(--cta); color: var(--cta-ink); }
+  .badge.ok { background: var(--ok-bg); color: var(--ok); }
+  .badge.warn { background: var(--warn-bg); color: var(--warn); }
+  .ptitle { font-size: 18px; font-weight: 600; line-height: 1.35; margin: 0 0 6px; }
+  .seller { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+  .price { color: var(--price); font-weight: 700; display: flex; align-items: flex-start; gap: 1px; line-height: 1; margin: 6px 0 8px; }
+  .price .sym { font-size: 15px; margin-top: 4px; }
+  .price .whole { font-size: 34px; }
+  .price .cents { font-size: 15px; margin-top: 4px; }
+  .facts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
+  .fact { display: flex; gap: 5px; align-items: center; }
+  .fact.ok { color: var(--ok); } .fact.warn { color: var(--warn); }
+  .qty { font-size: 13px; color: var(--muted); margin-top: 6px; }
+  .more-items .product + .product { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+
+  .why { margin-top: 16px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
+  .why h3 { margin: 0 0 6px; font-size: 14px; }
+  .why .text { white-space: pre-wrap; }
+  .why .note { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
+  .caret::after { content: "▍"; color: var(--cta); animation: blink 1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  .ev { padding: 12px 0; border-top: 1px solid var(--line); font-size: 13px; }
+  .ev:first-of-type { border-top: 0; padding-top: 0; }
+  .ev .src { font-weight: 600; }
+  .ev a { color: var(--link); text-decoration: none; word-break: break-all; }
+  .ev a:hover { text-decoration: underline; }
+  .ev .excerpt { color: var(--muted); margin-top: 4px; }
+
+  /* ---------- summary ---------- */
+  .summary table { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .summary td { padding: 5px 0; }
+  .summary td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
+  .summary tr.total td { border-top: 1px solid var(--line); padding-top: 10px; font-weight: 700; font-size: 16px; }
+  .summary tr.total td:last-child { color: var(--price); }
+  .meter { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 12px 0 6px; }
+  .meter i { display: block; height: 100%; background: var(--ok); border-radius: 4px; }
+  .meter.tight i { background: var(--warn); }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 10px; }
+  .chip { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
+  .chip:hover, .chip.on { border-color: var(--cta); color: var(--cta); }
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+  .stats b { display: block; font-size: 18px; }
+  .stats span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+
+  footer { max-width: 1160px; margin: 0 auto; padding: 0 16px 28px; font-size: 12px; color: var(--muted); }
+
+  /* ---------- small screens ---------- */
+  @media (max-width: 920px) {
+    .wrap { grid-template-columns: minmax(0, 1fr); }
+    .side { position: static; }
+    .hero { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 640px) {
+    .topbar-inner { grid-template-columns: 1fr auto; }
+    .search { grid-column: 1 / -1; flex-wrap: wrap; }
+    .search .q { flex: 1 1 100%; min-height: 44px; border-bottom: 1px solid var(--line); }
+    .search .budget { flex: 1; border-left: 0; min-height: 44px; }
+    .search button { min-height: 44px; }
+    .product { grid-template-columns: 1fr; }
+    .thumb { width: 100%; height: 120px; }
+    .stepper .st span { display: none; }
+    .how { grid-template-columns: 1fr; }
+    .opt { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg>
+      </div>
+      <div>Shop Advisor<small>Budget-checked picks</small></div>
+    </div>
+    <form class="search" id="searchForm" autocomplete="off">
+      <input class="q" id="msg" aria-label="What are you shopping for?" placeholder="What are you shopping for? e.g. wireless earbuds for my commute">
+      <input class="budget" id="cap" inputmode="decimal" aria-label="Budget (optional)" placeholder="Max budget">
+      <select class="cur" id="cur" aria-label="Currency"><option>USD</option></select>
+      <button id="send" type="submit">Ask</button>
+    </form>
+    <div class="conn" id="health"><span class="dot"></span><span>Connecting…</span></div>
+  </div>
+  <div class="subbar">
+    <div class="subbar-inner">
+      <span>Popular:</span>
+      <button class="pill" data-q="Wireless earbuds for my daily commute" data-b="100">Earbuds</button>
+      <button class="pill" data-q="A USB-C charger for my laptop and phone" data-b="60">Chargers</button>
+      <button class="pill" data-q="A mechanical keyboard for programming" data-b="120">Keyboards</button>
+      <button class="pill" data-q="A backpack for commuting to work" data-b="80">Backpacks</button>
+      <label class="opt"><input type="checkbox" id="explain" checked> Explain the pick</label>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <main class="main">
+    <section class="card" id="welcome">
+      <div class="hero">
+        <div>
+          <h1>Tell us what you need.<br>We'll find a pick that fits your budget.</h1>
+          <p>Every recommendation comes from a fixed product catalog, cites its sources, and is checked against your budget with exact arithmetic before you see it.</p>
+          <div class="how">
+            <div><b>1. Ask</b>Describe the item. Add a budget, or we'll ask for one.</div>
+            <div><b>2. We compare</b>Search the catalog and read the offers.</div>
+            <div><b>3. You get one pick</b>With the total, what's left, and sources.</div>
+          </div>
+        </div>
+        <div class="tiles">
+          <button class="tile" data-q="Noise-cancelling wireless earbuds for travel" data-b="100"><b>Earbuds</b><span>Commute, travel, workouts</span></button>
+          <button class="tile" data-q="A fast USB-C charger for a laptop and a phone" data-b="60"><b>Chargers</b><span>USB-C, multi-port</span></button>
+          <button class="tile" data-q="A quiet mechanical keyboard for programming" data-b="120"><b>Keyboards</b><span>Mechanical, compact</span></button>
+          <button class="tile" data-q="A water-resistant backpack for a 15-inch laptop" data-b="80"><b>Backpacks</b><span>Laptop, commuting</span></button>
+        </div>
+      </div>
+    </section>
+
+    <div id="topNotice"></div>
+
+    <section class="card hidden" id="progress" aria-live="polite">
+      <div class="runline">
+        <h2 style="margin:0" id="progTitle">Working on it</h2>
+        <div class="small muted"><span id="runId"></span> <button class="linkbtn hidden" id="cancel" type="button">Stop</button></div>
+      </div>
+      <div class="stepper" id="stepper">
+        <div class="st" data-k="understand"><div class="bar"></div><span>Understand</span></div>
+        <div class="st" data-k="search"><div class="bar"></div><span>Search</span></div>
+        <div class="st" data-k="compare"><div class="bar"></div><span>Compare offers</span></div>
+        <div class="st" data-k="check"><div class="bar"></div><span>Budget check</span></div>
+        <div class="st" data-k="explain"><div class="bar"></div><span>Explain</span></div>
+      </div>
+      <details class="log"><summary>Activity log</summary><ol class="steps" id="steps"></ol></details>
+      <div id="streamError"></div>
+    </section>
+
+    <section class="card ask hidden" id="question">
+      <h2>One quick question</h2>
+      <p class="qtext" id="qText"></p>
+      <form id="qForm" autocomplete="off">
+        <div class="fields" id="qFields"></div>
+        <div class="row"><button class="btn primary" id="qSend" type="submit">Continue</button></div>
+      </form>
+    </section>
+
+    <section class="card hidden" id="result">
+      <div id="resultStatus"></div>
+      <div id="products"></div>
+      <div class="why hidden" id="why">
+        <h3>Why this pick</h3>
+        <div class="text" id="whyText"></div>
+        <div class="note" id="whyNote"></div>
+      </div>
+    </section>
+
+    <section class="card hidden" id="sourcesCard">
+      <h2>Sources</h2>
+      <div id="sources"></div>
+    </section>
+  </main>
+
+  <aside class="side">
+    <section class="card summary hidden" id="summary">
+      <h2>Order summary</h2>
+      <table id="sumTable"></table>
+      <div class="meter" id="meter"><i></i></div>
+      <div class="small muted" id="meterText"></div>
+    </section>
+
+    <section class="card hidden" id="refine">
+      <h2>Refine results</h2>
+      <div class="chips" id="refineChips">
+        <button class="chip" type="button">Cheaper</button>
+        <button class="chip" type="button">Better reviews</button>
+        <button class="chip" type="button">Free shipping</button>
+        <button class="chip" type="button">Different brand</button>
+      </div>
+      <form id="revForm" autocomplete="off">
+        <label class="f">What should change?<input class="input" id="revMsg" placeholder="e.g. needs noise cancelling"></label>
+        <label class="f" style="margin-top:10px">New budget (optional)<input class="input" id="revCap" inputmode="decimal" placeholder="e.g. 50"></label>
+        <div class="row"><button class="btn primary" id="revSend" type="submit">Update pick</button></div>
+      </form>
+    </section>
+
+    <section class="card hidden" id="usage">
+      <h2>This run</h2>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section class="card small muted" id="about">
+      Prices come from a frozen catalog snapshot and may have changed since they were observed. Totals exclude tax when tax is unknown.
+    </section>
+  </aside>
+</div>
+<footer>Shop Advisor · course project demo · prices and availability are not live</footer>
+
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const session = (() => {
+  try {
+    let s = sessionStorage.getItem("session_id");
+    if (!s) { s = crypto.randomUUID(); sessionStorage.setItem("session_id", s); }
+    return s;
+  } catch (e) { return crypto.randomUUID(); }
+})();
+
+const FIELD_LABELS = { purchase_cap: "Budget", currency: "Currency", periodic_budget: "Budget for the period",
+                       spending: "Already spent this period", reserve: "Amount to keep aside" };
+const TOOL_LABELS = { search_products: "Searching the catalog", retrieve_evidence: "Looking up reviews and details",
+                      get_offer_facts: "Reading offer details", resolve_evidence: "Opening sources",
+                      describe_filters: "Checking available filters" };
+const STATUS = { completed: "Here's our pick", incomplete: "We couldn't finish this one", failed: "Something went wrong",
+                 cancelled: "Stopped", waiting_user: "Waiting for your answer" };
+const STOP = {
+  validation_unavailable: "The budget check is unavailable right now.",
+  question_expired: "The question expired. Please ask again.",
+  deadline_exceeded: "This took too long and was stopped.",
+  model_unavailable: "The model service is not available right now. Please try again in a few minutes.",
+  max_model_calls: "We ran out of attempts before finding a good pick.",
+  model_call_limit: "We ran out of steps before settling on a pick. Try a more specific request, like a brand or a feature.",
+  tool_call_limit: "We ran out of catalog lookups before settling on a pick. Try a more specific request.",
+  question_limit: "Too many follow-up questions. Please start a new request with your budget included.",
+  plan_repair_limit: "We couldn't find an offer that passes the budget check.",
+  answer_repair_limit: "We couldn't use the answers given. Please start a new request with your budget included.",
+  context_limit: "The conversation got too long. Please start a new request.",
+  plan_repairs_exhausted: "We couldn't find an offer that fits the budget.",
+  cancelled: "You stopped this request.",
+};
+const ERRORS = { not_waiting: "This question was already answered.",
+                 run_not_found: "This request is no longer available (the service may have restarted). Please ask again.",
+                 question_mismatch: "The question changed. Please refresh and try again.",
+                 run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error." };
+const COST = { items: "Items", shipping: "Shipping", tax: "Tax" };
+const STAGES = ["understand", "search", "compare", "check", "explain"];
+
+let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, cap: null, fallback: false };
+
+function el(tag, attrs, ...kids) {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs || {})) {
+    if (k === "class") n.className = v; else if (v !== null && v !== undefined) n.setAttribute(k, v);
+  }
+  for (const k of kids) if (k !== null && k !== undefined && k !== "") n.append(k instanceof Node ? k : document.createTextNode(String(k)));
+  return n;
+}
+const show = (id, on) => $(id).classList.toggle("hidden", !on);
+function notice(target, kind, text, retry) {
+  const box = $(target); box.replaceChildren();
+  if (!text) return;
+  const n = el("div", { class: "notice " + kind, role: kind === "err" ? "alert" : "status" }, el("span", {}, text));
+  if (retry) { const b = el("button", { type: "button" }, "Try again"); b.onclick = retry; n.append(b); }
+  box.append(n);
+}
+const SYM = { USD: "$" };
+function fmt(amount, cur) {
+  if (amount === null || amount === undefined || amount === "") return "Unknown";
+  const n = Number(amount);
+  const s = isFinite(n) ? n.toFixed(2) : String(amount);
+  return (SYM[cur] || "") + s + (SYM[cur] ? "" : " " + (cur || ""));
+}
+function priceNode(minor, cur) {
+  const n = (minor / 100).toFixed(2).split(".");
+  return el("div", { class: "price", "aria-label": fmt(minor / 100, cur) },
+    el("span", { class: "sym" }, SYM[cur] || cur + " "), el("span", { class: "whole" }, n[0]), el("span", { class: "cents" }, n[1]));
+}
+function logStep(text, bad) {
+  const t = ((performance.now() - state.t0) / 1000).toFixed(1) + "s";
+  $("steps").append(el("li", {}, el("span", { class: "t" }, t), el("span", { class: bad ? "bad" : "" }, text)));
+}
+function stage(key, how) {
+  const i = STAGES.indexOf(key);
+  document.querySelectorAll("#stepper .st").forEach((n, j) => {
+    n.classList.remove("active", "fail");
+    if (how === "fail" && j === i) n.classList.add("fail");
+    else if (j < i || (how === "done" && j === i)) n.classList.add("done");
+    else if (j === i) n.classList.add("active");
+  });
+}
+function stagesDone(withExplain) {
+  document.querySelectorAll("#stepper .st").forEach((n) => {
+    n.classList.remove("active");
+    if (n.dataset.k !== "explain" || withExplain) n.classList.add("done");
+  });
+}
+function setBusy(b) {
+  state.busy = b;
+  for (const id of ["send", "qSend", "revSend"]) $(id).disabled = b;
+  show("cancel", b);
+}
+
+async function health() {
+  try {
+    const r = await (await fetch("/api/health")).json();
+    const h = r.harness;
+    $("health").replaceChildren(el("span", { class: "dot " + (h ? "ok" : "bad") }),
+      el("span", {}, h ? `Online · job ${h.job_id}` : "Service offline"));
+    $("health").title = h ? `Catalog ${h.snapshot_id}\nNode ${h.node || "?"}\nModel ${h.model_address ? "ready" : "not ready"}` : (r.error || "");
+  } catch (e) {
+    $("health").replaceChildren(el("span", { class: "dot bad" }), el("span", {}, "Backend offline"));
+  }
+}
+
+function onAgentEvent(ev) {
+  const d = ev.data || {};
+  switch (ev.type) {
+    case "run_started": stage("understand"); logStep("Started"); break;
+    case "run_resumed": stage("understand"); logStep("Got your answer, continuing"); break;
+    case "decision_started": logStep("Thinking about the next step"); break;
+    case "action_selected":
+      if (d.action_type === "propose_plan") { stage("check"); logStep("Picked an offer"); }
+      else if (d.action_type === "ask_user") logStep("Needs more information");
+      break;
+    case "action_rejected": logStep("Invalid model output, retrying (" + d.code + ")", true); break;
+    case "tool_started":
+      stage(d.tool === "search_products" || d.tool === "describe_filters" ? "search" : "compare");
+      logStep(TOOL_LABELS[d.tool] || d.tool); break;
+    case "tool_finished": if (d.status !== "ok") logStep((TOOL_LABELS[d.tool] || d.tool) + " failed (" + d.code + ")", true); break;
+    case "tool_rejected": logStep("Invalid tool request (" + d.code + ")", true); break;
+    case "validation_finished":
+      if (d.status === "passed") { stage("check", "done"); logStep("Budget check passed"); }
+      else { stage("compare"); logStep("Budget check failed (" + d.status + "), looking again", true); }
+      break;
+    case "explain_started": stage("explain"); logStep("Writing the explanation"); break;
+    case "explain_done": stage("explain", "done"); logStep(d.fallback ? "Explanation did not pass checks; using the template" : "Explanation checked"); break;
+    case "answer_rejected": logStep("That answer could not be used (" + d.code + ")", true); break;
+  }
+}
+
+async function streamCall(path, body, onEvent) {
+  const resp = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+                                   body: JSON.stringify({ session_id: session, ...body }) });
+  if (!resp.ok) {
+    let msg = "Request failed (" + resp.status + ").";
+    try { const j = await resp.json(); msg = (j.error && j.error.message) || msg; } catch (e) {}
+    throw new Error(msg);
+  }
+  const reader = resp.body.getReader(), dec = new TextDecoder();
+  let buf = "", sawEnd = false;
+  for (;;) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    let i;
+    while ((i = buf.indexOf("\n\n")) >= 0) {
+      const chunk = buf.slice(0, i); buf = buf.slice(i + 2);
+      let event = null, data = "";
+      for (const line of chunk.split("\n")) {
+        if (line.startsWith("event:")) event = line.slice(6).trim();
+        else if (line.startsWith("data:")) data += line.slice(5).trim();
+      }
+      if (!event) continue;
+      if (event === "end") sawEnd = true;
+      onEvent(event, data ? JSON.parse(data) : null);
+    }
+  }
+  if (!sawEnd) throw new Error("The connection to the service dropped. The result may be incomplete.");
+}
+
+function handle(event, data) {
+  if (event === "meta") { state.runId = data.run_id; $("runId").textContent = "Request " + data.run_id; return; }
+  if (event === "error") { logStep(ERRORS[data.code] || ("Error: " + data.code), true); notice("streamError", "err", ERRORS[data.code] || data.message); return; }
+  if (event !== "agent") return;
+  if (data.type === "explain_delta") {
+    state.explain += (data.data && data.data.text) || "";
+    show("result", true); show("why", true);
+    $("whyText").textContent = state.explain;
+    $("whyText").classList.add("caret");
+    $("whyNote").textContent = "Draft — numbers and sources are checked when it finishes.";
+    return;
+  }
+  onAgentEvent(data);
+  if (data.result) render(data.result);
+}
+
+function render(r) {
+  if (r.status === "waiting_user" && r.pending_question) {
+    state.pending = r.pending_question;
+    stage("understand", "done");
+    show("question", true);
+    $("qText").textContent = r.pending_question.question;
+    const box = $("qFields"); box.replaceChildren();
+    for (const f of r.pending_question.required_fields) {
+      const input = f === "currency"
+        ? el("select", { class: "input", id: "q_" + f }, el("option", {}, "USD"))
+        : el("input", { class: "input", id: "q_" + f, inputmode: "decimal", placeholder: f === "purchase_cap" ? "e.g. 100" : "" });
+      box.append(el("label", { class: "f" }, FIELD_LABELS[f] || f, input));
+    }
+    const first = box.querySelector("input"); if (first) first.focus();
+    logStep("Waiting for your answer");
+    $("progTitle").textContent = "Waiting for your answer";
+    return;
+  }
+  show("question", false);
+  show("result", true);
+  $("whyText").classList.remove("caret");
+  const ok = r.status === "completed" && r.verified_plan;
+  $("progTitle").textContent = ok ? "Done" : (STATUS[r.status] || "Finished");
+  stagesDone(!!r.explanation);
+  if (!ok) document.querySelectorAll("#stepper .st.active").forEach(n => n.classList.add("fail"));
+  const head = $("resultStatus"); head.replaceChildren();
+  if (!ok) {
+    const why = STOP[r.stop_reason] || (r.stop_reason ? "Stopped (" + r.stop_reason.replace(/_/g, " ") + ")." : "") ||
+                (r.issues && r.issues.length ? r.issues.map(i => i.message || i.code).join("; ") : "");
+    head.append(el("div", { class: "notice " + (r.status === "cancelled" ? "warn" : "err") },
+      el("span", {}, el("b", {}, STATUS[r.status] || r.status), why ? " — " + why : "")));
+    if (r.clarification && r.clarification.question) head.append(el("p", { class: "muted" }, r.clarification.question));
+    $("products").replaceChildren();
+  } else {
+    const p = r.verified_plan;
+    const list = el("div", { class: "more-items" });
+    p.items.forEach((it, idx) => list.append(productCard(it, idx === 0, p.currency)));
+    $("products").replaceChildren(list);
+    if (r.explanation) {
+      show("why", true);
+      state.fallback = !!r.explanation.fallback;
+      // The harness's own fallback template is not in English; build the summary here from the checked plan
+      // (and refine it with the offer title and seller once they are loaded).
+      $("whyText").textContent = state.fallback ? planSummary(p, null) : r.explanation.text;
+      $("whyNote").replaceChildren(el("span", {}, state.fallback
+        ? "Summary generated from the budget-checked plan (the model's draft quoted figures we could not verify)."
+        : "Checked: every number and source above comes from the plan and its evidence."));
+    }
+    summary(p);
+    lookup(p);
+  }
+  show("refine", !!state.original);
+  const u = r.usage || {};
+  $("stats").replaceChildren(
+    el("div", {}, el("b", {}, u.model_calls ?? "–"), el("span", {}, "Model calls")),
+    el("div", {}, el("b", {}, u.tool_calls ?? "–"), el("span", {}, "Tool calls")),
+    el("div", {}, el("b", {}, u.elapsed_s != null ? Number(u.elapsed_s).toFixed(1) + "s" : "–"), el("span", {}, "Compute")));
+  show("usage", true);
+}
+
+function planSummary(p, info) {
+  const it = p.items[0];
+  const what = info && info.title ? info.title : "this offer";
+  const from = info && info.seller ? " from " + info.seller : "";
+  const ship = "shipping" in (p.cost_breakdown || {})
+    ? (Number(p.cost_breakdown.shipping) === 0 ? " with free shipping" : " including " + fmt(p.cost_breakdown.shipping, p.currency) + " shipping") : "";
+  const more = p.items.length > 1 ? ` and ${p.items.length - 1} more item(s)` : "";
+  const qty = it.quantity > 1 ? it.quantity + " × " : "";
+  const pre = "tax" in (p.cost_breakdown || {}) ? "" : " before tax";
+  return `We picked ${qty}${what}${from}${more}. It comes to ${fmt(p.total_cost, p.currency)}${pre}${ship}, ` +
+         `leaving ${fmt(p.remaining_funds, p.currency)} of your budget. The sources below show where each fact comes from.`;
+}
+
+function productCard(it, top, cur) {
+  return el("article", { class: "product", "data-offer": it.offer_id },
+    el("div", { class: "thumb", "aria-hidden": "true" }, svgBag()),
+    el("div", {},
+      el("div", { class: "badges" }, top ? el("span", { class: "badge pick" }, "Our pick") : "", el("span", { class: "badge ok" }, "✓ Within budget")),
+      el("h3", { class: "ptitle" }, "Loading offer details…"),
+      el("div", { class: "seller" }, "Offer " + it.offer_id),
+      el("div", { class: "pricebox" }),
+      el("div", { class: "facts" }),
+      el("div", { class: "qty" }, "Quantity: " + it.quantity)));
+}
+function svgBag() {
+  const ns = "http://www.w3.org/2000/svg";
+  const s = document.createElementNS(ns, "svg");
+  s.setAttribute("width", "54"); s.setAttribute("height", "54"); s.setAttribute("viewBox", "0 0 24 24");
+  s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "1.5");
+  s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round");
+  for (const d of ["M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8z", "M9 7V5.5a3 3 0 0 1 6 0V7"]) {
+    const p = document.createElementNS(ns, "path"); p.setAttribute("d", d); s.append(p);
+  }
+  return s;
+}
+
+function summary(p) {
+  const t = $("sumTable"); t.replaceChildren();
+  const pre = !("tax" in (p.cost_breakdown || {}));
+  for (const [k, v] of Object.entries(p.cost_breakdown || {}))
+    t.append(el("tr", {}, el("td", {}, COST[k] || k), el("td", {}, Number(v) === 0 && k === "shipping" ? "FREE" : fmt(v, p.currency))));
+  if (pre) t.append(el("tr", {}, el("td", { class: "muted" }, "Tax"), el("td", { class: "muted" }, "Not included")));
+  t.append(el("tr", { class: "total" }, el("td", {}, pre ? "Total before tax" : "Total"), el("td", {}, fmt(p.total_cost, p.currency))));
+  t.append(el("tr", {}, el("td", {}, "Left in your budget"), el("td", {}, fmt(p.remaining_funds, p.currency))));
+  const total = Number(p.total_cost), left = Number(p.remaining_funds), budget = total + left;
+  const pct = budget > 0 ? Math.min(100, Math.round(total / budget * 100)) : 0;
+  $("meter").classList.toggle("tight", pct > 85);
+  $("meter").firstElementChild.style.width = pct + "%";
+  $("meterText").textContent = budget > 0 ? `Uses ${pct}% of your ${fmt(budget, p.currency)} budget` : "";
+  show("summary", true);
+}
+
+async function lookup(plan) {
+  const offer_ids = plan.items.map(i => i.offer_id);
+  const evidence_ids = [...new Set(plan.items.flatMap(i => i.evidence_ids))];
+  try {
+    const resp = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ session_id: session, run_id: state.runId, offer_ids, evidence_ids }) });
+    const r = await resp.json();
+    if (!resp.ok) throw new Error(r.error && r.error.message);
+    const sellerOf = {};
+    for (const e of r.evidence) if (e.source_label) sellerOf[e.variant_id] = e.source_label;
+    const seen = new Set();
+    for (const o of r.offers) {
+      if (seen.has(o.offer_id)) continue;
+      seen.add(o.offer_id);
+      const node = document.querySelector(`[data-offer="${CSS.escape(o.offer_id)}"]`);
+      if (!node) continue;
+      node.querySelector(".ptitle").textContent = o.store_title || o.offer_id;
+      node.querySelector(".seller").textContent = (sellerOf[o.variant_id] ? "Sold by " + sellerOf[o.variant_id] : "Seller unknown") +
+        (o.observed_at ? " · price seen " + new Date(o.observed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
+      node.querySelector(".pricebox").replaceChildren(priceNode(o.price_minor, o.currency));
+      const facts = node.querySelector(".facts");
+      facts.replaceChildren(
+        o.shipping_status === "known"
+          ? el("span", { class: "fact ok" }, o.shipping_minor === 0 ? "✓ FREE shipping" : "Shipping " + fmt(o.shipping_minor / 100, o.currency))
+          : el("span", { class: "fact warn" }, "Shipping unknown"),
+        el("span", { class: "fact" + (o.tax_status === "known" ? "" : " warn") }, o.tax_status === "known" ? "Tax " + fmt(o.tax_minor / 100, o.currency) : "Tax not included"),
+        o.price_stale ? el("span", { class: "fact warn" }, "Price may have changed") : "");
+    }
+    if (state.fallback && r.offers.length) {
+      const o = r.offers.find(x => x.offer_id === plan.items[0].offer_id) || r.offers[0];
+      $("whyText").textContent = planSummary(plan, { title: o.store_title, seller: sellerOf[o.variant_id] });
+    }
+    const box = $("sources"); box.replaceChildren();
+    for (const e of r.evidence) {
+      const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
+      let host = "";
+      try { host = url ? new URL(url).hostname.replace(/^www\./, "") : ""; } catch (x) {}
+      box.append(el("div", { class: "ev" },
+        el("div", { class: "src" }, e.source_label || host || "Source", el("span", { class: "muted" }, e.observed_at ? " · " + new Date(e.observed_at).toLocaleDateString("en-US") : "")),
+        el("div", {}, e.title || e.evidence_id),
+        url ? el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, host ? "View on " + host + " ↗" : url) : el("span", { class: "muted" }, "No link"),
+        e.text ? el("div", { class: "excerpt" }, e.text.length > 280 ? e.text.slice(0, 280) + "…" : e.text) : ""));
+    }
+    show("sourcesCard", r.evidence.length > 0);
+  } catch (e) {
+    $("sources").replaceChildren(el("div", { class: "muted" }, "Could not load sources: " + e.message));
+    show("sourcesCard", true);
+  }
+}
+
+function resetRun() {
+  state.explain = ""; state.pending = null; state.t0 = performance.now();
+  $("steps").replaceChildren(); $("runId").textContent = ""; $("progTitle").textContent = "Working on it";
+  notice("streamError"); notice("topNotice");
+  document.querySelectorAll("#stepper .st").forEach(n => n.classList.remove("done", "active", "fail"));
+  show("welcome", false); show("progress", true);
+  for (const id of ["question", "result", "why", "summary", "refine", "usage", "sourcesCard"]) show(id, false);
+  $("products").replaceChildren(); $("resultStatus").replaceChildren(); $("sources").replaceChildren();
+}
+
+async function run(path, body) {
+  setBusy(true);
+  try {
+    await streamCall(path, body, handle);
+  } catch (e) {
+    notice("streamError", "err", e.message, () => { resetRun(); run(path, body); });
+  } finally {
+    setBusy(false);
+  }
+}
+
+const money = (s) => /^\d+(\.\d{1,2})?$/.test(s);
+
+function ask(message, cap) {
+  message = (message || "").trim();
+  if (!message) { notice("topNotice", "warn", "Tell us what you're shopping for first."); $("msg").focus(); return; }
+  cap = (cap || "").trim();
+  if (cap && !money(cap)) { notice("topNotice", "warn", "Enter the budget as a number, like 100 or 99.50."); $("cap").focus(); return; }
+  const constraints = cap ? { purchase_cap: cap, currency: $("cur").value } : {};
+  state.original = { message, constraints };
+  resetRun();
+  run("/api/ask", { message, constraints, explain: $("explain").checked });
+}
+
+$("searchForm").onsubmit = (e) => { e.preventDefault(); if (!state.busy) ask($("msg").value, $("cap").value); };
+document.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
+  $("msg").value = b.dataset.q; $("cap").value = b.dataset.b || "";
+  if (!state.busy) ask(b.dataset.q, b.dataset.b);
+}));
+
+$("qForm").onsubmit = (e) => {
+  e.preventDefault();
+  const q = state.pending; if (!q || state.busy) return;
+  const answer = {};
+  for (const f of q.required_fields) {
+    const v = $("q_" + f).value.trim();
+    if (!v) { notice("streamError", "warn", "Please fill in: " + (FIELD_LABELS[f] || f)); return; }
+    if (f !== "currency" && !money(v)) { notice("streamError", "warn", (FIELD_LABELS[f] || f) + " should be a number, like 100."); return; }
+    answer[f] = v;
+  }
+  notice("streamError");
+  if (state.original) state.original.constraints = { ...state.original.constraints, ...answer };
+  show("question", false);
+  run("/api/answer", { run_id: state.runId, question_id: q.question_id, answer });
+};
+
+document.querySelectorAll("#refineChips .chip").forEach(c => c.addEventListener("click", () => {
+  $("revMsg").value = c.textContent; $("revMsg").focus();
+}));
+$("revForm").onsubmit = (e) => {
+  e.preventDefault();
+  const rev = $("revMsg").value.trim();
+  if (!rev || !state.original || state.busy) { notice("streamError", "warn", "Say what should change."); return; }
+  const cap = $("revCap").value.trim();
+  if (cap && !money(cap)) { notice("streamError", "warn", "Enter the new budget as a number."); return; }
+  const constraints = cap ? { ...state.original.constraints, purchase_cap: cap, currency: state.original.constraints.currency || "USD" }
+                          : state.original.constraints;
+  const parent = state.runId;
+  const message = state.original.message + "\nChange: " + rev;
+  state.original = { message, constraints };
+  $("revMsg").value = ""; $("revCap").value = "";
+  resetRun();
+  run("/api/ask", { message, constraints, revises: parent, explain: $("explain").checked });
+};
+
+$("cancel").onclick = async () => {
+  if (!state.runId) return;
+  await fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" },
+                               body: JSON.stringify({ session_id: session, run_id: state.runId }) });
+  logStep("Stop requested");
+};
+
+health(); setInterval(health, 30000);
+</script>
+</body>
+</html>
