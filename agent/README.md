@@ -475,3 +475,42 @@ selection remain integrations. Pending model/tool handles still return
 real capability is absent.
 
 See [ARCHITECTURE.md](ARCHITECTURE.md) for the design and deferred capabilities.
+
+## 预算校验器（Task 3）
+
+`agent/budget.py` 的 `BudgetPlanValidator` 实现 `PlanValidator` 端口：金额只用 `Decimal` 计算，不经过模型。
+它不导入知识库，报价事实由 `OfferCostSource` 提供；知识库侧适配器是 `knowledge/budget_source.py`。
+
+```python
+from agent.budget import BudgetPlanValidator
+from knowledge.budget_source import KnowledgeOfferCostSource
+
+source = KnowledgeOfferCostSource(service)          # 宿主在停机时调用 source.close()
+validator = BudgetPlanValidator(source)   # 默认按不含税（pre_tax）比较
+```
+
+**状态**：`passed` 附带 `VerifiedPlan`；`failed` 表示规则问题，每个问题点名需要的字段或原因，模型可据此换方案或追问；
+`unavailable` 只用于读取报价失败，运行会终止。
+
+**预算输入**（`AgentRequest.constraints`，金额为十进制字符串）：`currency`（必填，不换算）、`purchase_cap`、
+`periodic_budget` 减去 `spending` 和 `reserve`（后两项默认 0）。两种限额同时给出时，可用资金取较小者；总价恰好等于可用资金时通过。
+
+**税费口径**（`budget_basis`，可由约束覆盖校验器的 `default_basis`）：项目已决定**按不含税比较**，所以默认是 `pre_tax`。
+口径决定税费是否计入，方案里每个条目都按同一口径计算：
+
+- `pre_tax`（默认）：只计标价和已知运费，税费一律不计入（已知的税费也不计），`cost_breakdown` 不含 `tax`。回答里必须注明合计不含税；
+  `agent/explanation.py` 的模板回退在 `cost_breakdown` 没有 `tax` 时会自动加上「（不含税）」，模型自己写的解释目前没有这个强制检查；
+- `all_in`：每个条目都计税：标价含税计 0，标价不含税且税费已知时按单价同样的方式乘数量；任何条目税费未知，或不知道标价是否含税，
+  就不通过（`tax_unknown`），不估算。`cost_breakdown` 总是含 `tax`。当前快照的税费全部未知，所以这个口径下没有方案能通过。
+
+因此 `cost_breakdown` 是否含 `tax` 与口径一一对应。
+
+**其他规则**：运费未知、币种不一致、价格冲突、规格版本冲突、证据不属于所选商品、方案没有引用价格证据，都不通过。
+运费按 `shipping_scope` 计算：`item` 乘数量，`order` 每个条目计一次（合并运费时是偏高的上界），范围未知时数量必须为 1。
+SKU 身份默认不阻止通过，`require_verified_identity=True` 可收紧。
+
+**尚未包含**：对硬性规格要求（如容量、降噪）的校验、价格新鲜度策略，以及 `VerifiedPlan` 中记录所用口径的字段
+（目前由 `cost_breakdown` 是否含 `tax` 判断，两者一一对应；模型写的解释不会被强制注明口径）。
+另外，模型看到的提交标准比校验器更严：`get_offer_facts` 的说明写着费用未知不能确认可负担，而默认的 `pre_tax`
+放行税费未知、身份未验证，以及数量为 1 时的运费范围未知；`complete_total_minor` 也是含税口径。是否把口径告诉模型
+（工具说明、系统提示或校验反馈）与 issue #21 的修复一起决定。

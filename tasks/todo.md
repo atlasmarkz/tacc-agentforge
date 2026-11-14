@@ -59,7 +59,7 @@ tests; manual coverage audit of the collected sample.
 Validate quantities, essential requirements, known delivery/taxes, purchase caps,
 periodic balances, spending, and reserves without delegating arithmetic to the LLM.
 
-- [ ] Exact arithmetic gives correct itemized totals and remaining funds at boundaries.
+- [x] Exact arithmetic gives correct itemized totals and remaining funds at boundaries.
 - [ ] Unknown essential fees, incompatible units/currencies, or absent required attributes trigger clarification.
 - [ ] The selected plan cites its price/requirement evidence from the chosen snapshot.
 
@@ -67,6 +67,11 @@ periodic balances, spending, and reserves without delegating arithmetic to the L
 funds, missing fees, and the smaller-of-two-budgets rule.
 **Dependencies:** 2. **Scope:** Small.
 **Likely files:** `agent/budget.py`, `tests/test_budget.py`.
+
+**Progress:** `agent/budget.py` and `knowledge/budget_source.py` implement exact totals, the
+smaller-of-two-budgets rule, unknown shipping/tax, currency and evidence-ownership checks (see
+`agent/README.md`). Budgets are compared before tax (decided); answers must say so. The next two items stay
+open because required-attribute checks and requirement evidence are not implemented.
 
 ## Task 4: Complete the bounded agent loop
 
@@ -110,9 +115,9 @@ successive implementation slices if more than five files are needed.
 Prepare 10 development and 40 held-out cases, relevance labels, and an independent
 catalog enumerator. Add the unseen fifth category only after freezing the system.
 
-- [ ] Snapshot/case splits and three repeats per core configuration are reproducible.
+- [x] Snapshot/case splits and three repeats per core configuration are reproducible.
 - [ ] Retrieval, single-call, agent, and serving comparisons keep their stated controls.
-- [ ] Reports follow `docs/evaluation-metrics.md`, including quality, cost, failure counts, timing components, and at least one failure trace; streaming serving measurements are separate from the current blocking-client duration.
+- [x] Reports follow `docs/evaluation-metrics.md`, including quality, cost, failure counts, timing components, and at least one failure trace; streaming serving measurements are separate from the current blocking-client duration.
 
 **Verification:** Scoring/enumerator self-checks, fixture replay, and a complete
 baseline run; manually review evidence labels and preference-fit ratings.
@@ -122,7 +127,7 @@ baseline run; manually review evidence labels and preference-fit ratings.
 
 ## Checkpoint before model changes
 
-- [ ] Baseline results and snapshot IDs are archived.
+- [x] Baseline results and snapshot IDs are archived.
 - [ ] Held-out cases, derivatives, and category leakage are excluded from training/calibration.
 - [ ] Errors identify acquisition, retrieval, arithmetic, tool-use, or serving causes.
 

@@ -5,17 +5,26 @@ Configurations (docs/evaluation-metrics.md section 8):
        snapshot candidates of the case's category in USD at or below the budget (attributes, offer, price)
   B1   B0 + top-5 evidence from keyword retrieval for the case's retrieval query
   B2   B0 + top-5 evidence from filtered retrieval (same candidate set)
-  B3   the harness with the real knowledge tools and the deployment policy (inference.harness_policy).
-       There is no budget validator yet (Task 3): a recording stand-in keeps the proposal and answers
-       "unavailable", so this is strictly ablation A2 ("without validator"). The scorer judges the proposal.
+  B3   the harness with the real knowledge tools and the deployed settings: configs/agent.yaml, profile
+       tacc-fast, loaded the same way as app/harness_service.py (policy and model adapter settings).
+       A recording stand-in replaces the budget validator: it keeps the proposal and answers "unavailable",
+       so this is ablation A2 ("without validator"). The scorer judges the proposal.
+  B3v  B3 plus the real budget validator (agent/budget.py, before-tax basis): the full system. Only a plan the
+       validator approved counts as delivered; B3 vs B3v differs in the validator alone.
   B3h  B3 with the category names added to the constraints: diagnostic for issue #4, not a baseline.
 All configurations: thinking off, temperature 0, constrained JSON output, same model and snapshot.
 Every attempt is scored by the same independent enumerator (evaluations/catalog.py), whatever the system did.
 
-The held-out split stays sealed until the system is frozen (validator, issues #4 and #6): running it before
-then, and tuning on what it shows, would spend it. --split heldout therefore needs --unseal-heldout.
+The held-out split stays sealed until the system is frozen: running it before then, and tuning on what it
+shows, would spend it. --split heldout therefore needs --unseal-heldout, and the tree must match the freeze
+manifest (evaluations/freeze.py, freeze.json).
 
-  python run.py --split dev --configs B0,B1,B2,B3,B3h --repeats 3 --out <dir>
+Configurations are interleaved within each case and their order rotates from case to case and repeat to
+repeat, so prefix-cache and warm-up effects do not always favour the same configuration. An attempt that fails
+because the model service is unavailable (between service jobs) is not a system failure: the runner waits for
+the service and repeats it (logged in infra.jsonl). --resume continues an output directory across jobs.
+
+  python run.py --split dev --configs B0,B1,B2,B3,B3v,B3h --repeats 3 --out <dir>
 """
 from __future__ import annotations
 
@@ -35,12 +44,13 @@ from pydantic import Field, TypeAdapter
 
 
 from agent import AgentDependencies, AgentRequest, AgentRuntime, Issue, RunPolicy, ValidationResult
+from agent.budget import BudgetPlanValidator
 from agent.contracts import ACTION_ADAPTER, AskUser, ProposePlan
 from inference.client import ModelClient, ModelClientError
-from inference.harness_policy import run_policy_kwargs
 from inference.model_port import VllmModelPort, decoder_schema, to_chat_messages
 from knowledge.agent_tools import build_knowledge_tools
 from knowledge.bootstrap import install_snapshot
+from knowledge.budget_source import KnowledgeOfferCostSource
 from knowledge.service import KnowledgeError, KnowledgeService
 from knowledge.settings import load_settings
 from knowledge.store import verify_snapshot
@@ -115,13 +125,18 @@ def valid_action(text: str, finish: str) -> bool:
 
 
 class RecordingValidator:
-    """Stand-in for the missing budget validator (Task 3): keeps the proposal, never approves it."""
+    """Keeps every proposal. Alone it is the ablation stand-in of B3 and never approves; around a real
+    validator (B3v) it returns that validator's verdict and keeps it for the record."""
 
-    def __init__(self):
-        self.proposals = []
+    def __init__(self, inner=None):
+        self.proposals, self.verdicts, self.inner = [], [], inner
 
     async def validate(self, request, context):
         self.proposals.append(request.plan.model_dump(mode="json"))
+        if self.inner is not None:
+            result = await self.inner.validate(request, context)
+            self.verdicts.append({"status": result.status, "issues": [i.code for i in result.issues]})
+            return result
         return ValidationResult(status="unavailable", proposal_fingerprint=request.proposal_fingerprint,
                                 issues=[Issue(code="validator_not_implemented", message="No budget validator yet (Task 3).")])
 
@@ -193,10 +208,22 @@ def single_call(client, kb, snapshot_id, case, config, cand_cache):
 
 # ---- harness configurations (B3, B3h) ----------------------------------------------------------------
 
-async def harness_call(client, tools, snapshot_id, case, config, rep, temperature=0.0, record=False):
-    port = RecordingPort(VllmModelPort(client, enable_thinking=False, temperature=temperature), keep_messages=record)
-    validator = RecordingValidator()
-    runtime = AgentRuntime(AgentDependencies(port, tools, validator), RunPolicy(**run_policy_kwargs(False)))
+def deployed_settings(profile: str = "tacc-fast"):
+    """The harness settings the deployed service runs with (app/harness_service.py loads the same file)."""
+    from agent.settings import load_runtime_settings
+    return load_runtime_settings(Path(__file__).resolve().parents[1] / "configs/agent.yaml", profile)
+
+
+async def harness_call(client, tools, snapshot_id, case, config, rep, temperature=None, record=False,
+                       budget_source=None, settings=None):
+    settings = settings or deployed_settings()
+    m = settings.model
+    port = RecordingPort(VllmModelPort(client, enable_thinking=m.enable_thinking,
+                                       temperature=m.temperature if temperature is None else temperature,
+                                       constrain_output=m.constrain_output, timeout_margin_s=m.timeout_margin_s),
+                         keep_messages=record)
+    validator = RecordingValidator(BudgetPlanValidator(budget_source) if config == "B3v" else None)
+    runtime = AgentRuntime(AgentDependencies(port, tools, validator), settings.policy)
     run_id = f"eval-{case['case_id']}-{config}-{rep}"
     request = AgentRequest(run_id=run_id, conversation_id=f"c-{run_id}", snapshot_id=snapshot_id,
                            message=case["message"], constraints=request_json(case, config == "B3h"))
@@ -222,7 +249,14 @@ async def harness_call(client, tools, snapshot_id, case, config, rep, temperatur
     if record:
         rec["trace_calls"] = [{"messages": c["messages"], "reply": c["reply"],
                                "accepted": valid_action(c["reply"], c["finish"])} for c in port.calls if "messages" in c]
-    if validator.proposals:
+    if config == "B3v":
+        rec["validator"] = validator.verdicts
+    plan = result.verified_plan if config == "B3v" else None
+    if plan is not None:                                  # B3v: only an approved plan is delivered
+        rec["outcome"] = {"kind": "plan", "items": [i.model_dump(mode="json") for i in plan.items],
+                          "reported_total": plan.total_cost, "reported_remaining": plan.remaining_funds}
+        rec["context_ids"] = sorted(port.last_ids)
+    elif validator.proposals and config != "B3v":
         rec["outcome"] = {"kind": "plan", "items": validator.proposals[-1]["items"]}
         rec["context_ids"] = sorted(port.last_ids)       # what the model saw when it proposed the plan
     elif result.clarification is not None:
@@ -285,7 +319,48 @@ def wait_for_service(address_file: Path, wait_s: float) -> dict:
     raise SystemExit(f"no healthy service at {address_file} after {wait_s:.0f} s")
 
 
+INFRA_ERRORS = {"ServiceUnavailable", "StreamInterrupted", "model_unavailable"}
+
+
+def is_infra_error(rec: dict) -> bool:
+    """The attempt failed because no model service was reachable, not because of anything the system did."""
+    reason = str(rec.get("stop_reason") or "")
+    return rec["outcome"]["kind"] == "error" and (reason in INFRA_ERRORS or "ServiceUnavailable" in reason)
+
+
+def config_order(configs: list[str], case_index: int, rep: int) -> list[str]:
+    k = (case_index + rep) % len(configs)
+    return configs[k:] + configs[:k]
+
+
+def read_records(path: Path) -> list[dict]:
+    """Records written so far; a line cut off by a job time limit is dropped (that attempt is repeated)."""
+    out = []
+    if path.exists():
+        for line in path.read_text(encoding="utf-8").splitlines():
+            try:
+                out.append(json.loads(line))
+            except ValueError:
+                pass
+    return out
+
+
+def check_freeze(a) -> dict | None:
+    from . import freeze
+    if not freeze.MANIFEST.exists():
+        if a.split == "heldout":
+            raise SystemExit("refusing: no freeze manifest (python -m evaluations.freeze write)")
+        return None
+    manifest = json.loads(freeze.MANIFEST.read_text(encoding="utf-8"))
+    problems = freeze.compare(manifest, freeze.ROOT, require_all=False)
+    if problems and a.split == "heldout":
+        raise SystemExit("refusing: the tree differs from the freeze manifest:\n  " + "\n  ".join(problems))
+    return {"digest": manifest["digest"], "frozen_at": manifest["frozen_at"], "matches": not problems,
+            "differences": problems}
+
+
 async def run_all(a):
+    freeze_info = check_freeze(a)
     service = wait_for_service(a.address_file, getattr(a, "wait_s", 1800))
     log(f"service {service}")
     cases = [json.loads(l) for l in a.cases.read_text(encoding="utf-8").splitlines() if l.strip()]
@@ -294,26 +369,52 @@ async def run_all(a):
         cases = [c for c in cases if c["case_id"] in a.only.split(",")]
     settings, scratch = prepare_snapshot(a.config, a.userdir, os.environ.get("SLURM_TMPDIR"))
     sid = settings.snapshot_id
+    harness_settings = deployed_settings()
     catalog = Catalog(scratch / sid / "catalog.sqlite")
     kb = KnowledgeService(scratch, **settings.service)
     tools = build_knowledge_tools(kb)
+    budget_source = KnowledgeOfferCostSource(kb) if "B3v" in a.configs.split(",") else None
     client = ModelClient(address_file=a.address_file, model="qwen3.8-27b")
     configs = a.configs.split(",")
     a.out.mkdir(parents=True, exist_ok=True)
     gts = {c["case_id"]: ground_truth(c, catalog) for c in cases}
     (a.out / "ground_truth.json").write_text(json.dumps(gts, indent=1), encoding="utf-8")
-    records, cand_cache, traces = [], {}, {}
-    rec_file = open(a.out / "records.jsonl", "w", encoding="utf-8")
+    rec_path = a.out / "records.jsonl"
+    previous = read_records(rec_path) if getattr(a, "resume", False) else []
+    done = {(r["rep"], r["case_id"], r["config"]) for r in previous}
+    if previous:
+        log(f"resuming: {len(previous)} attempts already recorded")
+    records, cand_cache, traces, infra = list(previous), {}, {}, 0
+    cut_off = previous and not rec_path.read_bytes().endswith(b"\n")   # last line cut off by a time limit
+    rec_file = open(rec_path, "a" if previous else "w", encoding="utf-8")
+    if cut_off:
+        rec_file.write("\n")
+    infra_file = open(a.out / "infra.jsonl", "a", encoding="utf-8")
     try:
         for rep in range(a.repeats):
-            for case in cases:                     # configurations interleaved within each case
-                for config in configs:
-                    if config in ("B3", "B3h"):
-                        rec = await harness_call(client, tools, sid, case, config, rep,
-                                                 getattr(a, "temperature", 0.0), getattr(a, "record_traces", False))
-                    else:
-                        rec = await asyncio.to_thread(single_call, client, kb, sid, case, config, cand_cache)
-                    rec.update(config=config, case_id=case["case_id"], rep=rep, snapshot_id=sid)
+            for ci, case in enumerate(cases):      # configurations interleaved within each case, order rotated
+                for config in config_order(configs, ci, rep):
+                    if (rep, case["case_id"], config) in done:
+                        continue
+                    for attempt in range(1 + getattr(a, "infra_retries", 3)):
+                        started = time.strftime("%Y-%m-%dT%H:%M:%S")
+                        if config in ("B3", "B3h", "B3v"):
+                            rec = await harness_call(client, tools, sid, case, config, rep,
+                                                     getattr(a, "temperature", None),
+                                                     getattr(a, "record_traces", False), budget_source,
+                                                     harness_settings)
+                        else:
+                            rec = await asyncio.to_thread(single_call, client, kb, sid, case, config, cand_cache)
+                        rec.update(config=config, case_id=case["case_id"], rep=rep, snapshot_id=sid,
+                                   started_at=started, infra_retries=attempt)
+                        if not is_infra_error(rec) or attempt == getattr(a, "infra_retries", 3):
+                            break
+                        infra += 1
+                        infra_file.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                        infra_file.flush()
+                        log(f"rep{rep} {case['case_id']} {config}: service unavailable ({rec.get('stop_reason')}); "
+                            f"waiting for the service, then repeating the attempt")
+                        wait_for_service(a.address_file, getattr(a, "wait_s", 1800))
                     calls = rec.pop("trace_calls", None)
                     if calls is not None:
                         traces[(config, case["case_id"], rep)] = calls
@@ -323,20 +424,25 @@ async def run_all(a):
                     log(f"rep{rep} {case['case_id']:9s} {config:4s} {rec['outcome']['kind']:8s} {rec.get('wall_s')}s")
     finally:
         rec_file.close()
+        infra_file.close()
         tools.get("search_products").executor.close()
-    by_id = {c["case_id"]: c for c in cases}
-    scores = [score_record(r, by_id[r["case_id"]], gts[r["case_id"]], catalog) for r in records]
+        if budget_source is not None:
+            budget_source.close()
     catalog.close()
-    shutil.rmtree(scratch, ignore_errors=True)
-    report = {"split": a.split, "snapshot_id": sid, "service": service, "cases": len(cases), "repeats": a.repeats, "configs": configs,
-              "summary": aggregate(scores, records),
-              "paired": [d for d in (paired_difference(scores, x, y) for x, y in
-                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
-                                     if x in configs and y in configs) if d]}
     if traces:
+        by_id = {c["case_id"]: c for c in cases}
+        trace_catalog = Catalog(scratch / sid / "catalog.sqlite")
+        try:
+            scores = [score_record(r, by_id[r["case_id"]], gts[r["case_id"]], trace_catalog) for r in records]
+        finally:
+            trace_catalog.close()
         write_traces(a.out / "traces.jsonl", records, scores, traces)
-    (a.out / "scores.jsonl").write_text("\n".join(json.dumps(s, ensure_ascii=False) for s in scores) + "\n",
-                                        encoding="utf-8")
+    report = rescore(a.out, a.cases, scratch / sid / "catalog.sqlite")
+    shutil.rmtree(scratch, ignore_errors=True)
+    report = {"split": a.split, "snapshot_id": sid, "service": service, "repeats": a.repeats,
+              "freeze": freeze_info, "harness_settings": {"profile": "tacc-fast",
+                                                          "policy": harness_settings.policy.model_dump(mode="json")},
+              "infra_retries_this_job": infra, **report}
     (a.out / "report.json").write_text(json.dumps(report, indent=1, ensure_ascii=False), encoding="utf-8")
     for cfg, r in report["summary"].items():
         log(f"{cfg}: TSR {r['tsr']['n']}/{r['tsr']['m']} by case {r['tsr_by_case']} BVR {r['bvr']} reasons {r['outcome_reasons']}")
@@ -348,7 +454,7 @@ async def run_all(a):
 def rescore(out_dir: Path, cases_path: Path, snapshot_db: Path) -> dict:
     """Rebuild scores.jsonl and report.json from records.jsonl, e.g. after a job hit its time limit before
     reporting. Only complete repeats (every case x configuration) are kept, so comparisons stay paired."""
-    records = [json.loads(l) for l in (out_dir / "records.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+    records = read_records(out_dir / "records.jsonl")
     cases = {c["case_id"]: c for c in (json.loads(l) for l in cases_path.read_text(encoding="utf-8").splitlines() if l.strip())}
     configs = list(dict.fromkeys(r["config"] for r in records))
     seen_cases = sorted({r["case_id"] for r in records})
@@ -367,7 +473,7 @@ def rescore(out_dir: Path, cases_path: Path, snapshot_db: Path) -> dict:
               "records_dropped_partial_repeat": len(records) - len(kept), "configs": configs,
               "summary": aggregate(scores, kept),
               "paired": [d for d in (paired_difference(scores, x, y) for x, y in
-                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"))
+                                     (("B0", "B1"), ("B1", "B2"), ("B2", "B3"), ("B3", "B3h"), ("B3", "B3v"))
                                      if x in configs and y in configs) if d]}
     (out_dir / "ground_truth.json").write_text(json.dumps(gts, indent=1), encoding="utf-8")
     (out_dir / "scores.jsonl").write_text("\n".join(json.dumps(x, ensure_ascii=False) for x in scores) + "\n",
@@ -382,7 +488,7 @@ def main():
     ap.add_argument("--cases", type=Path, default=here / "cases.jsonl")
     ap.add_argument("--split", choices=["dev", "heldout"], default="dev")
     ap.add_argument("--unseal-heldout", action="store_true", help="only once the system is frozen")
-    ap.add_argument("--configs", default="B0,B1,B2,B3,B3h")
+    ap.add_argument("--configs", default="B0,B1,B2,B3,B3v,B3h")
     ap.add_argument("--repeats", type=int, default=3)
     ap.add_argument("--only", default="", help="comma-separated case IDs (debugging)")
     ap.add_argument("--config", type=Path, default=here.parent / "configs/knowledge.json")
@@ -393,7 +499,12 @@ def main():
     ap.add_argument("--rescore", type=Path, help="results directory: rebuild scores and report from records.jsonl")
     ap.add_argument("--snapshot-db", type=Path, help="catalog.sqlite of the snapshot (for --rescore)")
     ap.add_argument("--wait-s", type=float, default=1800, help="how long to wait for a healthy service")
-    ap.add_argument("--temperature", type=float, default=0.0, help="harness sampling temperature (trace collection)")
+    ap.add_argument("--temperature", type=float, default=None,
+                    help="harness sampling temperature for trace collection (default: the deployed setting, 0)")
+    ap.add_argument("--resume", action="store_true",
+                    help="continue --out: keep its records and run only the attempts that are missing")
+    ap.add_argument("--infra-retries", type=int, default=3,
+                    help="repeat an attempt this many times when the model service was unavailable")
     ap.add_argument("--record-traces", action="store_true",
                     help="write traces.jsonl (exact model inputs and actions, scorer verdict) for SFT data")
     a = ap.parse_args()
