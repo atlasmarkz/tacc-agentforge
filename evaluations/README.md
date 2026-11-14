@@ -10,6 +10,7 @@
 | `catalog.py` | 独立枚举器:直接读冻结快照,为每个用例算出标准答案 |
 | `score.py` | 确定性评分:TSR、BVR、约束违反、不可验证的声明、不存在的 ID、按用例的 bootstrap 区间 |
 | `run.py` | baseline 运行器:在 TACC 上依次运行各配置并评分 |
+| `freeze.py`、`freeze.json` | 冻结清单:被评测系统的每个文件的哈希,以及解析后的运行策略和模型设置 |
 | `retrieval.py` | 检索指标:构建待标注的证据池,标注后计算 Recall@5 和 MRR@5 |
 | `relevance_pool.jsonl` | 待标注的证据池,`relevant` 字段需人工填写 |
 | `results/` | 每次运行的原始记录、评分和报告 |
@@ -89,7 +90,7 @@
 | B0 | 同一组结构化候选:该品类在预算内的前 10 个候选,包括属性、报价和价格 | 单次调用 |
 | B1 | B0 加上关键词检索的前 5 条证据 | 单次调用 |
 | B2 | B0 加上过滤检索的前 5 条证据 | 单次调用 |
-| B3 | 部署形态的 harness:真实知识库工具,运行策略来自 `inference/harness_policy.py` | 多步工具循环 |
+| B3 | 部署形态的 harness:真实知识库工具,设置与部署的服务相同(`configs/agent.yaml` 的 `tacc-fast`) | 多步工具循环 |
 | B3v | B3 加上真实的预算校验器(`agent/budget.py`,不含税口径) | 多步工具循环;只有校验器批准的方案才算交付 |
 | B3h | B3 加上品类列表提示 | 诊断用,用来看修复 issue #4 的效果,不作为 baseline |
 
@@ -100,9 +101,22 @@
 - **B3v 是完整系统**:用真实校验器。方案被拒后模型可以修改或追问;如果最终仍被拒(例如 `plan_repair_limit`),没有交付任何方案,记录为错误并按评分规则判失败,即使该用例本来就没有可行方案。这一点比较严格,分析时需结合 `records.jsonl` 里的 `validator` 字段(每次校验的状态和问题代码)。B3v 的方案还记录系统自己报告的合计和剩余资金(`reported_total`、`reported_remaining`),目前评分器尚未使用,金额错误率仍为"不适用"。
 - **B1 的关键词检索会跨品类**:它搜索整个证据池,而不只是候选集。例如在耳机用例里,它把一个笔记本双肩包排在了第二。这是指标文档的设计,但会给模型带来无关证据。
 
-## 7. 保留集封存
+## 7. 冻结与保留集封存
 
-系统还没有冻结:校验器缺失,issue #4 和 #6 仍未解决。如果现在运行保留集,并据此调整提示或工具,保留集就作废了。所以运行器默认拒绝 `--split heldout`,必须显式加 `--unseal-heldout`。等系统冻结后再运行保留集,每个核心配置重复 3 次。
+**冻结清单**(`freeze.json`,由 `python -m evaluations.freeze write` 生成)记下"被评测的系统"是什么:
+
+- 每个相关文件的 SHA-256:harness(`agent/*.py`、依赖锁)、知识库工具、配置(`configs/agent.yaml`、`knowledge.json`)、模型适配器和客户端、vLLM 服务参数(`service.json`、`serve.py`)、用例和评分器。换行符统一成 LF 后再算,Windows 和集群上的结果一致。
+- 解析后的运行策略和模型设置(`tacc-fast`:关闭思考、温度 0、512 输出 token、36000 字符上下文、32 条历史消息、8 次模型调用)。
+- 快照 ID、各划分的用例数和用例 ID 的哈希。
+
+**规则**:
+- 运行器拒绝 `--split heldout`,除非显式加 `--unseal-heldout`,**并且**当前文件与冻结清单一致。改了提示、工具、策略或评分,就必须重新冻结(并在报告里说明)。
+- 开发集不受限制,报告里会写明当前文件是否与冻结一致。
+- `python -m evaluations.freeze check` 列出与冻结不同的文件。
+
+**本次冻结**(提交 `6d7e58d`,摘要 `c3f8ee0a`;第一次冻结 `bbcdb27a` 之后改用了平台实测过的 `serve.py`,检查当即报出差异,于是重新冻结,两者之间没有运行过保留集):包含真实预算校验器(#18)和 issue #4 的修复(#15)。issue #6 的问题由部署设置解决(36000 字符、32 条历史消息)。已知未解决:issue #21(部分请求用完 8 次模型调用),作为 baseline 的一部分如实测量。
+
+**与之前开发集结果的区别**:之前的 B3 用 harness 的默认设置,只改了上下文和输出额度,只保留 12 条历史消息;8 次决策会产生 16 条动作和观察,早期步骤会被丢掉。现在与部署的服务一致,所以下面第 10 节的 B3 数字和冻结后的结果不能直接比较。
 
 ## 8. 运行方法
 
@@ -112,16 +126,24 @@
 PYTHONUTF8=1 PYTHONPATH=. agent/.venv/Scripts/python.exe -m pytest tests/test_evaluation.py -q
 ```
 
-**在 TACC 上运行开发集 baseline**:
-1. 按 `deploy/tacc/service/RUNBOOK.md` 启动服务。
-2. 复用 `agent-e2e` 作业:`script.txt` 写 `eval_baseline.py`,`args.txt` 写 `--split dev --configs B0,B1,B2,B3,B3v,B3h --repeats 3`。
-3. 运行 `stage.sh`,然后提交该作业。
+**在 TACC 上运行**:
+1. 按 `deploy/tacc/service/RUNBOOK.md` 启动服务(`stage.sh serve`)。评测需要一个多小时时,开启交接(`service-chain.json` 加 `args.txt` 的 `--handover-lead-s 900`)。
+2. 复用 `agent-e2e` 作业:`script.txt` 写 `eval_baseline.py`,`args.txt` 写例如 `--split heldout --unseal-heldout --configs B0,B1,B2,B3,B3v --repeats 3 --out <目录> --resume`。
+3. 运行 `stage.sh`,然后提交该作业。作业 1 小时到期时,用同样的参数再提交一次,`--resume` 会跳过已记录的尝试。
 
-运行器会先等服务就绪,结果写到 `$TACC_USERDIR/tacc-agentforge-service/eval-<作业号>/`:
-- `records.jsonl`:每次尝试的原始结果;
+**运行器的行为**:
+- 先等服务就绪,不测量启动过程。
+- 每个用例内交替运行各配置,顺序按用例和重复轮换,避免前缀缓存和预热总是偏向同一个配置。
+- 因为模型服务不可用(服务作业之间的空档)而失败的尝试不算系统失败:运行器等服务恢复后重做,并记到 `infra.jsonl`。每次尝试的 `infra_retries` 记录重做次数。
+- 被作业时限截断的最后一行会被丢弃,该尝试在下一个作业里重做。
+- 报告只用完整的重复轮次(每个用例和配置都有记录),保证配置之间可以配对比较。
+
+结果目录:
+- `records.jsonl`:每次尝试的原始结果(含开始时间);
 - `scores.jsonl`:每次尝试的评分;
 - `ground_truth.json`:标准答案;
-- `report.json`:汇总。
+- `infra.jsonl`:因服务不可用而重做的尝试;
+- `report.json`:汇总,包括冻结摘要和是否一致、harness 设置。
 
 **检索指标**:
 
@@ -136,12 +158,23 @@ python -m evaluations.retrieval score --data-root <目录> --labels evaluations/
 |---|---|
 | 检索相关性标注:`relevance_pool.jsonl` 共 602 行 | 人工 |
 | 偏好匹配 1–5 分,两位评审独立打分并报告一致性 | 人工 |
-| 在 TACC 上用 B3v 重跑开发集(预算校验器已接入) | 有 TACC 访问权限的成员 |
 | 第五个品类的数据和 8 个用例 | 知识库负责人;按计划在冻结后进行 |
-| 保留集 baseline,每个核心配置 3 次 | 系统冻结后 |
 | 全流程延迟(浏览器到结果) | 需要应用层,Task 5 |
 
-## 10. 开发集结果(作业 28617/28618)
+## 10. 冻结基线
+
+保留集基线已完成:32 个用例 × B0、B1、B2、B3、B3v × 3 次,冻结摘要 `c3f8ee0a`。完整报告见 [docs/experiments/baseline.md](../docs/experiments/baseline.md),原始数据在 `results/frozen-heldout/`、`results/frozen-dev/` 和 `results/frozen-trace-dev/`。
+
+| 配置 | 保留集 TSR | 停在调用上限 |
+|---|---|---|
+| B0 单次调用 | 54/96 | – |
+| B1 / B2 单次调用加检索 | 57/96 | – |
+| B3 harness(无校验器) | 32/96 | 48 |
+| B3v 完整系统 | 42/96 | 48 |
+
+## 11. 冻结前的开发集结果(作业 28617/28618)
+
+以下是冻结前的结果,B3 用的是 harness 默认设置(12 条历史消息),issue #4 也还没修,数字不能和冻结基线直接比较。
 
 10 个开发用例 × 5 个配置 × 3 次重复,共 150 次尝试,没有基础设施错误。原始数据在 `results/dev-28618/`。
 

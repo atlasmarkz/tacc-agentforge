@@ -115,9 +115,9 @@ successive implementation slices if more than five files are needed.
 Prepare 10 development and 40 held-out cases, relevance labels, and an independent
 catalog enumerator. Add the unseen fifth category only after freezing the system.
 
-- [ ] Snapshot/case splits and three repeats per core configuration are reproducible.
+- [x] Snapshot/case splits and three repeats per core configuration are reproducible.
 - [ ] Retrieval, single-call, agent, and serving comparisons keep their stated controls.
-- [ ] Reports follow `docs/evaluation-metrics.md`, including quality, cost, failure counts, timing components, and at least one failure trace; streaming serving measurements are separate from the current blocking-client duration.
+- [x] Reports follow `docs/evaluation-metrics.md`, including quality, cost, failure counts, timing components, and at least one failure trace; streaming serving measurements are separate from the current blocking-client duration.
 
 **Verification:** Scoring/enumerator self-checks, fixture replay, and a complete
 baseline run; manually review evidence labels and preference-fit ratings.
@@ -127,7 +127,7 @@ baseline run; manually review evidence labels and preference-fit ratings.
 
 ## Checkpoint before model changes
 
-- [ ] Baseline results and snapshot IDs are archived.
+- [x] Baseline results and snapshot IDs are archived.
 - [ ] Held-out cases, derivatives, and category leakage are excluded from training/calibration.
 - [ ] Errors identify acquisition, retrieval, arithmetic, tool-use, or serving causes.
 
