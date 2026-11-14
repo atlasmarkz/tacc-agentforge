@@ -1,0 +1,22 @@
+{
+  "peft_type": "LORA",
+  "task_type": "CAUSAL_LM",
+  "r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.0,
+  "bias": "none",
+  "fan_in_fan_out": false,
+  "target_modules": [
+    "down_proj",
+    "gate_proj",
+    "in_proj_qkv",
+    "in_proj_z",
+    "k_proj",
+    "o_proj",
+    "out_proj",
+    "q_proj",
+    "up_proj",
+    "v_proj"
+  ],
+  "base_model_name_or_path": "/mnt/home/public/course-envs/CSIT6000V/project/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4"
+}

@@ -1,0 +1,72 @@
+10-0-1-10
+dev-01 train      qwen3.8-27b  ok=False call_tool audio 10.97s
+dev-01 train      sft          ok=True call_tool earbuds 84.45s
+dev-02 validation qwen3.8-27b  ok=False call_tool headphones 9.55s
+dev-02 validation sft          ok=True call_tool earbuds 30.68s
+dev-03 unseen     qwen3.8-27b  ok=True call_tool earbuds 6.34s
+dev-03 unseen     sft          ok=True call_tool earbuds 9.06s
+dev-04 unseen     qwen3.8-27b  ok=False call_tool charger 7.85s
+dev-04 unseen     sft          ok=True call_tool chargers 10.29s
+dev-05 train      qwen3.8-27b  ok=False call_tool phone_charger 4.39s
+dev-05 train      sft          ok=False call_tool chargers 6.97s
+dev-06 train      qwen3.8-27b  ok=True call_tool keyboards 6.09s
+dev-06 train      sft          ok=True call_tool keyboards 8.67s
+dev-07 unseen     qwen3.8-27b  ok=False call_tool keyboard 5.29s
+dev-07 unseen     sft          ok=True call_tool keyboards 7.64s
+dev-08 unseen     qwen3.8-27b  ok=False call_tool backpack 8.38s
+dev-08 unseen     sft          ok=True call_tool backpacks 13.33s
+dev-09 train      qwen3.8-27b  ok=False call_tool backpack 6.09s
+dev-09 train      sft          ok=True call_tool backpacks 8.71s
+dev-10 train      qwen3.8-27b  ok=True ask_user None 4.92s
+dev-10 train      sft          ok=False call_tool backpacks 6.28s
+{
+ "qwen3.8-27b": {
+  "valid_json": {
+   "n": 10,
+   "of": 10
+  },
+  "correct_first_action": {
+   "n": 3,
+   "of": 10
+  },
+  "by_role": {
+   "train": {
+    "correct": 2,
+    "of": 5
+   },
+   "validation": {
+    "correct": 0,
+    "of": 1
+   },
+   "unseen": {
+    "correct": 1,
+    "of": 4
+   }
+  }
+ },
+ "sft": {
+  "valid_json": {
+   "n": 10,
+   "of": 10
+  },
+  "correct_first_action": {
+   "n": 8,
+   "of": 10
+  },
+  "by_role": {
+   "train": {
+    "correct": 3,
+    "of": 5
+   },
+   "validation": {
+    "correct": 1,
+    "of": 1
+   },
+   "unseen": {
+    "correct": 4,
+    "of": 4
+   }
+  }
+ }
+}
+RESULTS_DIR=/mnt/home/markzhang/USERDIR/tacc-agentforge-results/sft-serve-28671

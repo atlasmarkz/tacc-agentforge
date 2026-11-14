@@ -1,0 +1,49 @@
+{
+  "config": {
+    "base_model": "/mnt/home/public/course-envs/CSIT6000V/project/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+    "base_revision": "course-public qwen3.8-27b-v1 Qwen3.8-27B-AWQ-INT4 (config and tokenizer sha256 are recorded)",
+    "train_file": "/mnt/home/markzhang/WORKDIR/train-sft/pkg/data/train.jsonl",
+    "output_dir": "/mnt/home/markzhang/USERDIR/adapters/sft-pilot-28670",
+    "lora_r": "8",
+    "lora_alpha": "16",
+    "learning_rate": "0.0001",
+    "epochs": "3",
+    "max_seq_len": "4096",
+    "seed": "0",
+    "max_train_minutes": "30",
+    "validation_cases": "['dev-02']",
+    "grad_clip": "1.0"
+  },
+  "provenance": {
+    "base_model": "/mnt/home/public/course-envs/CSIT6000V/project/qwen3.8-27b-v1/models/Qwen3.8-27B-AWQ-INT4",
+    "base_revision": "course-public qwen3.8-27b-v1 Qwen3.8-27B-AWQ-INT4 (config and tokenizer sha256 are recorded)",
+    "config_sha256": "8a4c7cc94e338329a92ec9a1bb78cbd86f936de1c26aa82af90361ed5d3ef6a7",
+    "tokenizer_sha256": {
+      "tokenizer.json": "0997f410c57a1f4e53b09e4be8f4a172d90edd9564368fb0847030937229b9f3",
+      "tokenizer_config.json": "b11349aafa7cdc6a320767cf7ceb29ed82f7eda5d65e8e0819e76f0ce947bf27",
+      "chat_template.jinja": "c3cf9e34abf4f9e36c2d72165aa9c132d3e2a725b6c2586aaa3a8af9d7a81041"
+    },
+    "train_file": "/mnt/home/markzhang/WORKDIR/train-sft/pkg/data/train.jsonl",
+    "train_sha256": "5a5475ade1601b51060f5ce37aa68d1d29574baf8e7bfd49d0b1d64a6dc1430f"
+  },
+  "steps": 78,
+  "oom_skipped": 0,
+  "stopped": "completed",
+  "train_minutes": 12.2,
+  "dropped": {
+    "too_long": 38
+  },
+  "examples": {
+    "train": 26,
+    "validation": 5
+  },
+  "reload": {
+    "loaded": 800,
+    "missing": 0,
+    "r": 8,
+    "lora_alpha": 16,
+    "max_abs_logit_diff_after_reload": 0.0,
+    "max_abs_logit_change_without_adapter": 10.796875,
+    "ok": true
+  }
+}
