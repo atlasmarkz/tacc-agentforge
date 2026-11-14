@@ -82,7 +82,9 @@ fi
 handover_helper() {
     while true; do
         if [ -f "$OUT/handover-request" ]; then
-            if result=$(/usr/bin/sbatch --parsable "$TACC_WORKDIR/configurations/run.slurm" 2>&1); then
+            # Run sbatch from this job's own results directory: the workdir can be deleted and re-created by a
+            # later tcloud submit of the same directory, and sbatch then fails with "getcwd failed" (job 28999).
+            if result=$(cd "$OUT" && /usr/bin/sbatch --parsable "$TACC_WORKDIR/configurations/run.slurm" 2>&1); then
                 printf 'ok %s\n' "$result" > "$OUT/handover-result.tmp"
             else
                 printf 'error %s\n' "$result" > "$OUT/handover-result.tmp"
