@@ -15,6 +15,7 @@ from langgraph.types import interrupt
 from pydantic import BaseModel, ValidationError
 
 from .answers import validate_answer
+from .budget_fields import USD_ALIASES, normalize_legacy_answer
 from .contracts import (
     ACTION_ADAPTER, AgentDependencies, AgentEvent, AgentRequest, AgentResult,
     AskUser, CallContext, CallTool, CapabilityError, Issue, ModelReply, PendingOperation,
@@ -28,6 +29,8 @@ from .explanation import (
 from .policies import RunPolicy
 from .prompts import ContextLimitError, build_model_request
 from .state import AgentState
+from .progress import decision_control, fingerprint, record_result, bounded
+from .shopping_context import remember, reusable
 
 logger = logging.getLogger(__name__)
 T = TypeVar("T")
@@ -52,6 +55,8 @@ class RunScope:
     started: float = field(default_factory=time.monotonic)
     sequence: int = 0
     elapsed_before: float = 0.0
+    # 查询句柄可能属于当前服务进程，因此缓存只在本执行段复用，不跨 resume/restart。
+    tool_cache: dict = field(default_factory=dict)
 
     def check(self):
         """在执行边界检查显式取消信号与剩余时间。"""
@@ -121,6 +126,28 @@ class RunScope:
             await asyncio.gather(work, cancel, return_exceptions=True)
 
 
+STOP_MESSAGES = {
+    "clarification_budget_exhausted": "Not enough decisions remain to use another answer.",
+    "convergence_failed": "No supported plan was submitted before exploration closed.",
+    "evidence_insufficient": "There is not enough evidence to support a plan.",
+    "requirements_unverified": "The requirements could not be verified from the available evidence.",
+}
+# 这两个原因由模型提供面向用户的弃答说明；其余原因的 issue 文本只面向模型。
+USER_FACING_ISSUES = {"evidence_insufficient", "requirements_unverified"}
+
+
+def result_message(state):
+    """把停止原因整理为面向用户的说明；模型弃答时优先使用模型给出的文本。"""
+    reason = state["stop_reason"]
+    if not reason:
+        return None
+    if reason in USER_FACING_ISSUES:
+        for item in reversed(state["issues"]):
+            if item.get("code") == reason and item.get("message"):
+                return item["message"][:500]
+    return STOP_MESSAGES.get(reason)
+
+
 def stop(state, reason, *, status="incomplete", issue: Issue | None = None):
     """生成停止状态更新，并清除不能继续对外使用的方案和问题信息。"""
     return {
@@ -129,6 +156,14 @@ def stop(state, reason, *, status="incomplete", issue: Issue | None = None):
         "pending_question": None, "resume_answer": None,
         "issues": (state["issues"] + ([issue.model_dump()] if issue else []))[-20:],
     }
+
+
+def consume_resume_budget(state):
+    """回答后的证据额度只供紧接着的一次模型决策使用，之后显式归零。"""
+    progress = dict(state.get("progress", {}))
+    if progress.get("resume_evidence_budget"):
+        progress["resume_evidence_budget"] = max(0, progress["resume_evidence_budget"] - 1)
+    return progress
 
 
 def observation(state, data, *, issue: Issue | None = None):
@@ -162,13 +197,24 @@ class Nodes:
             return stop(state, exc.reason, status=exc.status)
         if state["usage"]["model_calls"] >= self.policy.max_model_calls:
             return stop(state, "model_call_limit")
+        # 预检是可选的协议能力；包装器（如评测的记录器）只需转发同名方法即可生效。
+        preflight = getattr(self.deps.validator, "preflight", None)
+        if preflight is not None:
+            question = preflight(state["request"]["constraints"])
+            if question is not None:
+                if self.policy.max_model_calls - state["usage"]["model_calls"] < 2:
+                    return stop(state, "clarification_budget_exhausted", issue=Issue(
+                        code="clarification_budget_exhausted", message="Not enough decisions remain to use another answer."))
+                return {"action": question.model_dump(mode="json"), "next_node": "prepare_question"}
         return {"next_node": "decide"}
 
     async def decide(self, state: AgentState):
         """执行一次模型决策，校验动作并设置后续路由或有界修复反馈。"""
         try:
             self.scope.check()
-            request = build_model_request(state, self.deps.tools, self.policy)
+            policy_for = getattr(self.deps.validator, "decision_policy", None)
+            validation_policy = policy_for(state["request"]["constraints"]) if policy_for is not None else {}
+            request = build_model_request(state, self.deps.tools, self.policy, validation_policy)
         except RunStopped as exc:
             return stop(state, exc.reason, status=exc.status)
         except ContextLimitError:
@@ -177,7 +223,8 @@ class Nodes:
         # 外部调用开始前计数，失败尝试也消耗预算，不能通过报错绕开上限。
         usage["model_calls"] += 1
         operation_id = f"{self.scope.request.run_id}:model:{usage['model_calls']}"
-        self.scope.emit("decide", "decision_started", operation_id=operation_id)
+        control = decision_control(state, self.policy)
+        self.scope.emit("decide", "decision_started", operation_id=operation_id, **control)
         try:
             reply = await self.scope.call(
                 operation_id, lambda context: self.deps.model.generate(request, context),
@@ -194,6 +241,8 @@ class Nodes:
         usage["completion_tokens"] += reply.completion_tokens or 0
         usage["unreported_token_calls"] += int(
             reply.prompt_tokens is None or reply.completion_tokens is None)
+        # 无论动作是否有效，这次决策已经用掉了回答后的补证据额度。
+        progress = consume_resume_budget(state)
         try:
             # 截断或错误结束的回复不能仅因 JSON 可解析就被当成完整动作。
             if reply.finish_reason != "stop":
@@ -226,12 +275,32 @@ class Nodes:
                     } for detail in details[:5]],
                 }
                 update = observation(state, feedback, issue=issue)
-            return {**update, "usage": usage, "consecutive_action_errors": errors}
-        self.scope.emit("decide", "action_selected", action_type=action.type)
+            return {**update, "usage": usage, "consecutive_action_errors": errors, "progress": progress}
+        self.scope.emit("decide", "action_selected", action_type=action.type,
+                        action=bounded(action.model_dump(mode="json")))
+        if action.type not in control["allowed_actions"]:
+            if action.type == "call_tool" and usage["tool_calls"] >= self.policy.max_tool_calls:
+                return {**stop(state, "tool_call_limit"), "usage": usage,
+                        "_trace": {"attempted_action": bounded(action.model_dump(mode="json"))}}
+            issue = Issue(code="convergence_required", message=(
+                "Exploration is closed. Submit a supported plan using existing evidence. "
+                "Questions require two remaining decisions after the question."))
+            if usage["model_calls"] >= self.policy.max_model_calls:
+                return {**stop(state, "clarification_budget_exhausted" if action.type == "ask_user"
+                               else "convergence_failed", issue=issue), "usage": usage,
+                        "_trace": {"attempted_action": bounded(action.model_dump(mode="json"))}}
+            return {**observation(state, {"status": "error", **issue.model_dump(),
+                                          "allowed_actions": control["allowed_actions"]}, issue=issue),
+                    "usage": usage, "progress": {**progress, "force_finalize": True},
+                    "_trace": {"attempted_action": bounded(action.model_dump(mode="json"))}}
+        if action.type == "report_incomplete":
+            return {**stop(state, action.reason, issue=Issue(code=action.reason, message=action.message)),
+                    "usage": usage, "action": action.model_dump(mode="json")}
         route = {"call_tool": "execute_tool", "propose_plan": "validate_plan", "ask_user": "prepare_question"}
         return {
             "action": action.model_dump(mode="json"), "next_node": route[action.type],
             "usage": usage, "consecutive_action_errors": 0, "verified_plan": None, "explanation": None,
+            "progress": progress,
             "history": state["history"] + [{"role": "assistant", "content": action.model_dump_json()}],
         }
 
@@ -250,17 +319,29 @@ class Nodes:
         if issue:
             # 参数或名称被拒绝时没有调用执行器，因此不增加工具调用次数。
             self.scope.emit("execute_tool", "tool_rejected", tool=action.tool_name, code=issue.code)
-            return observation(state, {"status": "error", **issue.model_dump()}, issue=issue)
+            return {**observation(state, {"status": "error", **issue.model_dump()}, issue=issue),
+                    "progress": record_result(state, action.tool_name, issue.model_dump(), error=True),
+                    "_trace": {"tool": action.tool_name, "arguments": bounded(action.arguments), "error": issue.model_dump()}}
         try:
             self.scope.check()
         except RunStopped as exc:
             return stop(state, exc.reason, status=exc.status)
+        cache_key = fingerprint({"snapshot_id": state["request"]["snapshot_id"],
+                                 "constraints": state["request"]["constraints"],
+                                 "tool": tool.name, "arguments": arguments.model_dump(mode="json")})
+        if reusable(tool) and cache_key in self.scope.tool_cache:
+            data = self.scope.tool_cache[cache_key]
+            return {**observation(state, {"status": "ok", "tool": tool.name, "cached": True,
+                                          "snapshot_id": self.scope.request.snapshot_id, "data": data}),
+                    "progress": record_result(state, tool.name, data),
+                    "_trace": {"cached": True, "tool": tool.name, "arguments": bounded(action.arguments)}}
         if state["usage"]["tool_calls"] >= self.policy.max_tool_calls:
             return stop(state, "tool_call_limit")
         usage = dict(state["usage"])
         usage["tool_calls"] += 1
         operation_id = f"{self.scope.request.run_id}:tool:{usage['tool_calls']}"
-        self.scope.emit("execute_tool", "tool_started", tool=tool.name, operation_id=operation_id)
+        self.scope.emit("execute_tool", "tool_started", tool=tool.name, operation_id=operation_id,
+                        arguments=bounded(action.arguments))
         try:
             raw = await self.scope.call(
                 operation_id, lambda context: tool.executor.execute(arguments, context), tool.timeout_s,
@@ -274,7 +355,10 @@ class Nodes:
                 update = observation(state, {"status": "error", **exc.issue.model_dump()}, issue=exc.issue)
             else:
                 update = stop(state, exc.issue.code, status="failed", issue=exc.issue)
-            return {**update, "usage": usage}
+            return {**update, "usage": usage,
+                    "progress": record_result(state, tool.name, exc.issue.model_dump(), error=True),
+                    "_trace": {"tool": tool.name, "arguments": bounded(action.arguments),
+                               "operation_id": operation_id, "error": exc.issue.model_dump()}}
         if isinstance(raw, PendingOperation):
             return {**stop(state, "unsupported_capability"), "usage": usage}
         try:
@@ -287,13 +371,20 @@ class Nodes:
             return {**stop(state, "invalid_tool_result", status="failed"), "usage": usage}
         if len(encoded) > tool.max_result_bytes:
             return {**stop(state, "tool_result_too_large", status="failed"), "usage": usage}
-        self.scope.emit("execute_tool", "tool_finished", tool=tool.name, status="ok", operation_id=operation_id)
+        if reusable(tool):
+            self.scope.tool_cache[cache_key] = data
+        self.scope.emit("execute_tool", "tool_finished", tool=tool.name, status="ok", operation_id=operation_id,
+                        result_summary=bounded(data))
         return {
             **observation(state, {
                 "status": "ok", "tool": tool.name, "operation_id": operation_id,
                 "snapshot_id": self.scope.request.snapshot_id, "data": data,
             }),
             "usage": usage,
+            "progress": record_result(state, tool.name, data),
+            "shopping_context": remember(state.get("shopping_context"), tool.name, action.arguments, data),
+            "_trace": {"tool": tool.name, "arguments": bounded(action.arguments),
+                       "operation_id": operation_id, "result_summary": bounded(data)},
         }
 
     async def validate_plan(self, state: AgentState):
@@ -323,7 +414,8 @@ class Nodes:
             return stop(state, "validation_unavailable", issue=exc.issue)
         if not isinstance(result, ValidationResult):
             raise TypeError("PlanValidator must return ValidationResult")
-        self.scope.emit("validate_plan", "validation_finished", status=result.status)
+        self.scope.emit("validate_plan", "validation_finished", status=result.status,
+                        issues=[item.model_dump() for item in result.issues])
         if result.proposal_fingerprint != fingerprint:
             return stop(state, "invalid_validation_receipt", status="failed")
         if result.status == "passed":
@@ -436,6 +528,9 @@ class Nodes:
             return stop(state, exc.reason, status=exc.status)
         if state["question_count"] >= self.policy.max_questions:
             return stop(state, "question_limit")
+        if self.policy.max_model_calls - state["usage"]["model_calls"] < 2:
+            return stop(state, "clarification_budget_exhausted", issue=Issue(
+                code="clarification_budget_exhausted", message="A question must leave two decisions for evidence and a proposal."))
         action = AskUser.model_validate(state["action"])
         question = PendingQuestion(
             question_id=uuid4().hex, question=action.question, required_fields=action.required_fields,
@@ -479,24 +574,44 @@ class Nodes:
             if errors > self.policy.max_answer_repairs:
                 update = stop(state, "answer_repair_limit", issue=issue)
             else:
+                reask = {}
+                if USD_ALIASES.intersection(question.required_fields):
+                    fields = [name for name in question.required_fields if name not in USD_ALIASES]
+                    fields = list(dict.fromkeys(fields + ["purchase_cap", "currency"]))
+                    reask["action"] = AskUser(type="ask_user", required_fields=fields,
+                        question="The legacy budget fields conflict; please confirm purchase_cap and currency. "
+                                 "Amounts must be non-negative decimal strings.").model_dump(mode="json")
                 update = {
                     "next_node": "prepare_question", "resume_answer": None,
                     "issues": (state["issues"] + [issue.model_dump()])[-20:],
+                    **reask,
                 }
             return {**update, "answer_errors": errors}
         # 仅在全部校验通过后合并约束；运行身份、快照和执行策略不由回答覆盖。
-        request = {**state["request"], "constraints": {**state["request"]["constraints"], **reply.answer}}
+        answer = normalize_legacy_answer(reply.answer, state["request"]["constraints"])
+        request = {**state["request"], "constraints": {**state["request"]["constraints"], **answer}}
         request = AgentRequest.model_validate(request)
         self.scope.emit("apply_answer", "answer_accepted", question_id=question.question_id)
+        memory = dict(state.get("shopping_context", {}))
+        memory["candidates"] = [{k: v for k, v in candidate.items() if k not in ("hard_constraint_status", "candidate_set_id")}
+                                for candidate in memory.get("candidates", [])]
+        memory["notes"] = (memory.get("notes", []) + [
+            "User constraints changed. Re-evaluate selection; old candidate-set handles may have expired. "
+            "Use stable evidence IDs or refresh the relevant search if needed."])[-4:]
         return {
             "request": request.model_dump(mode="json"),
             "history": state["history"] + [{"role": "user", "content": json.dumps({
-                "clarification_answer": {"question": question.question, "answer": reply.answer},
+                "clarification_answer": {"question": question.question, "answer": answer},
             }, ensure_ascii=False)}],
             # 约束已改变，旧方案的校验结论不能继续作为有效结果。
             "verified_plan": None, "explanation": None, "pending_question": None, "resume_answer": None,
             "clarification": None, "action": None, "answer_errors": 0,
             "status": None, "stop_reason": None, "result": None, "next_node": "guard",
+            # 保留已见结果，避免回答前查过的查询重复时又被算作进展；约束变化后重新允许探索。
+            "progress": {**state.get("progress", {}), "no_progress_calls": 0,
+                         "force_finalize": False, "resume_evidence_budget": 1},
+            "shopping_context": memory,
+            "_trace": {"answer": answer, "legacy_budget_normalized": answer != reply.answer},
         }
 
     async def finalize(self, state: AgentState):
@@ -509,7 +624,7 @@ class Nodes:
         result = AgentResult(
             run_id=self.scope.request.run_id, conversation_id=self.scope.request.conversation_id,
             snapshot_id=self.scope.request.snapshot_id, status=state["status"],
-            stop_reason=state["stop_reason"], verified_plan=state["verified_plan"],
+            stop_reason=state["stop_reason"], message=result_message(state), verified_plan=state["verified_plan"],
             clarification=state["clarification"], issues=state["issues"], usage=usage,
             explanation=state.get("explanation"),
         )

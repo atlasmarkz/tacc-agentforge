@@ -3,6 +3,7 @@
 Each run record is one attempt at one case by one configuration. Its outcome is one of
   {"kind": "plan", "items": [{"offer_id", "quantity", "evidence_ids"}...]}
   {"kind": "ask_user", "question": "...", "required_fields": [...]}
+  {"kind": "abstain", "reason": "<stop_reason>", "message": "..."}
   {"kind": "error", "error": "..."}
 and is judged against the case's ground truth from the independent enumerator (evaluations/catalog.py).
 
@@ -87,6 +88,13 @@ def score_record(rec: dict, case: dict, gt: dict, catalog) -> dict:
             s["reason"] = "clarification_misses_budget"
         else:
             s["success"], s["reason"] = True, "ok"
+    elif kind == "abstain":
+        if gt["expected"] == "no_feasible_plan":
+            s["success"], s["reason"] = True, "ok"
+        elif gt["expected"] == "clarify":
+            s["reason"] = "abstain_instead_of_asking"
+        else:
+            s["reason"] = "abstain_without_plan"
     else:
         s["reason"] = "error:" + str(rec.get("stop_reason") or out.get("error") or "unknown")[:80]
     return s

@@ -212,10 +212,11 @@ def test_concurrent_answers_are_not_applied_twice():
 def test_resume_preserves_original_policy_and_model_call_count():
     async def scenario():
         saver = InMemorySaver()
-        waiting = await agent(policy=RunPolicy(max_model_calls=1), checkpointer=saver).run(missing_budget())
-        result = await agent(policy=RunPolicy(max_model_calls=100), checkpointer=saver).resume(
+        waiting = await agent(policy=RunPolicy(max_model_calls=3), checkpointer=saver).run(missing_budget())
+        result = await agent(model=ScriptedModel(SEARCH, SEARCH), policy=RunPolicy(max_model_calls=100), checkpointer=saver).resume(
             waiting.run_id, waiting.pending_question.question_id, {"purchase_cap": "100.00"})
-        assert result.stop_reason == "model_call_limit" and result.usage.model_calls == 1
+        assert result.stop_reason == "convergence_failed" and result.usage.model_calls == 3
+        assert result.usage.tool_calls == 1  # 回答后只能补一次证据，不能由新 Runtime 重置额度。
     asyncio.run(scenario())
 
 

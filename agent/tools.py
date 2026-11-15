@@ -21,6 +21,7 @@ class ToolSpec:
     version: str = "1"
     timeout_s: float = 30
     max_result_bytes: int = 8192
+    read_only: bool = False
 
     def __post_init__(self):
         """注册前校验工具配置，要求输入输出模型均禁止未知字段。"""
