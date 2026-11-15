@@ -121,6 +121,9 @@ class HarnessService:
         self.runtimes = {flag: AgentRuntime(deps, policy.model_copy(update={"explain": flag}), checkpointer=saver)
                          for flag in (False, True)}
         self.cancels: dict[str, asyncio.Event] = {}
+        # Runs paused on a question, by run ID (time they started waiting). Checkpoints are in memory, so these are
+        # lost when this process stops; they are reported then (handover, job end) instead of vanishing silently.
+        self.waiting: dict[str, float] = {}
         self.started = time.time()
         self.counts = {"runs": 0, "resumes": 0, "errors": 0}
 
@@ -178,7 +181,8 @@ class HarnessService:
         if address_file and Path(address_file).exists():
             model_address = Path(address_file).read_text(encoding="utf-8").strip() or None
         return {"status": "ok", "snapshot_id": self.snapshot_id, "uptime_s": round(time.time() - self.started, 1),
-                "model_address": model_address, "active_runs": len(self.cancels), "counts": self.counts,
+                "model_address": model_address, "active_runs": len(self.cancels),
+                "waiting_runs": len(self.waiting), "counts": self.counts,
                 **{k: v for k, v in self.info.items() if k != "model_address_file"}}
 
     # ---- runs ----------------------------------------------------------------------------------------------
@@ -202,7 +206,9 @@ class HarnessService:
         if not isinstance(question_id, str) or not isinstance(answer, dict):
             raise HttpError(400, "invalid_request", "question_id (string) and answer (object) are required.")
         self.counts["resumes"] += 1
-        runtime = self.runtimes[False]           # a resumed run keeps the policy saved in its checkpoint
+        # Either runtime works: a resumed run keeps the policy saved in its checkpoint, including its explain flag
+        # (agent/runtime.py, resume: scope.policy is overwritten with the checkpoint's policy).
+        runtime = self.runtimes[False]
         await self.stream(writer, run_id,
                           lambda cancel: runtime.astream_resume(run_id, question_id, answer, cancellation=cancel))
 
@@ -214,10 +220,13 @@ class HarnessService:
         writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream; charset=utf-8\r\n"
                      b"Cache-Control: no-cache\r\nConnection: close\r\nX-Accel-Buffering: no\r\n\r\n")
         queue: asyncio.Queue = asyncio.Queue()
+        outcome = {"status": None}
 
         async def produce():
             try:
                 async for ev in make_events(cancel):
+                    if ev.result is not None:
+                        outcome["status"] = ev.result.status
                     await queue.put(sse("agent", ev.model_dump(mode="json")))
             except RunStateError as exc:
                 await queue.put(sse("error", {"code": exc.code, "message": str(exc)}))
@@ -249,6 +258,15 @@ class HarnessService:
         finally:
             await asyncio.gather(task, return_exceptions=True)
             self.cancels.pop(run_id, None)
+            if outcome["status"] == "waiting_user":
+                self.waiting[run_id] = time.time()
+            elif outcome["status"] is not None:          # finished; a failed resume leaves the run waiting
+                self.waiting.pop(run_id, None)
+
+    def pending(self) -> str:
+        ids = ", ".join(sorted(self.waiting)[:20])
+        return (f"{len(self.cancels)} running (they finish here), {len(self.waiting)} waiting for an answer "
+                f"(lost with this process: checkpoints are in memory){': ' + ids if ids else ''}")
 
     # ---- evidence lookup for the UI ------------------------------------------------------------------------
 
@@ -410,7 +428,7 @@ def main() -> int:
                     except Exception as exc:                  # never let the watcher die silently
                         log(f"stop file check failed: {exc!r}")
                     await asyncio.sleep(1)
-                log(f"stop file {a.stop_file} found: stop accepting")
+                log(f"stop file {a.stop_file} found: stop accepting; {service.pending()}")
                 stop.set()
             watcher = asyncio.create_task(watch_stop_file())   # noqa: F841 (kept alive until the loop ends)
         try:
@@ -418,7 +436,7 @@ def main() -> int:
         finally:
             if address and address_file.exists() and address_file.read_text(encoding="utf-8").strip() == address:
                 address_file.unlink(missing_ok=True)          # never remove a successor's newer address
-            log(f"stopped: {service.counts}")
+            log(f"stopped: {service.counts}; {service.pending()}")
     try:
         asyncio.run(run())
     finally:

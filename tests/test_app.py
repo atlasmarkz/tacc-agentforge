@@ -41,6 +41,7 @@ def test_service_publishes_and_stops_on_its_stop_file(tmp_path):
         out, _ = proc.communicate(timeout=30)
         assert proc.returncode == 0, out
         assert not url.exists() and "stop file" in out
+        assert "0 running (they finish here), 0 waiting for an answer" in out     # what a handover drops
     finally:
         if proc.poll() is None:
             proc.kill()
@@ -139,3 +140,108 @@ def test_backend_rejects_bad_sessions_and_reports_an_unreachable_harness(backend
     assert status == 503 and "harness_unavailable" in text
     rows = [json.loads(l) for l in (tmp / "requests.jsonl").read_text(encoding="utf-8").splitlines()]
     assert rows[-1]["status"] == "unreachable"
+
+
+# ---- review on #20: harness answers are passed on, /runs retries as a new run, waiting runs are reported ----
+
+def _harness_answers(status, code):
+    from app.backend import HarnessError
+
+    def answer(*a, **k):
+        raise HarnessError(f"harness HTTP {status}: {code}", status=status, code=code)
+        yield                                                    # pragma: no cover
+    return answer
+
+
+@pytest.mark.parametrize("status,code", [(409, "run_busy"), (400, "invalid_request"), (404, "run_not_found")])
+def test_backend_passes_the_harness_answer_on_instead_of_503(backend, status, code):
+    port, fake, b, tmp = backend
+    refreshed = []
+    b.refresh = lambda: refreshed.append(1)
+    fake.stream = _harness_answers(status, code)
+    got, text = call(port, "/api/ask", {"session_id": "eeeeeeee-5555", "message": "earbuds"})
+    assert got == status and json.loads(text)["error"]["code"] == code
+    assert refreshed == []                                       # the service answered: no re-read, no retry
+    rows = [json.loads(l) for l in (tmp / "requests.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert rows[-1]["status"] == "rejected"
+
+
+@pytest.mark.parametrize("status", [500, 503, 401])
+def test_backend_reports_503_only_when_the_service_itself_failed(backend, status):
+    port, fake, b, tmp = backend
+    b.refresh = lambda: None
+    fake.stream = _harness_answers(status, "whatever")
+    got, text = call(port, "/api/ask", {"session_id": "ffffffff-6666", "message": "earbuds"})
+    assert got == 503 and json.loads(text)["error"]["code"] == "harness_unavailable"
+
+
+def test_backend_maps_errors_of_cancel_and_lookup_too(backend):
+    port, fake, b, tmp = backend
+    status, text = call(port, "/api/ask", {"session_id": "abababab-7777", "message": "earbuds"})
+    run_id = json.loads(text.split("event: meta\ndata: ")[1].split("\n")[0])["run_id"]
+    from app.backend import HarnessError
+
+    def busy(path, payload):
+        raise HarnessError("harness HTTP 409: busy", status=409, code="run_busy")
+    fake.post = busy
+    assert call(port, "/api/cancel", {"session_id": "abababab-7777", "run_id": run_id})[0] == 409
+
+    def refused(path, payload):
+        raise ConnectionRefusedError("tunnel down")
+    fake.post = refused
+    assert call(port, "/api/lookup", {"session_id": "abababab-7777", "run_id": run_id, "offer_ids": []})[0] == 503
+
+
+def test_backend_retries_a_new_run_under_a_new_run_id(backend):
+    """The first POST may have started the run before the stream broke; resending its run_id gets run_exists."""
+    port, fake, b, tmp = backend
+    from app.backend import HarnessError
+    sent, real_stream = [], fake.stream
+
+    def broke_once(path, payload):
+        sent.append(payload["run_id"])
+        if len(sent) == 1:
+            raise HarnessError("stream ended before the first event")
+        yield from real_stream(path, payload)
+    fake.stream = broke_once
+    b.refresh = lambda: None
+    status, text = call(port, "/api/ask", {"session_id": "cdcdcdcd-8888", "message": "earbuds"})
+    assert status == 200 and len(sent) == 2 and sent[0] != sent[1]
+    meta = json.loads(text.split("event: meta\ndata: ")[1].split("\n")[0])
+    assert meta["run_id"] == sent[1] and b.owned("cdcdcdcd-8888", sent[1])
+    rows = [json.loads(l) for l in (tmp / "requests.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert [(r["run_id"], r["status"]) for r in rows] == [(sent[0], "retried"), (sent[1], "completed")]
+
+
+def test_service_tracks_runs_that_wait_for_an_answer():
+    from types import SimpleNamespace
+    from app.harness_service import HarnessService
+
+    class Writer:
+        def __init__(self):
+            self.data = b""
+
+        def write(self, chunk):
+            self.data += chunk
+
+        async def drain(self):
+            pass
+
+    def events(*statuses):
+        async def make(cancel):
+            for status in statuses:
+                yield SimpleNamespace(result=SimpleNamespace(status=status) if status else None,
+                                      model_dump=lambda mode=None: {})
+        return make
+
+    service = HarnessService.__new__(HarnessService)
+    service.cancels, service.waiting, service.info, service.counts = {}, {}, {}, {"errors": 0}
+
+    async def scenario():
+        await service.stream(Writer(), "r1", events(None, "waiting_user"))
+        await service.stream(Writer(), "r2", events("waiting_user"))
+        assert set(service.waiting) == {"r1", "r2"} and "2 waiting for an answer" in service.pending()
+        await service.stream(Writer(), "r1", events(None, "completed"))      # answered and finished
+        await service.stream(Writer(), "r2", events())                       # a failed resume: still waiting
+        assert set(service.waiting) == {"r2"} and service.pending().endswith(": r2")
+    asyncio.run(scenario())

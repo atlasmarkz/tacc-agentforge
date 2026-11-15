@@ -43,7 +43,17 @@ def log(msg: str) -> None:
 
 
 class HarnessError(Exception):
-    pass
+    """`status` and `code` are what the harness answered; both are None when it could not be reached."""
+
+    def __init__(self, message, status=None, code=None):
+        super().__init__(message)
+        self.status, self.code = status, code
+
+    @property
+    def unavailable(self) -> bool:
+        # Not reached, a server error, or a token that no longer matches (the service moved): the service is the
+        # problem. Any other answer (400 invalid_request, 404, 409 run_busy, ...) is about this request.
+        return self.status is None or self.status >= 500 or self.status == 401
 
 
 class HarnessClient:
@@ -63,9 +73,15 @@ class HarnessClient:
         conn.request(method, path, body=body, headers=headers)
         resp = conn.getresponse()
         if resp.status != 200:
-            text = resp.read()[:500].decode("utf-8", "replace")
+            raw = resp.read(4000)
             conn.close()
-            raise HarnessError(f"harness HTTP {resp.status}: {text}")
+            code, message = None, raw[:500].decode("utf-8", "replace")
+            try:                                     # the harness answers {"error": {"code", "message"}}
+                error = json.loads(raw)["error"]
+                code, message = error.get("code"), error.get("message") or message
+            except (ValueError, KeyError, TypeError, AttributeError):
+                pass
+            raise HarnessError(f"harness HTTP {resp.status}: {message}", status=resp.status, code=code)
         return conn, resp
 
     def get(self, path):
@@ -257,9 +273,17 @@ def make_handler(backend: Backend):
                     return self.cancel(session, body)
                 if self.path == "/api/lookup":
                     return self.lookup(session, body)
-            except HarnessError as exc:
-                return self._json(503, {"error": {"code": "harness_unavailable", "message": str(exc)}})
+            except (HarnessError, OSError) as exc:
+                return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
+
+        def harness_error(self, exc):
+            """503 only when the service is unreachable or failed; otherwise pass the harness's own answer on
+            (409 run_busy, 400 invalid_request, 404 run_not_found, ...) so the page shows what really happened."""
+            if isinstance(exc, HarnessError) and not exc.unavailable:
+                return self._json(exc.status, {"error": {"code": exc.code or "harness_error",
+                                                         "message": str(exc)[:300]}})
+            return self._json(503, {"error": {"code": "harness_unavailable", "message": str(exc)[:300]}})
 
         # ---- endpoints ----
 
@@ -299,21 +323,32 @@ def make_handler(backend: Backend):
             """Pass the harness's SSE stream through, one event per chunk, and log the outcome."""
             t0 = time.monotonic()
             exc = None
-            for _ in range(2):
+            for attempt in range(2):
                 try:
                     events = backend.client.stream(path, payload)
                     first = next(events)                     # fail before sending 200 if the harness is down
                     exc = None
                     break
                 except (HarnessError, OSError, StopIteration) as e:
+                    exc = e
+                    if isinstance(e, HarnessError) and not e.unavailable:
+                        break                                # the harness answered; a retry gets the same answer
                     # The service may have moved (new job or handover) while the old tunnel still accepts
                     # locally: re-read the published address and try once more before giving up.
-                    exc = e
                     backend.refresh()
+                    if path == "/runs" and attempt == 0:
+                        # The first POST may already have started the run before the stream broke; sending the
+                        # same run_id again would only get run_exists. Retry as a new run; the abandoned one ends
+                        # at its own deadline.
+                        backend.record(session=session, run_id=run_id, kind=kind, parent=parent, status="retried",
+                                       error=str(e)[:300])
+                        run_id = backend.new_run(session, kind, parent)
+                        payload = {**payload, "run_id": run_id}
             if exc is not None:
-                backend.record(session=session, run_id=run_id, kind=kind, parent=parent, status="unreachable",
-                               error=str(exc)[:300])
-                return self._json(503, {"error": {"code": "harness_unavailable", "message": str(exc)[:300]}})
+                unreachable = not isinstance(exc, HarnessError) or exc.unavailable
+                backend.record(session=session, run_id=run_id, kind=kind, parent=parent,
+                               status="unreachable" if unreachable else "rejected", error=str(exc)[:300])
+                return self.harness_error(exc)
             self.send_response(200)
             self.send_header("Content-Type", "text/event-stream; charset=utf-8")
             self.send_header("Cache-Control", "no-store")

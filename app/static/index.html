@@ -358,7 +358,10 @@ const STOP = {
 const ERRORS = { not_waiting: "This question was already answered.",
                  run_not_found: "This request is no longer available (the service may have restarted). Please ask again.",
                  question_mismatch: "The question changed. Please refresh and try again.",
-                 run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error." };
+                 run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error.",
+                 run_exists: "This request was already started. Please ask again.",
+                 invalid_request: "The service could not accept this request. Please rephrase it and try again.",
+                 harness_unavailable: "The shopping service is not reachable right now. Please try again in a few minutes." };
 const COST = { items: "Items", shipping: "Shipping", tax: "Tax" };
 const STAGES = ["understand", "search", "compare", "check", "explain"];
 
@@ -460,7 +463,7 @@ async function streamCall(path, body, onEvent) {
                                    body: JSON.stringify({ session_id: session, ...body }) });
   if (!resp.ok) {
     let msg = "Request failed (" + resp.status + ").";
-    try { const j = await resp.json(); msg = (j.error && j.error.message) || msg; } catch (e) {}
+    try { const j = await resp.json(); msg = (j.error && (ERRORS[j.error.code] || j.error.message)) || msg; } catch (e) {}
     throw new Error(msg);
   }
   const reader = resp.body.getReader(), dec = new TextDecoder();
@@ -620,7 +623,7 @@ async function lookup(plan) {
     const resp = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: session, run_id: state.runId, offer_ids, evidence_ids }) });
     const r = await resp.json();
-    if (!resp.ok) throw new Error(r.error && r.error.message);
+    if (!resp.ok) throw new Error(r.error && (ERRORS[r.error.code] || r.error.message));
     const sellerOf = {};
     for (const e of r.evidence) if (e.source_label) sellerOf[e.variant_id] = e.source_label;
     const seen = new Set();
