@@ -34,7 +34,10 @@ def _validate_state(state):
         for index, block in enumerate(state["history"]):
             if not isinstance(block, dict):
                 raise ValueError("Invalid history block.")
-            HistoryBlock(**{key: block[key] for key in fields})
+            values = {key: block[key] for key in fields}
+            # Old append records predate plan_validation and must stay unvalidated.
+            values["plan_validation"] = block.get("plan_validation", "unvalidated")
+            HistoryBlock(**values)
             identifier(block["epoch"])
             nonnegative(block["sequence"])
             nonnegative(block["memory_revision"])
@@ -60,8 +63,22 @@ def _read_state(encoded, conversation_id):
         raise StorageError() from exc
 
 
+def _capacity(state, receipts):
+    """Report canonical JSON bytes; SQLite file overhead is intentionally excluded."""
+    return {
+        "conversation_id": state["conversation_id"],
+        "revision": state["revision"],
+        "constraints_revision": state["constraints_revision"],
+        "history_blocks": len(state["history"]),
+        "receipt_count": len(receipts),
+        "state_bytes": len(canonical(state).encode("utf-8")),
+        "receipt_bytes": sum(len(canonical(receipt).encode("utf-8")) for receipt in receipts),
+    }
+
+
 class ContextStore(Protocol):
     def get(self, conversation_id: str) -> dict | None: ...
+    def stats(self, conversation_id: str) -> dict | None: ...
     def mutate(self, conversation_id: str, operation_id: str, expected_revision: int,
                payload: dict, transition: Callable[[dict | None], dict | None]) -> dict | None: ...
 
@@ -119,6 +136,15 @@ class InMemoryStore:
         with self._lock:
             return clone(self._sessions.get(conversation_id))
 
+    def stats(self, conversation_id):
+        identifier(conversation_id)
+        with self._lock:
+            state = self._sessions.get(conversation_id)
+            if state is None:
+                return None
+            receipts = list(self._receipts.get(conversation_id, {}).values())
+            return _capacity(clone(state), clone(receipts))
+
     def mutate(self, conversation_id, operation_id, expected_revision, payload, transition):
         identifier(conversation_id)
         with self._lock:
@@ -163,6 +189,36 @@ class SQLiteStore:
             connection = self._connect()
             row = connection.execute("SELECT state FROM sessions WHERE id=?", (conversation_id,)).fetchone()
             return _read_state(row[0], conversation_id) if row else None
+        except ContextError:
+            raise
+        except (sqlite3.Error, ValueError) as exc:
+            raise StorageError() from exc
+        finally:
+            if connection is not None:
+                connection.close()
+
+    def stats(self, conversation_id):
+        identifier(conversation_id)
+        connection = None
+        try:
+            connection = self._connect()
+            # One read transaction keeps the reported revision and receipt count on the same snapshot.
+            connection.execute("BEGIN")
+            row = connection.execute("SELECT state FROM sessions WHERE id=?", (conversation_id,)).fetchone()
+            if row is None:
+                return None
+            state = _read_state(row[0], conversation_id)
+            encoded = connection.execute("SELECT receipt FROM receipts WHERE session_id=?",
+                                         (conversation_id,)).fetchall()
+            receipts = []
+            for (value,) in encoded:
+                receipt = json.loads(value)
+                if not isinstance(receipt, dict):
+                    raise StorageError("Context operation receipt is malformed.")
+                receipts.append(receipt)
+            return _capacity(state, receipts)
+        except ContextError:
+            raise
         except (sqlite3.Error, ValueError) as exc:
             raise StorageError() from exc
         finally:

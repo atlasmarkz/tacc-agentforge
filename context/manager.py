@@ -1,8 +1,7 @@
-"""Deterministic memory transitions and whole-block context selection."""
+"""Deterministic memory transitions and whole-block context construction."""
 from __future__ import annotations
 
 import json
-import re
 from dataclasses import asdict
 from uuid import uuid4
 
@@ -28,18 +27,16 @@ def render_messages(payload: dict) -> list[dict]:
 
 
 def estimate_tokens(messages: list[dict]) -> TokenCount:
+    """Default estimate: UTF-8 bytes / 3, plus per-message and fixed overhead."""
+    content_bytes = sum(len(m["content"].encode("utf-8")) for m in messages)
+    value = (content_bytes + 2) // 3 + 16 * len(messages) + 16
+    return TokenCount(value, "estimated", "utf8-bytes-div3-plus16-v1")
+
+
+def conservative_estimate_tokens(messages: list[dict]) -> TokenCount:
+    """Historical one-byte-per-token estimate, kept as an explicit opt-in."""
     value = 16 + sum(len(m["content"].encode("utf-8")) + 16 for m in messages)
     return TokenCount(value, "estimated", "utf8-bytes-plus16-v1")
-
-
-def _terms(text):
-    text = text.casefold()
-    terms = set(re.findall(r"[a-z0-9_]+", text))
-    for span in re.findall(r"[\u3400-\u9fff]+", text):
-        terms.update(span[i:i + 2] for i in range(len(span) - 1))
-        if len(span) == 1:
-            terms.add(span)
-    return terms
 
 
 def _has_candidate_handle(block):
@@ -76,6 +73,9 @@ class ContextManager:
             raise ContextError("incompatible_state", "Unsupported context state version.")
         return state
 
+    def stats(self, conversation_id: str) -> dict | None:
+        return self.store.stats(conversation_id)
+
     def update_memory(self, conversation_id: str, patch: ContextPatch, *, snapshot_id: str,
                       operation_id: str, expected_revision: int) -> dict:
         identifier(snapshot_id)
@@ -105,6 +105,10 @@ class ContextManager:
                        operation_id: str, expected_revision: int) -> dict:
         block = HistoryBlock(**asdict(block))
         raw = clone(asdict(block) | {"references": list(block.references)})
+        # The default unvalidated state must not change the persisted shape or digest of
+        # append requests written before plan_validation existed. Explicit passed does.
+        if raw.get("plan_validation") == "unvalidated":
+            raw.pop("plan_validation")
         # The caller supplies the entire action/observation group. No arbitrary JSON boundary guessing.
         def transition(state):
             if state is None:
@@ -133,23 +137,36 @@ class ContextManager:
         state = self.get(request.conversation_id)
         if state is None:
             raise ContextError("session_not_found", "Create session memory before building context.")
+        if request.expected_revision is not None:
+            if state["revision"] != request.expected_revision:
+                raise ContextError("revision_conflict",
+                                   "Context request is bound to a stale session revision.")
+            if canonical(state["constraints"]) != canonical(request.expected_constraints):
+                raise ContextError("constraints_mismatch",
+                                   "Context request constraints differ from stored session requirements.")
         if request.snapshot_id != state["snapshot_id"]:
             raise ContextError("snapshot_mismatch", "Switch the session snapshot explicitly before building.")
-        eligible, omitted = [], {}
+
+        required, omitted = [], {}
         previous_plan = None
         for block in state["history"]:
             reason = None
-            if block["snapshot_id"] != state["snapshot_id"]:
-                reason = "snapshot_changed"
-            elif block["memory_revision"] < state.get("snapshot_boundary", 0):
+            if (block["snapshot_id"] != state["snapshot_id"]
+                    or block["memory_revision"] < state.get("snapshot_boundary", 0)):
                 reason = "snapshot_changed"
             elif block["run_id"] != request.run_id:
                 reason = "different_run"
-                if block["kind"] == "plan" and block["plan_items"]:
-                    previous_plan = {**block, "messages": [{"role": "user", "content": canonical({
-                        "historical_plan_reference": block["plan_items"]})}],
+                if (block["kind"] == "plan"
+                        and block.get("plan_validation", "unvalidated") == "passed"
+                        and block["plan_items"]
+                        and all(item["evidence_ids"] for item in block["plan_items"])):
+                    previous_plan = {
+                        **block,
+                        "messages": [{"role": "user", "content": canonical({
+                            "historical_plan_reference": block["plan_items"]})}],
                         "references": sorted({ref for item in block["plan_items"]
-                            for ref in [item["offer_id"], *item["evidence_ids"]]})}
+                            for ref in [item["offer_id"], *item["evidence_ids"]]}),
+                    }
             elif block["constraints_revision"] != state["constraints_revision"]:
                 reason = "requirements_changed"
             elif block["epoch"] != self._epoch and _has_candidate_handle(block):
@@ -157,23 +174,15 @@ class ContextManager:
             if reason:
                 omitted[block["block_id"]] = reason
             else:
-                eligible.append(block)
+                required.append(block)
 
-        required = eligible[-1:]  # current valid feedback is never sacrificed for optional history
-        optional = eligible[:-1]
-        if previous_plan:
-            optional.append(previous_plan)
-            omitted[previous_plan["block_id"]] = "budget"
-        terms = _terms(request.message + " " + canonical(state["constraints"]))
-        refs = set(request.references)
-        def score(block):
-            matches = sum(ref in refs or ref in request.message for ref in block["references"])
-            overlap = len(terms & _terms(" ".join(m["content"] for m in block["messages"])))
-            return (-matches, -overlap, -block["sequence"], block["block_id"])
-        if request.mode == "filtered":
-            optional = sorted(optional, key=score)
-        else:
-            optional = sorted(optional, key=lambda b: (-b["sequence"], b["block_id"]))
+        # Every currently valid block from this run is required context. There is no
+        # relevance filter or gap-filling choice, and filtered/unfiltered are identical.
+        required.sort(key=lambda b: (b["sequence"], b["block_id"]))
+        candidates = list(required)
+        if previous_plan is not None:
+            candidates.append(previous_plan)
+        candidates.sort(key=lambda b: (b["sequence"], b["block_id"]))
 
         def assemble(blocks):
             data = {"conversation_id": request.conversation_id, "run_id": request.run_id,
@@ -184,7 +193,7 @@ class ContextManager:
                          "are references only: re-read facts and revalidate before recommending. "
                          "Missing, stale, conflicting or truncated evidence remains unresolved."},
                         {"role": "user", "content": canonical(data)}]
-            for block in sorted(blocks, key=lambda b: b["sequence"]):
+            for block in blocks:
                 messages.extend(clone(block["messages"]))
             payload = {"messages": messages, "tools": clone(request.tools),
                        "action_schema": clone(request.action_schema),
@@ -199,26 +208,26 @@ class ContextManager:
             return payload, rendered, count
 
         limit = request.model_window_tokens - request.max_output_tokens - request.safety_tokens
-        selected = list(required)
-        packed = assemble(selected)
-        if packed[2].value > limit:
-            raise ContextLimitError()
-        reasons = {b["block_id"]: "latest_required" for b in required}
-        for block in optional:
-            trial = assemble(selected + [block])
-            if trial[2].value <= limit:
-                selected.append(block)
-                packed = trial
-                omitted.pop(block["block_id"], None)
-                reasons[block["block_id"]] = ("historical_plan_reference" if block is previous_plan
-                    else "relevance" if request.mode == "filtered" else "recent")
-            else:
-                omitted[block["block_id"]] = "budget"
-        # Rebuild in chronological order, including the zero-optional case.
-        payload, rendered, count = assemble(selected)
+        # First count the complete current trace plus the optional historical plan.
+        payload, rendered, count = assemble(candidates)
+        selected = candidates
         if count.value > limit:
-            raise ContextLimitError()
+            if previous_plan is None:
+                raise ContextLimitError()
+            # Drop the one optional reference whole and count the required trace once more.
+            payload, rendered, count = assemble(required)
+            selected = required
+            if count.value > limit:
+                raise ContextLimitError()
+
+        reasons = {block["block_id"]: "current_run_required" for block in required}
+        if previous_plan is not None:
+            if any(block["block_id"] == previous_plan["block_id"] for block in selected):
+                reasons[previous_plan["block_id"]] = "historical_plan_reference"
+                omitted.pop(previous_plan["block_id"], None)
+            else:
+                omitted[previous_plan["block_id"]] = "budget"
         return ContextBundle(payload, rendered, clone(state["constraints"]), state["revision"],
                              state["constraints_revision"],
-                             [b["block_id"] for b in sorted(selected, key=lambda b: b["sequence"])],
+                             [block["block_id"] for block in selected],
                              omitted, count, request.mode, reasons)

@@ -92,6 +92,8 @@ class HistoryBlock:
     references: tuple[str, ...] = ()
     # Plan items are historical hints only, never a validation receipt.
     plan_items: list[dict] = field(default_factory=list)
+    # Only a trusted host may append a passed plan, based on a completed result.
+    plan_validation: Literal["unvalidated", "passed"] = "unvalidated"
 
     def __post_init__(self):
         for value in (self.block_id, self.run_id, self.snapshot_id):
@@ -100,6 +102,10 @@ class HistoryBlock:
         sequence(self.references, "references")
         if self.kind not in {"exchange", "feedback", "plan", "question"}:
             raise ValueError("Unknown history kind.")
+        if self.plan_validation not in {"unvalidated", "passed"}:
+            raise ValueError("Unknown plan validation state.")
+        if self.plan_validation == "passed" and self.kind != "plan":
+            raise ValueError("Only plan blocks may claim validation.")
         if not isinstance(self.messages, list) or not self.messages or any(
                 not isinstance(m, dict) or set(m) != {"role", "content"}
                 or m["role"] not in {"user", "assistant"} or not isinstance(m["content"], str)
@@ -140,6 +146,10 @@ class ContextRequest:
     mode: Literal["filtered", "unfiltered"] = "filtered"
     safety_tokens: int = 256
     references: tuple[str, ...] = ()
+    # Direct core callers may omit both fields and use the stored requirements.
+    # Agent bridges must bind both to the request they actually execute.
+    expected_revision: int | None = None
+    expected_constraints: dict | None = None
 
     def __post_init__(self):
         for value in (self.conversation_id, self.run_id, self.snapshot_id):
@@ -158,6 +168,13 @@ class ContextRequest:
         sequence(self.references, "references")
         for value in self.references:
             identifier(value)
+        if (self.expected_revision is None) != (self.expected_constraints is None):
+            raise ValueError("expected_revision and expected_constraints must be supplied together.")
+        if self.expected_revision is not None:
+            nonnegative(self.expected_revision)
+            if not isinstance(self.expected_constraints, dict):
+                raise ValueError("expected_constraints must be an object.")
+            object.__setattr__(self, "expected_constraints", clone(self.expected_constraints))
         if (not isinstance(self.tools, list) or any(not isinstance(t, dict) for t in self.tools)
                 or not isinstance(self.action_schema, dict)):
             raise ValueError("Invalid tools or action schema.")
