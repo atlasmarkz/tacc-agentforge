@@ -97,7 +97,8 @@ def brief(out):
     r = out.get("result") or {}
     plan = r.get("verified_plan") or {}
     return {"http": out["http"], "run_id": out.get("run_id"), "status": r.get("status"),
-            "stop_reason": r.get("stop_reason"), "error": out.get("error"), "wall_s": out.get("wall_s"),
+            "stop_reason": r.get("stop_reason"), "message": r.get("message"), "error": out.get("error"),
+            "wall_s": out.get("wall_s"),
             "first_event_s": out.get("first_event_s"), "first_explain_delta_s": out.get("first_delta_s"),
             "harness_job": out.get("harness_job"), "snapshot_id": r.get("snapshot_id"),
             "total": plan.get("total_cost"), "remaining": plan.get("remaining_funds"),

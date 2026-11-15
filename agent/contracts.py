@@ -293,6 +293,8 @@ class AgentResult(Schema):
     snapshot_id: Identifier
     status: Status
     stop_reason: str | None = None
+    # 面向用户的结束说明；完成和等待用户时为空，其余情况由停止原因或模型弃答给出。
+    message: str | None = Field(default=None, max_length=500)
     verified_plan: VerifiedPlan | None = None
     clarification: AskUser | None = None
     pending_question: PendingQuestion | None = None

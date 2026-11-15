@@ -15,7 +15,6 @@ from langgraph.types import interrupt
 from pydantic import BaseModel, ValidationError
 
 from .answers import validate_answer
-from .budget import BudgetPlanValidator
 from .budget_fields import USD_ALIASES, normalize_legacy_answer
 from .contracts import (
     ACTION_ADAPTER, AgentDependencies, AgentEvent, AgentRequest, AgentResult,
@@ -127,6 +126,28 @@ class RunScope:
             await asyncio.gather(work, cancel, return_exceptions=True)
 
 
+STOP_MESSAGES = {
+    "clarification_budget_exhausted": "Not enough decisions remain to use another answer.",
+    "convergence_failed": "No supported plan was submitted before exploration closed.",
+    "evidence_insufficient": "There is not enough evidence to support a plan.",
+    "requirements_unverified": "The requirements could not be verified from the available evidence.",
+}
+# 这两个原因由模型提供面向用户的弃答说明；其余原因的 issue 文本只面向模型。
+USER_FACING_ISSUES = {"evidence_insufficient", "requirements_unverified"}
+
+
+def result_message(state):
+    """把停止原因整理为面向用户的说明；模型弃答时优先使用模型给出的文本。"""
+    reason = state["stop_reason"]
+    if not reason:
+        return None
+    if reason in USER_FACING_ISSUES:
+        for item in reversed(state["issues"]):
+            if item.get("code") == reason and item.get("message"):
+                return item["message"][:500]
+    return STOP_MESSAGES.get(reason)
+
+
 def stop(state, reason, *, status="incomplete", issue: Issue | None = None):
     """生成停止状态更新，并清除不能继续对外使用的方案和问题信息。"""
     return {
@@ -135,6 +156,14 @@ def stop(state, reason, *, status="incomplete", issue: Issue | None = None):
         "pending_question": None, "resume_answer": None,
         "issues": (state["issues"] + ([issue.model_dump()] if issue else []))[-20:],
     }
+
+
+def consume_resume_budget(state):
+    """回答后的证据额度只供紧接着的一次模型决策使用，之后显式归零。"""
+    progress = dict(state.get("progress", {}))
+    if progress.get("resume_evidence_budget"):
+        progress["resume_evidence_budget"] = max(0, progress["resume_evidence_budget"] - 1)
+    return progress
 
 
 def observation(state, data, *, issue: Issue | None = None):
@@ -168,8 +197,10 @@ class Nodes:
             return stop(state, exc.reason, status=exc.status)
         if state["usage"]["model_calls"] >= self.policy.max_model_calls:
             return stop(state, "model_call_limit")
-        if isinstance(self.deps.validator, BudgetPlanValidator):
-            question = self.deps.validator.preflight(state["request"]["constraints"])
+        # 预检是可选的协议能力；包装器（如评测的记录器）只需转发同名方法即可生效。
+        preflight = getattr(self.deps.validator, "preflight", None)
+        if preflight is not None:
+            question = preflight(state["request"]["constraints"])
             if question is not None:
                 if self.policy.max_model_calls - state["usage"]["model_calls"] < 2:
                     return stop(state, "clarification_budget_exhausted", issue=Issue(
@@ -181,8 +212,8 @@ class Nodes:
         """执行一次模型决策，校验动作并设置后续路由或有界修复反馈。"""
         try:
             self.scope.check()
-            validation_policy = (self.deps.validator.decision_policy(state["request"]["constraints"])
-                                 if isinstance(self.deps.validator, BudgetPlanValidator) else {})
+            policy_for = getattr(self.deps.validator, "decision_policy", None)
+            validation_policy = policy_for(state["request"]["constraints"]) if policy_for is not None else {}
             request = build_model_request(state, self.deps.tools, self.policy, validation_policy)
         except RunStopped as exc:
             return stop(state, exc.reason, status=exc.status)
@@ -210,6 +241,8 @@ class Nodes:
         usage["completion_tokens"] += reply.completion_tokens or 0
         usage["unreported_token_calls"] += int(
             reply.prompt_tokens is None or reply.completion_tokens is None)
+        # 无论动作是否有效，这次决策已经用掉了回答后的补证据额度。
+        progress = consume_resume_budget(state)
         try:
             # 截断或错误结束的回复不能仅因 JSON 可解析就被当成完整动作。
             if reply.finish_reason != "stop":
@@ -242,7 +275,7 @@ class Nodes:
                     } for detail in details[:5]],
                 }
                 update = observation(state, feedback, issue=issue)
-            return {**update, "usage": usage, "consecutive_action_errors": errors}
+            return {**update, "usage": usage, "consecutive_action_errors": errors, "progress": progress}
         self.scope.emit("decide", "action_selected", action_type=action.type,
                         action=bounded(action.model_dump(mode="json")))
         if action.type not in control["allowed_actions"]:
@@ -258,7 +291,7 @@ class Nodes:
                         "_trace": {"attempted_action": bounded(action.model_dump(mode="json"))}}
             return {**observation(state, {"status": "error", **issue.model_dump(),
                                           "allowed_actions": control["allowed_actions"]}, issue=issue),
-                    "usage": usage, "progress": {**state.get("progress", {}), "force_finalize": True},
+                    "usage": usage, "progress": {**progress, "force_finalize": True},
                     "_trace": {"attempted_action": bounded(action.model_dump(mode="json"))}}
         if action.type == "report_incomplete":
             return {**stop(state, action.reason, issue=Issue(code=action.reason, message=action.message)),
@@ -267,6 +300,7 @@ class Nodes:
         return {
             "action": action.model_dump(mode="json"), "next_node": route[action.type],
             "usage": usage, "consecutive_action_errors": 0, "verified_plan": None, "explanation": None,
+            "progress": progress,
             "history": state["history"] + [{"role": "assistant", "content": action.model_dump_json()}],
         }
 
@@ -545,7 +579,8 @@ class Nodes:
                     fields = [name for name in question.required_fields if name not in USD_ALIASES]
                     fields = list(dict.fromkeys(fields + ["purchase_cap", "currency"]))
                     reask["action"] = AskUser(type="ask_user", required_fields=fields,
-                        question="旧预算字段存在冲突，请确认 purchase_cap 和 currency。金额请填写非负十进制字符串。").model_dump(mode="json")
+                        question="The legacy budget fields conflict; please confirm purchase_cap and currency. "
+                                 "Amounts must be non-negative decimal strings.").model_dump(mode="json")
                 update = {
                     "next_node": "prepare_question", "resume_answer": None,
                     "issues": (state["issues"] + [issue.model_dump()])[-20:],
@@ -572,7 +607,9 @@ class Nodes:
             "verified_plan": None, "explanation": None, "pending_question": None, "resume_answer": None,
             "clarification": None, "action": None, "answer_errors": 0,
             "status": None, "stop_reason": None, "result": None, "next_node": "guard",
-            "progress": {"resume_evidence_budget": 1},
+            # 保留已见结果，避免回答前查过的查询重复时又被算作进展；约束变化后重新允许探索。
+            "progress": {**state.get("progress", {}), "no_progress_calls": 0,
+                         "force_finalize": False, "resume_evidence_budget": 1},
             "shopping_context": memory,
             "_trace": {"answer": answer, "legacy_budget_normalized": answer != reply.answer},
         }
@@ -587,7 +624,7 @@ class Nodes:
         result = AgentResult(
             run_id=self.scope.request.run_id, conversation_id=self.scope.request.conversation_id,
             snapshot_id=self.scope.request.snapshot_id, status=state["status"],
-            stop_reason=state["stop_reason"], verified_plan=state["verified_plan"],
+            stop_reason=state["stop_reason"], message=result_message(state), verified_plan=state["verified_plan"],
             clarification=state["clarification"], issues=state["issues"], usage=usage,
             explanation=state.get("explanation"),
         )

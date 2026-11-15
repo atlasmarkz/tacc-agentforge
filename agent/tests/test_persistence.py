@@ -99,6 +99,23 @@ def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, o
     asyncio.run(scenario())
 
 
+def test_resume_does_not_regain_spent_model_calls(tmp_path):
+    """恢复时请求更大的预算也应被忽略：检查点里保存的策略决定总额度，强杀不会退还已用的调用。"""
+    async def scenario():
+        path = tmp_path / "agent.sqlite"
+        limit = 4
+        async with open_checkpointer(path) as saver:
+            waiting = await runtime(saver, RunPolicy(max_model_calls=limit)).run(missing_budget("quota"))
+            assert waiting.status == "waiting_user" and waiting.usage.model_calls == 1
+        async with open_checkpointer(path, create=False) as saver:
+            agent = runtime(saver, RunPolicy(max_model_calls=100))
+            result = await agent.resume("quota", waiting.pending_question.question_id, {"purchase_cap": "100.00"})
+            assert result.status == "completed"
+            # 恢复后只补一次证据再提案，总数为 1 + 2，请求的 100 不生效。
+            assert result.usage.model_calls == 3, "a resumed run must keep counting the calls already spent"
+    asyncio.run(scenario())
+
+
 def test_resume_rejections_preserve_checkpoint_across_reopen(tmp_path):
     async def scenario():
         path = tmp_path / "agent.sqlite"

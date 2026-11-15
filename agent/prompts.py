@@ -90,8 +90,10 @@ def build_model_request(
     latest = [Message.model_validate(history[-1])] if history else []
     if len(ModelRequest(messages=required + latest, **kwargs).model_dump_json()) > policy.max_context_chars:
         raise ContextLimitError("latest observation exceeds character budget")
-    # 摘要是可选的，不能把本来放得下的最新观察挤出上下文；按真实序列化大小回退。
-    memory_limit = min(5000, policy.max_context_chars // 4)
+    # 摘要与历史共用同一字符预算；最多占用剩余空间的一半，避免摘要挤掉更早的步骤。
+    base = ModelRequest(messages=required + latest, **kwargs)
+    available = policy.max_context_chars - len(base.model_dump_json())
+    memory_limit = min(5000, policy.max_context_chars // 4, max(0, available // 2))
     while memory_limit > 100:
         memory = prompt_memory(state.get("shopping_context"), memory_limit)
         if not memory:

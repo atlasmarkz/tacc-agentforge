@@ -19,14 +19,39 @@ def semantic_result(value):
     return value
 
 
+def known_satisfying(candidate):
+    """判断候选是否同时具备已知价格和已满足的硬约束。"""
+    if not isinstance(candidate, dict):
+        return False
+    price = candidate.get("selected_price")
+    if not isinstance(price, dict) or price.get("price_minor") is None:
+        return False
+    statuses = candidate.get("hard_constraint_status")
+    if isinstance(statuses, dict) and any(status != "satisfied" for status in statuses.values()):
+        return False
+    return candidate.get("constraint_status") != "unknown"
+
+
+def page_is_informative(data):
+    """没有已知满足条件候选的搜索页不算进展；空结果仍代表一次有效发现。"""
+    candidates = data.get("candidates") if isinstance(data, dict) else None
+    if not isinstance(candidates, list) or not candidates:
+        return True
+    return any(known_satisfying(candidate) for candidate in candidates)
+
+
 def record_result(state, tool_name, data, *, error=False):
     previous = state.get("progress", {})
     seen = previous.get("seen_results", [])
     digest = fingerprint({"tool": tool_name, "result": semantic_result(data)})
-    new = digest not in seen and not error
-    return {"seen_results": (seen + [digest])[-32:],
-            "no_progress_calls": 0 if new else previous.get("no_progress_calls", 0) + 1,
-            "force_finalize": previous.get("force_finalize", False)}
+    # 翻页候选的价格和规格全部未知时，下一页不带来可用于决策的新事实。
+    new = digest not in seen and not error and page_is_informative(data)
+    progress = {"seen_results": (seen + [digest])[-32:],
+                "no_progress_calls": 0 if new else previous.get("no_progress_calls", 0) + 1,
+                "force_finalize": previous.get("force_finalize", False)}
+    if "resume_evidence_budget" in previous:
+        progress["resume_evidence_budget"] = previous["resume_evidence_budget"]
+    return progress
 
 
 def decision_control(state, policy):

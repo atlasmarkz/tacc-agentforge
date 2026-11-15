@@ -160,8 +160,10 @@ class BudgetPlanValidator:
         if not fields:
             return None
         return AskUser(type="ask_user", required_fields=list(dict.fromkeys(fields)),
-                       question="请补充或确认以下预算信息：" + ", ".join(dict.fromkeys(fields)) +
-                       "。金额请填写非负十进制字符串；currency 为三位大写货币代码，budget_basis 为 pre_tax 或 all_in。")
+                       question="Please provide or confirm these budget fields: "
+                       + ", ".join(dict.fromkeys(fields))
+                       + ". Amounts must be non-negative decimal strings; currency is a three-letter "
+                         "uppercase code, and budget_basis is pre_tax or all_in.")
 
     async def validate(self, request: PlanValidationRequest, context: CallContext) -> ValidationResult:
         fingerprint = request.proposal_fingerprint

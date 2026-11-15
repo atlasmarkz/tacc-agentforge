@@ -87,7 +87,26 @@ def test_final_decision_can_abstain_without_inventing_a_plan():
     result = asyncio.run(runtime.run(demo_request()))
     assert result.status == "incomplete" and result.stop_reason == "requirements_unverified"
     assert result.verified_plan is None and result.issues[-1].message == message
+    assert result.message == message, "the user-facing page and the evaluator need the model's own wording"
     assert "report_incomplete" in model.requests[0].action_schema["discriminator"]["mapping"]
+
+
+def test_search_page_without_a_known_satisfying_candidate_is_not_progress():
+    """价格与硬约束都未知的搜索页（冻结基线 dev-07 的翻页）不构成进展。"""
+    from agent.progress import record_result
+    state = initial_state(demo_request(), RunPolicy())
+    page = {"next_cursor": "c1", "candidates": [
+        {"offer_id": "o-1", "selected_price": None, "constraint_status": "unknown",
+         "hard_constraint_status": {"battery_life": "unknown"}}]}
+    state["progress"] = record_result(state, "search_products", page)
+    assert state["progress"]["no_progress_calls"] == 1
+    state["progress"] = record_result(state, "search_products", {**page, "next_cursor": "c2"})
+    assert state["progress"]["no_progress_calls"] == 2
+    priced = {"candidates": [{"offer_id": "o-2", "selected_price": {"price_minor": 1999},
+                              "constraint_status": "satisfied",
+                              "hard_constraint_status": {"battery_life": "satisfied"}}]}
+    state["progress"] = record_result(state, "search_products", priced)
+    assert state["progress"]["no_progress_calls"] == 0
 
 
 def test_pagination_is_progress_and_response_timestamps_are_not():
