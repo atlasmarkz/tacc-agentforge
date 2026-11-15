@@ -17,11 +17,13 @@
 
 规则要点：
 - 运费未知、币种不一致、价格冲突、规格版本冲突或证据不属于所选商品，一律不通过，不估算；
-- ``pre_tax``（默认，项目已决定按不含税比较）：只计标价和已知运费，税费不计入，``cost_breakdown`` 不含 ``tax``，
-  面向用户的回答必须注明不含税；
-- ``all_in``：税费无法确定（未知，或不知道标价是否含税）就不通过；
+- 口径决定税费是否计入，对方案中的每个条目都一样（不会因为某个条目的税费未知而改变其他条目的算法）：
+  - ``pre_tax``（默认，项目已决定按不含税比较）：只计标价和已知运费，税费一律不计入（已知也不计），
+    ``cost_breakdown`` 不含 ``tax``，面向用户的回答必须注明不含税；
+  - ``all_in``：每个条目都计税：标价含税计 0，标价不含税且税费已知时按单价同样的方式乘数量；
+    税费未知或不知道标价是否含税就不通过（``tax_unknown``），``cost_breakdown`` 总是含 ``tax``；
 - 运费按 ``shipping_scope`` 计算：``item`` 乘数量，``order`` 每个方案条目计一次（假设每个条目是一次订单，
-  商家合并运费时是偏高的上界）；范围未知时只有数量为 1 才能确定；已知税费按单价同样的方式乘数量；
+  商家合并运费时是偏高的上界）；范围未知时只有数量为 1 才能确定；
 - 总价恰好等于可用资金时通过；
 - 价格新鲜度不在这里判断（冻结快照按快照时点重放），SKU 身份默认不阻止通过，可用 ``require_verified_identity`` 收紧。
 """
@@ -167,7 +169,7 @@ class BudgetPlanValidator:
             issues.append(Issue(code="duplicate_offer", message="List each offer once and merge its quantities."))
 
         items_total = shipping_total = tax_total = Decimal(0)
-        tax_complete, digits = True, 0
+        all_in, digits = basis == "all_in", 0
         for item in plan.items:
             problems = []
             rows = costs.offers.get(item.offer_id) or []
@@ -177,8 +179,8 @@ class BudgetPlanValidator:
             row = rows[0]
             if any(r.cost_conflict for r in rows):
                 problems.append(("conflicting_prices", "has conflicting price observations"))
-            elif len({(r.currency, r.unit_price, r.shipping, r.shipping_scope, r.tax, r.price_includes_tax)
-                      for r in rows}) > 1:
+            elif len({(r.currency, r.unit_price, r.shipping, r.shipping_scope)
+                      + ((r.tax, r.price_includes_tax) if all_in else ()) for r in rows}) > 1:
                 problems.append(("ambiguous_offer_context", "has different costs for different quantity or destination contexts"))
             if any(r.variant_conflict for r in rows):
                 problems.append(("variant_conflict", "has a store title that conflicts with its product variant"))
@@ -206,13 +208,12 @@ class BudgetPlanValidator:
                 shipping = Decimal(row.shipping)
             else:
                 problems.append(("shipping_scope_unknown", "has shipping that may be per item or per order"))
-            tax = None
-            if row.price_includes_tax == "included":
-                tax = Decimal(0)
-            elif row.price_includes_tax == "excluded" and row.tax is not None:
-                tax = Decimal(row.tax) * quantity
-            elif basis == "all_in":
-                problems.append(("tax_unknown", "has unknown tax; ask whether a pre-tax comparison is acceptable"))
+            tax = Decimal(0)                      # pre_tax: tax is never counted, known or not
+            if all_in:                            # included in the price: 0; excluded and known: per unit
+                if row.price_includes_tax == "excluded" and row.tax is not None:
+                    tax = Decimal(row.tax) * quantity
+                elif row.price_includes_tax != "included":
+                    problems.append(("tax_unknown", "has unknown tax; ask whether a pre-tax comparison is acceptable"))
             for code, text in problems:
                 issues.append(Issue(code=code, message=f"Offer {item.offer_id} {text}."))
             if problems or row.unit_price is None or shipping is None:
@@ -220,19 +221,16 @@ class BudgetPlanValidator:
             digits = max(digits, _scale(row.unit_price))
             items_total += Decimal(row.unit_price) * quantity
             shipping_total += shipping
-            if tax is None:
-                tax_complete = False
-            else:
-                tax_total += tax
+            tax_total += tax
         if issues or available is None or currency is None:
             return issues, None
-        total = items_total + shipping_total + (tax_total if tax_complete else Decimal(0))
+        total = items_total + shipping_total + tax_total
         if total > available:
             issues.append(Issue(code="budget_exceeded", message=(
                 f"Total {_format(total, digits)} {currency} exceeds available funds {_format(available, digits)} {currency}.")))
             return issues, None
         breakdown = {"items": _format(items_total, digits), "shipping": _format(shipping_total, digits)}
-        if tax_complete:
+        if all_in:                                # the breakdown always tells which basis was used
             breakdown["tax"] = _format(tax_total, digits)
         return [], VerifiedPlan(
             snapshot_id=agent_request.snapshot_id, items=plan.items, currency=currency,

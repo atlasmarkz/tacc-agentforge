@@ -65,7 +65,7 @@ def test_passes_with_exact_itemized_total_and_remaining_funds():
     plan = result.verified_plan
     assert result.status == "passed" and result.proposal_fingerprint == FINGERPRINT
     assert (plan.total_cost, plan.remaining_funds) == ("32.00", "68.00")
-    assert plan.cost_breakdown == {"items": "30.00", "shipping": "2.00", "tax": "0.00"}
+    assert plan.cost_breakdown == {"items": "30.00", "shipping": "2.00"}           # default pre_tax: no tax
     assert plan.currency == "USD" and plan.snapshot_id == SNAPSHOT and plan.items[0].quantity == 3
 
 
@@ -176,21 +176,59 @@ def test_the_default_basis_is_pre_tax_and_a_request_can_ask_for_all_in():
 
 
 @pytest.mark.parametrize("how", ["default", "constraint"])
-def test_pre_tax_basis_counts_listed_price_and_shipping_only(how):
-    row = cost(price_includes_tax=None)
+@pytest.mark.parametrize("tax_fields", [
+    {"price_includes_tax": None},                                   # tax unknown
+    {"price_includes_tax": "excluded", "tax": "0.80"},              # tax known: still not counted
+    {"price_includes_tax": "included"},
+])
+def test_pre_tax_basis_counts_listed_price_and_shipping_only(how, tax_fields):
+    row = cost(**tax_fields)
+    cap = {"purchase_cap": "12.00"}                                 # exactly price + shipping
     if how == "default":
-        result = run(FakeSource(row))
+        result = run(FakeSource(row), constraints=cap)
     else:
-        result = run(FakeSource(row, ), default_basis="all_in", constraints={"budget_basis": "pre_tax"})
+        result = run(FakeSource(row), default_basis="all_in", constraints={**cap, "budget_basis": "pre_tax"})
     assert result.status == "passed" and result.verified_plan.total_cost == "12.00"
-    assert "tax" not in result.verified_plan.cost_breakdown
+    assert result.verified_plan.cost_breakdown == {"items": "10.00", "shipping": "2.00"}
 
 
-def test_known_tax_is_added_per_unit_when_the_price_excludes_it():
-    result = run(FakeSource(cost(price_includes_tax="excluded", tax="0.80")), [("o1", 2)])
+def test_all_in_basis_adds_known_tax_per_unit_when_the_price_excludes_it():
+    result = run(FakeSource(cost(price_includes_tax="excluded", tax="0.80")), [("o1", 2)], default_basis="all_in")
     plan = result.verified_plan
     assert plan.cost_breakdown == {"items": "20.00", "shipping": "2.00", "tax": "1.60"}
     assert plan.total_cost == "23.60"
+    included = run(FakeSource(cost(price_includes_tax="included")), default_basis="all_in").verified_plan
+    assert included.cost_breakdown == {"items": "10.00", "shipping": "2.00", "tax": "0.00"}
+
+
+def test_adding_an_item_never_changes_how_another_item_is_counted():
+    """Review on #18: one unknown-tax item used to drop every known tax, so o1 failed alone but passed with o2."""
+    o1 = cost("o1", price_includes_tax="excluded", tax="0.80")
+    o2 = cost("o2", price_includes_tax=None)
+    alone = run(FakeSource(o1), constraints={"purchase_cap": "12.00"})
+    both = run(FakeSource(o1, o2), [("o1", 1), ("o2", 1)], constraints={"purchase_cap": "24.00"})
+    assert alone.status == both.status == "passed"                              # pre_tax: tax never counted
+    assert both.verified_plan.cost_breakdown == {"items": "20.00", "shipping": "4.00"}
+    # all_in: the unknown tax of o2 is reported, never silently switched to a pre-tax total
+    mixed = run(FakeSource(o1, o2), [("o1", 1), ("o2", 1)], default_basis="all_in")
+    assert mixed.status == "failed" and codes(mixed) == ["tax_unknown"]
+    assert codes(run(FakeSource(o1), constraints={"purchase_cap": "12.79"}, default_basis="all_in")) == [
+        "budget_exceeded"]
+
+
+def test_the_breakdown_says_which_basis_was_used_and_the_fallback_follows_it():
+    from agent.explanation import render_fallback
+    row = cost(price_includes_tax="excluded", tax="0.80")
+    pre_tax = run(FakeSource(row)).verified_plan
+    all_in = run(FakeSource(row), default_basis="all_in").verified_plan
+    assert "（不含税）" in render_fallback(pre_tax).text and pre_tax.total_cost == "12.00"
+    assert "不含税" not in render_fallback(all_in).text and all_in.total_cost == "12.80"
+
+
+def test_tax_differences_between_contexts_only_matter_when_tax_is_counted():
+    rows = [cost(price_includes_tax="excluded", tax="0.80"), cost(price_includes_tax="excluded", tax="1.20")]
+    assert run(FakeSource(*rows)).status == "passed"
+    assert codes(run(FakeSource(*rows), default_basis="all_in")) == ["ambiguous_offer_context"]
 
 
 def test_several_items_are_summed_exactly():
