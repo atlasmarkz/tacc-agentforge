@@ -19,26 +19,8 @@ The demo runs on TACC. The agent recommends earbuds costing **$22.99 before tax*
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    subgraph Local["Local machine"]
-        UI["Shop Advisor browser"] -->|HTTP / SSE| Backend["Python backend"]
-    end
+![Target architecture with six layers: Application, Knowledge, Post-training, Inference, Evaluation, and TACC](docs/images/target-architecture.png)
 
-    subgraph Cluster["TACC compute job"]
-        Agent["Agent runtime"]
-        Model["vLLM · Qwen3.8-27B AWQ INT4<br/>Tensor parallelism across 2 GPUs"]
-        Catalog["Read-only SQLite evidence snapshot"]
-        Budget["Deterministic budget validator"]
-
-        Agent <-->|Model calls| Model
-        Agent -->|Product search and evidence lookup| Catalog
-        Agent -->|Check plan totals| Budget
-    end
-
-    Backend <-->|SSH tunnel| Agent
-```
-
-The model proposes a plan from the catalog. The validator checks offer costs and the remaining budget before the browser shows the recommendation and its sources.
+*Target architecture, including cloud-hosted knowledge services and LoRA training.*
 
 [Deployment runbook](deploy/tacc/service/RUNBOOK.md) · [Knowledge base](knowledge/README.md) · [Agent internals](agent/ARCHITECTURE.md)
