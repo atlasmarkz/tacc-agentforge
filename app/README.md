@@ -16,6 +16,8 @@
 
 每小时交接时,继任作业在另一个节点上起一套同样的 vLLM 和 harness,第二个作业名额就是给它的。
 
+另有一种云端部署(issue #25,见 `deploy/gcp/README.md`):页面放在 Cloudflare Pages,后端和 harness 常驻在一台 GCE 虚拟机上,检查点存在本地盘,可以跨重启恢复;TACC 只跑 vLLM,由 `app/model_tunnel.py` 跟随它的地址。本文描述的集群内部署仍然可用。
+
 ## 为什么这样设计
 
 - 集群没有对外开放的 HTTP 入口,但网关能按 IP 连到计算节点的端口,本机 `ssh -L` 经网关可以直达(已实测)。所以浏览器到后端、后端到 harness 都能流式,不需要文件队列。

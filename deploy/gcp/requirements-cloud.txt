@@ -1,0 +1,3 @@
+# Extra dependencies of the cloud host (issue #25), on top of agent/requirements.lock.
+# PyJWT checks the Cloudflare Access tokens (app/access.py); [crypto] pulls cryptography for RS256.
+pyjwt[crypto]==2.10.1

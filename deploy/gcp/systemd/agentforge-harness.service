@@ -1,0 +1,17 @@
+[Unit]
+Description=agentforge: harness service (AgentRuntime, knowledge snapshot, SQLite checkpoints)
+After=network-online.target agentforge-tunnel.service
+Wants=network-online.target agentforge-tunnel.service
+
+[Service]
+User=agentforge
+EnvironmentFile=/etc/agentforge/agentforge.env
+WorkingDirectory=/opt/agentforge/repo
+ExecStart=/opt/agentforge/venv/bin/python -m app.harness_service --cloud --profile cloud-fast --explain --port 8100
+Restart=always
+RestartSec=5
+# SIGTERM stops accepting; running runs finish within their 120 s deadline, waiting runs stay on disk.
+TimeoutStopSec=150
+
+[Install]
+WantedBy=multi-user.target

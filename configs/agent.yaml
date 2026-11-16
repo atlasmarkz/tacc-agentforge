@@ -60,6 +60,15 @@ profiles:
   tacc-thinking:
     model: {enable_thinking: true}
     agent: {max_output_tokens: 2048} # 不能用 512，否则 reasoning 可能耗尽整个额度。
+  cloud-fast:                    # issue #25：harness 在云主机上，模型经 app/model_tunnel 的本地地址文件访问 TACC vLLM。
+    model:
+      enable_thinking: false
+      address_file: ${AGENTFORGE_HOME}/service-url.txt
+    agent: {max_output_tokens: 512}
+    checkpoint:
+      backend: sqlite
+      path: ${AGENTFORGE_HOME}/checkpoints/agent.sqlite
+      sqlite_storage_verified: true  # 云主机本地持久盘(ext4)，不是 NFS；open_checkpointer 仍会拒绝网络盘。
   mock:
     agent: {question_timeout_s: 1800, max_context_chars: 16000, max_history_messages: 12, max_output_tokens: 512}
     checkpoint: {backend: memory}

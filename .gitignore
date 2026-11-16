@@ -81,3 +81,7 @@ deploy/tacc/train-sft/pkg/
 deploy/tacc/train-sft/args.txt
 
 deploy/tacc/train-sft-serve/args.txt
+
+# Cloudflare Pages build output (deploy/cloudflare/deploy.sh copies app/static into it)
+deploy/cloudflare/public/
+deploy/cloudflare/.wrangler/

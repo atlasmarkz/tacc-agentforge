@@ -29,6 +29,7 @@ def main(argv=None):
     commands = parser.add_subparsers(dest="command", required=True)
     p = commands.add_parser("bootstrap", help="Install the pinned offline seed snapshot")
     p.add_argument("--archive", type=Path)
+    p.add_argument("--url", help="Download the archive (gs://, https:// or file://); checked against the pinned SHA256")
     p.add_argument("--sha256")
     p.add_argument("--snapshot-id")
     p.add_argument("--snapshots-root", type=Path)
@@ -99,7 +100,7 @@ def main(argv=None):
         snapshots_root = settings.snapshots_root
         if args.command == "bootstrap":
             from .bootstrap import install_snapshot
-            result = install_snapshot(settings,archive=args.archive,sha256=args.sha256)
+            result = install_snapshot(settings,archive=args.archive,sha256=args.sha256,url=args.url)
         elif args.command == "doctor":
             from .bootstrap import diagnose
             result = diagnose(settings)

@@ -365,7 +365,11 @@ const ERRORS = { not_waiting: "This question was already answered.",
                  run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error.",
                  run_exists: "This request was already started. Please ask again.",
                  invalid_request: "The service could not accept this request. Please rephrase it and try again.",
-                 harness_unavailable: "The shopping service is not reachable right now. Please try again in a few minutes." };
+                 harness_unavailable: "The shopping service is not reachable right now. Please try again in a few minutes.",
+                 model_unavailable: "The model is not available right now (it may be moving to a new node). Please try again in a few minutes.",
+                 rate_limited: "Too many requests at once. Please wait for the current one or try again in a minute.",
+                 busy: "The service is busy with other requests. Please try again in a minute.",
+                 unauthorized: "Your sign-in has expired. Please reload the page to sign in again." };
 const COST = { items: "Items", shipping: "Shipping", tax: "Tax" };
 const STAGES = ["understand", "search", "compare", "check", "explain"];
 

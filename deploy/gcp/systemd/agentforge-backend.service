@@ -1,0 +1,17 @@
+[Unit]
+Description=agentforge: public backend behind cloudflared (Cloudflare Access sign-in, run ownership, limits)
+After=agentforge-harness.service
+Wants=agentforge-harness.service
+
+[Service]
+User=agentforge
+EnvironmentFile=/etc/agentforge/agentforge.env
+WorkingDirectory=/opt/agentforge/repo
+ExecStart=/opt/agentforge/venv/bin/python -m app.backend --bind 127.0.0.1 --port 8765 \
+    --harness-url http://127.0.0.1:8100 --token-file ${AGENTFORGE_HOME}/harness-token.txt \
+    --runs-db ${AGENTFORGE_HOME}/runs.sqlite --log ${AGENTFORGE_HOME}/logs/requests.jsonl
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

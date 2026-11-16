@@ -1,0 +1,15 @@
+[Unit]
+Description=agentforge: SSH tunnel to the TACC vLLM service (follows service-url.txt)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=agentforge
+EnvironmentFile=/etc/agentforge/agentforge.env
+WorkingDirectory=/opt/agentforge/repo
+ExecStart=/opt/agentforge/venv/bin/python -m app.model_tunnel --local-file ${AGENTFORGE_HOME}/service-url.txt
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

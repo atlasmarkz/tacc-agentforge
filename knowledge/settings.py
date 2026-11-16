@@ -20,6 +20,7 @@ class KnowledgeSettings:
     seed_archive: Path
     seed_sha256: str
     service: dict
+    seed_url: str | None = None     # object-storage copy of the seed archive (issue #25)
 
 
 def _path(value, base):
@@ -65,5 +66,8 @@ def load_settings(config_path=None, *, data_root=None, snapshots_root=None, snap
         raise ValueError("max_result_bytes must be between 1024 and 65536")
     if type(service["price_ttl_hours"]) not in (int, float) or not 0 < service["price_ttl_hours"] < float("inf"):
         raise ValueError("price_ttl_hours must be positive and finite")
+    url = os.environ.get("KNOWLEDGE_SEED_URL", seed.get("url"))
+    if url is not None and (not isinstance(url, str) or not re.match(r"(gs|https|file)://", url)):
+        raise ValueError("seed.url must be a gs://, https:// or file:// URL")
     return KnowledgeSettings(path, root, data, snapshots, identifier,
-                             _path(seed["archive"], root), expected, service)
+                             _path(seed["archive"], root), expected, service, url or None)

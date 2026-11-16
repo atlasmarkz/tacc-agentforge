@@ -110,14 +110,21 @@ def _all_pages(fetch, ids, items_key, pending_key):
 
 
 class HarnessService:
-    def __init__(self, *, model, kb, snapshot_id: str, policy, token: str, info: dict, explain_default: bool):
+    persistent = False                                        # True when checkpoints are on disk (cloud host)
+
+    def __init__(self, *, model, kb, snapshot_id: str, policy, token: str, info: dict, explain_default: bool,
+                 saver=None):
         tools = build_knowledge_tools(kb)
         self.tools, self.kb, self.snapshot_id, self.token, self.info = tools, kb, snapshot_id, token, info
         self.explain_default = explain_default
         deps = AgentDependencies(model, tools, BudgetPlanValidator(KnowledgeOfferCostSource(kb)),
                                  evidence_resolver=KnowledgeEvidenceResolver(kb))
-        from langgraph.checkpoint.memory import InMemorySaver
-        saver = InMemorySaver()                               # shared: either runtime can resume any run
+        # On TACC the store is in memory (USERDIR is NFS); the cloud host passes a SQLite saver on local disk,
+        # so a run waiting for an answer survives a restart (issue #8). Shared: either runtime resumes any run.
+        self.persistent = saver is not None
+        if saver is None:
+            from langgraph.checkpoint.memory import InMemorySaver
+            saver = InMemorySaver()
         self.runtimes = {flag: AgentRuntime(deps, policy.model_copy(update={"explain": flag}), checkpointer=saver)
                          for flag in (False, True)}
         self.cancels: dict[str, asyncio.Event] = {}
@@ -183,6 +190,7 @@ class HarnessService:
         return {"status": "ok", "snapshot_id": self.snapshot_id, "uptime_s": round(time.time() - self.started, 1),
                 "model_address": model_address, "active_runs": len(self.cancels),
                 "waiting_runs": len(self.waiting), "counts": self.counts,
+                "checkpoints": "sqlite" if self.persistent else "memory",
                 **{k: v for k, v in self.info.items() if k != "model_address_file"}}
 
     # ---- runs ----------------------------------------------------------------------------------------------
@@ -265,8 +273,10 @@ class HarnessService:
 
     def pending(self) -> str:
         ids = ", ".join(sorted(self.waiting)[:20])
+        kept = ("kept: checkpoints are on disk" if self.persistent
+                else "lost with this process: checkpoints are in memory")
         return (f"{len(self.cancels)} running (they finish here), {len(self.waiting)} waiting for an answer "
-                f"(lost with this process: checkpoints are in memory){': ' + ids if ids else ''}")
+                f"({kept}){': ' + ids if ids else ''}")
 
     # ---- evidence lookup for the UI ------------------------------------------------------------------------
 
@@ -369,8 +379,74 @@ def run_demo(a) -> int:
     return 0
 
 
+def read_or_create_token(path: Path) -> str:
+    """The token the backend on the same host uses (mode 600); created once, kept across restarts."""
+    if path.is_file():
+        token = path.read_text(encoding="utf-8").strip()
+        if token:
+            return token
+    path.parent.mkdir(parents=True, exist_ok=True)
+    token = secrets.token_urlsafe(32)
+    atomic_write(path, token + "\n")
+    return token
+
+
+async def run_cloud(a) -> int:
+    """Cloud host (issue #25): local snapshot, SQLite checkpoints on local disk, model through app/model_tunnel.
+
+    Listens on 127.0.0.1 only; the backend on the same host is the only client. Stops on SIGTERM (systemd):
+    running runs finish or are cancelled, waiting runs stay in the checkpoint store and resume after a restart.
+    """
+    import signal
+    from agent.checkpoint_cleanup import cleanup_checkpoints
+    from agent.checkpoints import open_checkpointer
+    from agent.settings import load_runtime_settings
+    from knowledge.bootstrap import install_snapshot
+    from knowledge.service import KnowledgeService
+    from knowledge.settings import load_settings
+
+    home = Path(os.environ.setdefault("AGENTFORGE_HOME", "/var/lib/agentforge"))   # cloud-fast paths use it
+    settings = load_runtime_settings(a.agent_config, a.profile)
+    kb_settings = load_settings(a.config, data_root=home / "knowledge")
+    installed = install_snapshot(kb_settings)             # downloads seed.url when the repo has no archive
+    log(f"snapshot {kb_settings.snapshot_id}: {installed['status']}")
+    kb = KnowledgeService(kb_settings.snapshots_root, **kb_settings.service)
+    checkpoint = settings.checkpoint
+    if checkpoint.backend != "sqlite" or not checkpoint.sqlite_storage_verified:
+        raise SystemExit(f"profile {a.profile} must use a verified SQLite checkpoint store on local disk")
+    token = read_or_create_token(a.token_file or home / "harness-token.txt")
+    info = {"job_id": "cloud", "node": socket.gethostname(), "profile": a.profile,
+            "model_address_file": os.path.expandvars(settings.model.address_file), "explain_default": a.explain}
+    stop = asyncio.Event()
+    loop = asyncio.get_running_loop()
+    for sig in (signal.SIGTERM, signal.SIGINT):
+        loop.add_signal_handler(sig, stop.set)
+    checkpoint_path = settings.config.resolve_path(checkpoint.path)
+    async with open_checkpointer(checkpoint_path) as saver:
+        if checkpoint.cleanup_on_start:
+            removed = [d for d in await cleanup_checkpoints(saver, checkpoint.retention()) if d.action == "delete"]
+            log(f"checkpoint cleanup: removed {len(removed)} expired runs")
+        service = HarnessService(model=real_model(settings.model), kb=kb, snapshot_id=kb_settings.snapshot_id,
+                                 policy=settings.policy, token=token, info=info, explain_default=a.explain,
+                                 saver=saver)
+
+        def ready(port):
+            info["address"] = f"http://127.0.0.1:{port}"
+            log(f"READY harness service {info['address']} (profile {a.profile}, checkpoints {checkpoint_path})")
+
+        try:
+            await serve(service, "127.0.0.1", a.port, ready=ready, stop=stop)
+        finally:
+            log(f"stopped: {service.counts}; {service.pending()}")
+            service.close()
+    return 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--cloud", action="store_true", help="cloud host (issue #25): needs AGENTFORGE_HOME and a "
+                                                         "profile with a SQLite checkpoint store (cloud-fast)")
+    ap.add_argument("--token-file", type=Path, help="with --cloud (default $AGENTFORGE_HOME/harness-token.txt)")
     ap.add_argument("--selftest", action="store_true", help="scripted model, seed snapshot, real HTTP (no TACC)")
     ap.add_argument("--config", type=Path, default=ROOT / "configs/knowledge.json")
     ap.add_argument("--agent-config", type=Path, default=ROOT / "configs/agent.yaml")
@@ -389,6 +465,8 @@ def main() -> int:
         return asyncio.run(run_selftest(a.config))
     if a.demo:
         return run_demo(a)
+    if a.cloud:
+        return asyncio.run(run_cloud(a))
 
     from agent.settings import load_runtime_settings
     settings = load_runtime_settings(a.agent_config, a.profile)

@@ -26,9 +26,12 @@ import os
 import re
 import secrets
 import socket
+import sqlite3
 import subprocess
 import threading
 import time
+from collections import deque
+from dataclasses import dataclass
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -191,24 +194,75 @@ class Tunnel:
         self.proc = None
 
 
+@dataclass(frozen=True)
+class Limits:
+    """Per-owner and total limits on streaming calls (asks and answers). The vLLM service serves at most 8
+    sequences and about 6 full recommendations a minute comfortably (RUNBOOK), so a public page needs these."""
+    per_owner_active: int = 2
+    total_active: int = 8
+    per_owner_per_minute: int = 6
+
+
 class Backend:
-    def __init__(self, client: HarnessClient, log_path: Path, refresh=None):
+    """Run ownership lives in SQLite (`store_path`), so after a restart a user can still answer a question their
+    run is waiting on (the cloud harness keeps the checkpoint, issue #8). The owner is the signed-in user when
+    Cloudflare Access is on, otherwise the page's session ID (local, single user)."""
+
+    def __init__(self, client: HarnessClient, log_path: Path, refresh=None, *, store_path=":memory:",
+                 limits: Limits | None = None):
         self.client, self.refresh = client, refresh or (lambda: None)
         self.log_path = log_path
         self.log_path.parent.mkdir(parents=True, exist_ok=True)
-        self.runs: dict[str, dict] = {}                     # run_id -> {session, conversation, kind, ...}
+        if store_path != ":memory:":
+            Path(store_path).parent.mkdir(parents=True, exist_ok=True)
+        self.db = sqlite3.connect(str(store_path), check_same_thread=False, isolation_level=None)
+        self.db.execute("CREATE TABLE IF NOT EXISTS runs (run_id TEXT PRIMARY KEY, owner TEXT NOT NULL, "
+                        "conversation TEXT NOT NULL, kind TEXT NOT NULL, parent TEXT, created REAL NOT NULL)")
         self.lock = threading.Lock()
+        self.limits = limits or Limits()
+        self.active: dict[str, int] = {}
+        self.starts: dict[str, deque] = {}
 
-    def new_run(self, session: str, kind: str, parent: str | None = None) -> str:
+    def new_run(self, owner: str, kind: str, parent: str | None = None, *, session: str | None = None) -> str:
+        session = session or owner
         run_id = f"r-{session[:8]}-{int(time.time())}-{secrets.token_hex(3)}"
         with self.lock:
-            self.runs[run_id] = {"session": session, "conversation": f"s-{session}", "kind": kind, "parent": parent,
-                                 "created": time.time()}
+            self.db.execute("INSERT INTO runs VALUES (?, ?, ?, ?, ?, ?)",
+                            (run_id, owner, f"s-{session}", kind, parent, time.time()))
         return run_id
 
-    def owned(self, session: str, run_id: str) -> bool:
+    def owned(self, owner: str, run_id) -> bool:
+        if not isinstance(run_id, str):
+            return False
         with self.lock:
-            return self.runs.get(run_id, {}).get("session") == session
+            row = self.db.execute("SELECT owner FROM runs WHERE run_id = ?", (run_id,)).fetchone()
+        return row is not None and row[0] == owner
+
+    def acquire(self, owner: str, new_run: bool) -> str | None:
+        """Reserve a streaming slot; returns an error code when a limit is hit. `release` frees it."""
+        now = time.monotonic()
+        with self.lock:
+            if sum(self.active.values()) >= self.limits.total_active:
+                return "busy"
+            if self.active.get(owner, 0) >= self.limits.per_owner_active:
+                return "rate_limited"
+            starts = self.starts.setdefault(owner, deque())
+            while starts and now - starts[0] > 60:
+                starts.popleft()
+            if new_run:
+                if len(starts) >= self.limits.per_owner_per_minute:
+                    return "rate_limited"
+                starts.append(now)
+            self.active[owner] = self.active.get(owner, 0) + 1
+        return None
+
+    def release(self, owner: str) -> None:
+        with self.lock:
+            left = self.active.get(owner, 0) - 1
+            if left > 0:
+                self.active[owner] = left
+            else:
+                self.active.pop(owner, None)
 
     def record(self, **row):
         row["ts"] = time.strftime("%Y-%m-%dT%H:%M:%S")
@@ -222,7 +276,9 @@ class Backend:
             return {"backend": "ok", "harness": None, "error": str(exc)}
 
 
-def make_handler(backend: Backend):
+def make_handler(backend: Backend, auth=None):
+    """`auth`: an app.access.AccessAuth for the public deployment (every /api call needs a signed-in user), or
+    None locally."""
     page = (HERE / "static" / "index.html").read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
@@ -240,7 +296,22 @@ def make_handler(backend: Backend):
             self.end_headers()
             self.wfile.write(data)
 
+        def identify(self):
+            """The signed-in user (Cloudflare Access) or None locally; sends 401 and returns False when rejected."""
+            if auth is None:
+                return None
+            try:
+                return auth.identify(self.headers)
+            except Exception as exc:                          # AuthError, or the key fetch failed
+                log(f"rejected {self.path}: {exc}")
+                self._json(401, {"error": {"code": "unauthorized", "message": "Please sign in again."}})
+                return False
+
         def do_GET(self):
+            if self.path == "/api/health":
+                if self.identify() is False:
+                    return
+                return self._json(200, backend.health())
             if self.path in ("/", "/index.html"):
                 self.send_response(200)
                 self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -248,8 +319,6 @@ def make_handler(backend: Backend):
                 self.send_header("Cache-Control", "no-store")
                 self.end_headers()
                 self.wfile.write(page)
-            elif self.path == "/api/health":
-                self._json(200, backend.health())
             else:
                 self._json(404, {"error": {"code": "not_found", "message": "No such page."}})
 
@@ -264,15 +333,20 @@ def make_handler(backend: Backend):
                     raise ValueError("session_id")
             except ValueError:
                 return self._json(400, {"error": {"code": "bad_request", "message": "Invalid request."}})
+            user = self.identify()
+            if user is False:
+                return
+            # Runs belong to the signed-in user when Access is on; locally to the page's session.
+            owner = user or session
             try:
                 if self.path == "/api/ask":
-                    return self.ask(session, body)
+                    return self.ask(session, owner, body)
                 if self.path == "/api/answer":
-                    return self.answer(session, body)
+                    return self.answer(session, owner, body)
                 if self.path == "/api/cancel":
-                    return self.cancel(session, body)
+                    return self.cancel(owner, body)
                 if self.path == "/api/lookup":
-                    return self.lookup(session, body)
+                    return self.lookup(owner, body)
             except (HarnessError, OSError) as exc:
                 return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
@@ -287,39 +361,60 @@ def make_handler(backend: Backend):
 
         # ---- endpoints ----
 
-        def ask(self, session, body):
+        def ask(self, session, owner, body):
             message, constraints = body.get("message"), body.get("constraints") or {}
             if not isinstance(message, str) or not message.strip() or not isinstance(constraints, dict):
                 return self._json(400, {"error": {"code": "bad_request", "message": "message is required."}})
             parent = body.get("revises")
-            if parent is not None and not backend.owned(session, parent):
+            if parent is not None and not backend.owned(owner, parent):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
-            run_id = backend.new_run(session, "revision" if parent else "request", parent)
-            payload = {"run_id": run_id, "conversation_id": f"s-{session}", "message": message,
-                       "constraints": constraints, "explain": body.get("explain", True)}
-            self.relay(session, run_id, "/runs", payload, kind="revision" if parent else "request", parent=parent)
+            if not self.reserve(owner, new_run=True):
+                return
+            try:
+                kind = "revision" if parent else "request"
+                run_id = backend.new_run(owner, kind, parent, session=session)
+                payload = {"run_id": run_id, "conversation_id": f"s-{session}", "message": message,
+                           "constraints": constraints, "explain": body.get("explain", True)}
+                self.relay(session, owner, run_id, "/runs", payload, kind=kind, parent=parent)
+            finally:
+                backend.release(owner)
 
-        def answer(self, session, body):
+        def answer(self, session, owner, body):
             run_id = body.get("run_id")
-            if not backend.owned(session, run_id):
+            if not backend.owned(owner, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
-            self.relay(session, run_id, f"/runs/{run_id}/resume",
-                       {"question_id": body.get("question_id"), "answer": body.get("answer") or {}}, kind="answer")
+            if not self.reserve(owner, new_run=False):
+                return
+            try:
+                self.relay(session, owner, run_id, f"/runs/{run_id}/resume",
+                           {"question_id": body.get("question_id"), "answer": body.get("answer") or {}},
+                           kind="answer")
+            finally:
+                backend.release(owner)
 
-        def cancel(self, session, body):
+        def reserve(self, owner, new_run):
+            code = backend.acquire(owner, new_run)
+            if code is None:
+                return True
+            message = ("The service is busy with other requests. Please try again in a minute." if code == "busy"
+                       else "Too many requests at once. Please wait for the current one or try again in a minute.")
+            self._json(429, {"error": {"code": code, "message": message}})
+            return False
+
+        def cancel(self, owner, body):
             run_id = body.get("run_id")
-            if not backend.owned(session, run_id):
+            if not backend.owned(owner, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
             self._json(200, backend.client.post(f"/runs/{run_id}/cancel", {}))
 
-        def lookup(self, session, body):
+        def lookup(self, owner, body):
             run_id = body.get("run_id")
-            if not backend.owned(session, run_id):
+            if not backend.owned(owner, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
             self._json(200, backend.client.post("/lookup", {"offer_ids": body.get("offer_ids") or [],
                                                             "evidence_ids": body.get("evidence_ids") or []}))
 
-        def relay(self, session, run_id, path, payload, kind, parent=None):
+        def relay(self, session, owner, run_id, path, payload, kind, parent=None):
             """Pass the harness's SSE stream through, one event per chunk, and log the outcome."""
             t0 = time.monotonic()
             exc = None
@@ -342,7 +437,7 @@ def make_handler(backend: Backend):
                         # at its own deadline.
                         backend.record(session=session, run_id=run_id, kind=kind, parent=parent, status="retried",
                                        error=str(e)[:300])
-                        run_id = backend.new_run(session, kind, parent)
+                        run_id = backend.new_run(owner, kind, parent, session=session)
                         payload = {**payload, "run_id": run_id}
             if exc is not None:
                 unreachable = not isinstance(exc, HarnessError) or exc.unavailable
@@ -392,11 +487,28 @@ def main():
     ap.add_argument("--port", type=int, default=8765)
     ap.add_argument("--harness-url", help="talk to this harness service directly instead of over SSH")
     ap.add_argument("--token", help="with --harness-url")
+    ap.add_argument("--token-file", type=Path, help="with --harness-url: read the token from this file (cloud host)")
+    ap.add_argument("--bind", default="127.0.0.1", help="listen address; keep 127.0.0.1 behind cloudflared")
     ap.add_argument("--log", type=Path, default=HERE / "logs" / "requests.jsonl")
+    ap.add_argument("--runs-db", default=":memory:", help="SQLite file for run ownership (cloud host: keep it so "
+                                                           "waiting runs can be answered after a restart)")
+    ap.add_argument("--access-team-domain", default=os.environ.get("CF_ACCESS_TEAM_DOMAIN"),
+                    help="Cloudflare Access team domain (<team>.cloudflareaccess.com); turns on sign-in checks")
+    ap.add_argument("--access-api-aud", default=os.environ.get("CF_ACCESS_API_AUD"))
+    ap.add_argument("--access-user-aud", default=os.environ.get("CF_ACCESS_USER_AUD"))
     a = ap.parse_args()
+    auth = None
+    if a.access_team_domain:
+        if not (a.access_api_aud and a.access_user_aud):
+            raise SystemExit("--access-team-domain needs --access-api-aud and --access-user-aud")
+        from app.access import AccessAuth
+        auth = AccessAuth(a.access_team_domain, a.access_api_aud, a.access_user_aud)
+    elif a.bind not in ("127.0.0.1", "localhost", "::1"):
+        raise SystemExit("refusing to listen beyond localhost without Cloudflare Access sign-in checks")
     tunnel = None
     if a.harness_url:
-        client = HarnessClient(lambda: (a.harness_url, a.token or ""))
+        token = a.token_file.read_text(encoding="utf-8").strip() if a.token_file else (a.token or "")
+        client = HarnessClient(lambda: (a.harness_url, token))
         refresh = None
     else:
         tunnel = Tunnel(os.environ.get("TACC_SSH", "markzhang@gw.turing.ust.hk"),
@@ -405,9 +517,9 @@ def main():
                         os.environ.get("TACC_REMOTE_USERDIR", "/mnt/home/markzhang/USERDIR"))
         client = HarnessClient(tunnel.resolve)
         refresh = lambda: tunnel.resolve(refresh=True) if tunnel.remote_addr else None  # noqa: E731
-    backend = Backend(client, a.log, refresh=lambda: _quiet(refresh))
-    server = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(backend))
-    log(f"open http://127.0.0.1:{a.port}")
+    backend = Backend(client, a.log, refresh=lambda: _quiet(refresh), store_path=a.runs_db)
+    server = ThreadingHTTPServer((a.bind, a.port), make_handler(backend, auth))
+    log(f"open http://{a.bind}:{a.port}" + (" (Cloudflare Access sign-in required)" if auth else ""))
     try:
         server.serve_forever()
     except KeyboardInterrupt:

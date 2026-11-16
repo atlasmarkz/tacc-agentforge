@@ -1,0 +1,4 @@
+# Cloudflare Pages project for the shopping page (issue #25). Deploy with deploy/cloudflare/deploy.sh.
+name = "tacc-agentforge"
+pages_build_output_dir = "public"
+compatibility_date = "2026-10-01"
