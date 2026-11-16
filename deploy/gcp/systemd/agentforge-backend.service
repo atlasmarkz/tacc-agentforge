@@ -1,7 +1,8 @@
 [Unit]
-Description=agentforge: public backend behind cloudflared (Cloudflare Access sign-in, run ownership, limits)
+Description=agentforge: public backend (proxy secret or Access sign-in, run ownership, limits)
 After=agentforge-harness.service
 Wants=agentforge-harness.service
+PartOf=agentforge.target
 
 [Service]
 User=agentforge
@@ -14,4 +15,4 @@ Restart=always
 RestartSec=5
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=agentforge.target

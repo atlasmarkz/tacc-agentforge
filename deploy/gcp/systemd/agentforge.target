@@ -1,0 +1,10 @@
+[Unit]
+Description=agentforge: the whole cloud service (page backend, harness, model tunnel, TACC vLLM jobs)
+# start: everything comes up and the vLLM job is submitted (agentforge-cluster.service);
+# stop:  everything stops and the vLLM jobs are cancelled, so the course GPUs are free.
+Wants=agentforge-tunnel.service agentforge-harness.service agentforge-backend.service
+Wants=agentforge-cluster.service agentforge-keeper.timer
+
+[Install]
+# Only when enabled (systemctl enable agentforge.target): start again after the VM reboots.
+WantedBy=multi-user.target

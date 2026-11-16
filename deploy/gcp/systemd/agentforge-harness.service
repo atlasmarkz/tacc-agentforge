@@ -2,6 +2,7 @@
 Description=agentforge: harness service (AgentRuntime, knowledge snapshot, SQLite checkpoints)
 After=network-online.target agentforge-tunnel.service
 Wants=network-online.target agentforge-tunnel.service
+PartOf=agentforge.target
 
 [Service]
 User=agentforge
@@ -14,4 +15,4 @@ RestartSec=5
 TimeoutStopSec=150
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=agentforge.target

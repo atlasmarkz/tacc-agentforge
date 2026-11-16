@@ -152,22 +152,51 @@ cd ../.. && bash deploy/cloudflare/deploy.sh
 
 如果 `wrangler` 刚登录完就提示没登录：它发现 `~/.wrangler` 目录存在时，会改用这个旧位置找凭据。把 `~/Library/Preferences/.wrangler/config/default.toml` 复制到 `~/.wrangler/config/` 即可（权限 600）。
 
-### 6. 启动
+### 6. 暂存 vLLM 作业（一次性）
 
-在虚拟机上：
-
-```bash
-sudo systemctl enable --now agentforge-tunnel agentforge-harness agentforge-backend
-journalctl -u agentforge-tunnel -u agentforge-harness -u agentforge-backend -f
-```
-
-在 TACC 上只启动 vLLM：
+在本机暂存只跑 vLLM 的作业，上传到集群的 `~/WORKDIR/qwen-service/`。macOS 上没有 tcloud 时，直接用 SSH 完成，`run.sh` 和 `configurations/` 沿用之前 SDK 生成的版本。这里只上传，不提交，提交由下一步的开关负责：
 
 ```bash
-bash deploy/tacc/service/qwen-service/stage.sh serve          # 不带 --harness
+cd deploy/tacc/service/qwen-service
+bash stage.sh serve                                   # 不带 --harness
+printf '%s\n' '--handover-lead-s 900' > args.txt      # 开启交接：到期前 15 分钟提交继任作业
+tar czf - client.py job.sh main.py mode.txt serve.py service.json smoke.py smoke_requests.json stage.sh \
+    tuxiv.conf args.txt | ssh -p 30041 -i ~/.ssh/id_rsa_tacc <TACC 用户名>@gw.turing.ust.hk \
+  'cd ~/WORKDIR/qwen-service && rm -rf pkg harness-lib.sh harness-args.txt && tar xzf -'
 ```
 
-要连续运行时，按 RUNBOOK 第 5 节开启交接。
+改了 vLLM 配置（`service.json`、`serve.py` 等）之后，重新执行这一步。
+
+### 7. 启动和停止
+
+整个服务由一个开关控制：启动时才占用 GPU，停止时立刻释放。
+
+在虚拟机上先登记各个组件（只需要一次）：
+
+```bash
+sudo systemctl enable agentforge-tunnel agentforge-harness agentforge-backend agentforge-cluster agentforge-keeper.timer
+```
+
+之后用总开关启停：
+
+```bash
+sudo systemctl start agentforge.target     # 启动：后端、harness、隧道；提交 vLLM 作业，开启交接链
+sudo systemctl stop agentforge.target      # 停止：全部停下；取消 vLLM 作业，GPU 立刻释放
+systemctl status agentforge.target         # 当前是否在运行
+journalctl -u agentforge-cluster -u agentforge-keeper -f   # 集群作业的提交、补次数、取消
+```
+
+- **启动时**，`agentforge-cluster` 清除集群上的停止标记 `service-stop`，并立即提交 vLLM 作业。大约 5 到 8 分钟后模型就绪，在此之前页面会提示模型暂不可用。
+- **运行中**，`app/service_keeper.py` 每 3 分钟通过 SSH 检查一次：
+  - 交接次数 `service-chain.json` 少于 3 时补到 3，每小时的交接链不会用完；
+  - 名下没有运行中或排队中的 `qwen-service` 作业时（继任作业没排上、作业启动就失败等），重新提交；
+  - 1 小时内最多自动提交 3 次，作业一启动就失败时（例如节点 GPU 被 Slurm 以外的进程占用）不会反复重提；
+  - 暂存的仍是带 harness 的版本（有 `pkg/`）时不提交，日志会提示重新执行第 6 步。
+- **停止时**，`agentforge-cluster` 设置 `service-stop` 并 `scancel` 名下所有 `qwen-service` 作业（运行中和排队中的都取消）。
+- **崩溃重启不会释放 GPU。** 后端或 harness 崩溃后由 systemd 自动重启，不会取消作业；只有停止总开关才会取消。
+- **虚拟机重启后默认不会自动启动**，避免在没人用的时候占用 GPU。需要开机自启时执行 `sudo systemctl enable agentforge.target`。
+
+**运行期间的代价：** 交接链会占用你的 2 个作业名额和课程 GPU。要跑评测或训练时，先停掉总开关。
 
 ## 检查
 

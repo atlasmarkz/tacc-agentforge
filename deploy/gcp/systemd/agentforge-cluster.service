@@ -1,0 +1,20 @@
+[Unit]
+Description=agentforge: TACC vLLM jobs while the service is up (submit on start, cancel on stop)
+After=network-online.target
+Wants=network-online.target
+PartOf=agentforge.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+User=agentforge
+EnvironmentFile=/etc/agentforge/agentforge.env
+WorkingDirectory=/opt/agentforge/repo
+# "-": stay active even if the gateway is briefly unreachable at start (the timer retries), so that stopping
+# the target still runs the release below.
+ExecStart=-/opt/agentforge/venv/bin/python -m app.service_keeper --start
+ExecStop=/opt/agentforge/venv/bin/python -m app.service_keeper --release
+TimeoutStopSec=120
+
+[Install]
+WantedBy=agentforge.target

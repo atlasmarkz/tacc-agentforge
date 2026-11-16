@@ -1,0 +1,10 @@
+[Unit]
+Description=agentforge: check the TACC vLLM service every 3 minutes while the service is up
+PartOf=agentforge.target
+
+[Timer]
+OnActiveSec=3min
+OnUnitActiveSec=3min
+
+[Install]
+WantedBy=agentforge.target

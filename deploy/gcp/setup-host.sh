@@ -57,11 +57,13 @@ if [ "${ENTRY:-tailscale}" = cloudflared ] && ! command -v cloudflared >/dev/nul
   apt-get update -q && apt-get install -y -q cloudflared
 fi
 
-install -m 644 "$APP/repo/deploy/gcp/systemd/"agentforge-*.service /etc/systemd/system/
+install -m 644 "$APP/repo/deploy/gcp/systemd/"agentforge-*.service "$APP/repo/deploy/gcp/systemd/"agentforge-*.timer \
+  "$APP/repo/deploy/gcp/systemd/agentforge.target" /etc/systemd/system/
 systemctl daemon-reload
 
 [ -f /etc/agentforge/agentforge.env ] || install -o root -g agentforge -m 640 \
   "$APP/repo/deploy/gcp/agentforge.env.example" /etc/agentforge/agentforge.env
 echo "Host ready. Fill /etc/agentforge/agentforge.env, add /etc/agentforge/tacc_key, set up the public entry"
 echo "(free setup: tailscale up, then tailscale funnel --bg 8765), then:"
-echo "  systemctl enable --now agentforge-tunnel agentforge-harness agentforge-backend"
+echo "  systemctl enable agentforge-tunnel agentforge-harness agentforge-backend agentforge-cluster agentforge-keeper.timer"
+echo "  systemctl start agentforge.target     # submits the vLLM job; systemctl stop agentforge.target frees the GPUs"

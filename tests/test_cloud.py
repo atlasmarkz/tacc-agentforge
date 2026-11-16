@@ -123,6 +123,44 @@ def test_tunnel_close_withdraws_and_stops_every_ssh(tunnel):
     assert not local.exists() and not any(p.alive for p in cluster.procs)
 
 
+# ---- service keeper --------------------------------------------------------------------------------------------
+
+def test_keeper_parses_the_cluster_status():
+    from app.service_keeper import parse_status
+    s = parse_status("jobs=29166:RUNNING 29170:PENDING \nurl=http://10.0.3.10:8000/v1\nstop=0\nremaining=2\n"
+                     "staged=1\nharness_staged=0\n")
+    assert s.jobs == ["29166:RUNNING", "29170:PENDING"] and s.url.endswith("/v1")
+    assert (s.stop, s.remaining, s.staged, s.harness_staged) == (False, 2, True, False)
+    empty = parse_status("jobs=\nurl=\nstop=1\nremaining=\nstaged=0\nharness_staged=1\n")
+    assert (empty.jobs, empty.stop, empty.remaining, empty.staged, empty.harness_staged) == ([], True, 0, False, True)
+
+
+def test_keeper_decisions():
+    from app.service_keeper import ClusterState, decide
+    now = 10_000.0
+    running = ClusterState(jobs=["1:RUNNING"], url="http://x:8000/v1", remaining=3)
+    assert decide(running, [], now)[0] == []
+    assert decide(ClusterState(jobs=["1:RUNNING"], remaining=1), [], now)[0] == [("topup", 3)]
+    actions, _ = decide(ClusterState(remaining=0), [], now)
+    assert actions == [("topup", 3), ("submit",)]
+    # stop switch: nothing at all, even with no job and an empty chain
+    assert decide(ClusterState(stop=True), [], now)[0] == []
+    # back off after three submissions within the hour, resume once the oldest is an hour old
+    recent = [now - 100, now - 200, now - 300]
+    actions, reason = decide(ClusterState(remaining=3), recent, now)
+    assert actions == [] and "waiting" in reason
+    assert decide(ClusterState(remaining=3), [now - 4000, now - 200, now - 300], now)[0] == [("submit",)]
+    # never submit a wrong or missing staging
+    assert ("submit",) not in decide(ClusterState(remaining=3, staged=False), [], now)[0]
+    actions, reason = decide(ClusterState(remaining=3, harness_staged=True), [], now)
+    assert actions == [] and "restage" in reason
+
+
+def test_keeper_status_script_formats_squeue_correctly():
+    from app.service_keeper import STATUS_SCRIPT
+    assert "-o '%i:%T'" in STATUS_SCRIPT and "-n qwen-service" in STATUS_SCRIPT
+
+
 # ---- snapshot download -----------------------------------------------------------------------------------------
 
 def test_fetch_archive_checks_the_pinned_hash(tmp_path):

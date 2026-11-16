@@ -1,0 +1,11 @@
+[Unit]
+Description=agentforge: keep the TACC vLLM service running (resubmit, top up the handover chain)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=agentforge
+EnvironmentFile=/etc/agentforge/agentforge.env
+WorkingDirectory=/opt/agentforge/repo
+ExecStart=/opt/agentforge/venv/bin/python -m app.service_keeper
