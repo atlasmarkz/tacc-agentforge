@@ -1,0 +1,139 @@
+{
+ "schema": 1,
+ "frozen_at": "2026-11-14T15:41:25+0800",
+ "git_commit_at_freeze": "bbfeafdc292872a9a4db6ab207b5737ae6032132",
+ "digest": "03b0cdea9cdc52c881def4838dd0ecd6cc938451a6a9b9eeb0895247610c794a",
+ "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+ "serving": {
+  "served_name": "qwen3.8-27b",
+  "tensor_parallel_size": 2,
+  "args": [
+   "--safetensors-load-strategy",
+   "prefetch",
+   "--language-model-only",
+   "--dtype",
+   "bfloat16",
+   "--gpu-memory-utilization",
+   "0.85",
+   "--max-model-len",
+   "16384",
+   "--max-num-seqs",
+   "8",
+   "--max-num-batched-tokens",
+   "4096",
+   "--reasoning-parser",
+   "qwen3",
+   "--enable-prefix-caching",
+   "--disable-custom-all-reduce"
+  ]
+ },
+ "settings": {
+  "profile": "tacc-fast",
+  "policy": {
+   "max_model_calls": 8,
+   "max_tool_calls": 8,
+   "max_action_repairs": 2,
+   "max_plan_repairs": 2,
+   "max_questions": 8,
+   "max_answer_repairs": 2,
+   "question_timeout_s": 7200.0,
+   "max_answer_bytes": 8192,
+   "deadline_seconds": 120.0,
+   "call_timeout_s": 30.0,
+   "max_context_chars": 36000,
+   "max_history_messages": 32,
+   "max_output_tokens": 512,
+   "explain": false,
+   "explain_timeout_s": 20.0,
+   "max_explain_tokens": 400,
+   "max_explain_chars": 8000
+  },
+  "model": {
+   "name": "qwen3.8-27b",
+   "temperature": 0.0,
+   "enable_thinking": false,
+   "constrain_output": true,
+   "timeout_margin_s": 0.5,
+   "max_attempts": 4
+  }
+ },
+ "cases": {
+  "dev": {
+   "cases": 10,
+   "categories": [
+    "backpacks",
+    "chargers",
+    "earbuds",
+    "keyboards"
+   ],
+   "ids_sha256": "951f3c751e245650f53924242bc324675d8e5c33d9a8045978f54df73b99e68d"
+  },
+  "heldout": {
+   "cases": 32,
+   "categories": [
+    "backpacks",
+    "chargers",
+    "earbuds",
+    "keyboards"
+   ],
+   "ids_sha256": "a919ade936ea0c7dc9b3bbf25ecd2b5b0b662fc0b9eea9583d42c545596770d3"
+  }
+ },
+ "files": {
+  "harness": {
+   "agent/__init__.py": "2f95dd0fbc66afdb32b8b12e22a01c4577113d0527fcefe9d504ea3521bd0238",
+   "agent/answers.py": "d83d6c6ee385b91ea3fc33ed0cf2616300163335016674e46eb0db493572c478",
+   "agent/budget.py": "33ebfd1f355143a20bfe6e27f33548d6ed109fe0ce737816f465cd3f7dd31459",
+   "agent/checkpoint_cleanup.py": "d7b2aca5009973fec7d08fd36e6bbd6c2c45af47581d143fa9c4e3c058acd5b4",
+   "agent/checkpoints.py": "6e23f446e86ba7f8b5115604962bf5709cbef05a468ef7ef0c9f31ca9b080b6e",
+   "agent/config.py": "d541ac22997e7f56bcb38a8d2a65ea9f78a1c83f4de73d6c37a290ea36f166c2",
+   "agent/contracts.py": "363f5ea72af44f17edbe2db8537806e8df4a6ef5fe97488dac9c4426ae5c24c5",
+   "agent/explanation.py": "be8fa017c41eab251b24af13925613682f3eaa7e7b6a886413afa16b1e242368",
+   "agent/graph.py": "ffd93c20e73b6cf67c0e6f413807ff1d6fb6ee9e1617d5d447ed5d5999a0d214",
+   "agent/nodes.py": "a03355091bb8c8664a015d6e1801af7e1bf908b55889fe4839b549e3b5fde980",
+   "agent/policies.py": "d5341465bfa1562985642fa0767546782b33d7257e69df8fdac9fb3331ba57c5",
+   "agent/prompts.py": "21870e588d606cf58e2b9de45f0810c63780add32d0d2d75dd1383c714fa9a50",
+   "agent/runtime.py": "bf1862f98c042d0ed77177780d260334392825fc010a522c400a531703303569",
+   "agent/settings.py": "d62ce6df77a16f55cdb6dd0ad72fbfbd0e5f8c2e0cb7887d538e394a8bb989e1",
+   "agent/state.py": "9db645fd83b11041c84af15ff32e5d0c1db4cb1a332c534e4cad61ecd4e4eb45",
+   "agent/tools.py": "cf429e17e047896171838888a54698473806f013664840ac943390b84ba4b988",
+   "agent/requirements.lock": "cb931357ac2f7222d34721c7f0c122cbd0a8721f0cfc13579f0f4ffab891749d"
+  },
+  "knowledge_tools": {
+   "knowledge/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+   "knowledge/acquisition.py": "dca65256a694b1a862d95d8a9214a2fd8bd3cda799c11d23775a2e0b7e68ea06",
+   "knowledge/agent_tools.py": "6d66a462317a5e0aae1433cd96d96632a8dfa164e1c2779bf08ff48c927ad4c1",
+   "knowledge/benchmark.py": "09212224d472b1398f60cb4eeaf93b28afe94e79fbf1d939a771a2069b162e6c",
+   "knowledge/bootstrap.py": "a0e22bdd108f7b1999f4ddd85dadacbe6d3e82b7438292c7bfc815ea17c0da4e",
+   "knowledge/budget_source.py": "a080e097258e6d5130913d2f698fbffed7ec20f991acad0c57eebc91c4c0baef",
+   "knowledge/cli.py": "dbb7d0faa84bbbaac9a4e9332cc3f214b983c750f47f9d6b87c0502fafee0a0c",
+   "knowledge/credentials.py": "576ac50f4c0f66fb864e4fbf69ba459b07138a5c5c2f422c7e9db5cbc9a28bad",
+   "knowledge/evaluation.py": "3a8a5d5ac49aeb210b1b48af39ac155ddd4c475a61e148e7f4bf45db13018087",
+   "knowledge/explanation.py": "3dbfa8120bb1497bc8b792a557e74bf38944d9677a7a0d777e69df2d00a35e91",
+   "knowledge/serpapi.py": "548dbe3de88d40fe391603d434b4d181c44e03bf31461bb42a15dd8228aa5d49",
+   "knowledge/service.py": "f2ea45ae733b19b07921c179c2c3c2522ff005dc2ac9bdc7fd3d450deb98d26f",
+   "knowledge/settings.py": "f836cbdecd4779b849581ba749adcc982850bed632e6ac09cede020105f81c93",
+   "knowledge/store.py": "4751f6d78054c9e35e43322d01c4de9ad20fdbcbfb7166544af5fbcf5bac5a8a",
+   "knowledge/schema.sql": "2b2285bdbf6ded4c60a56880e17f8e430151b93c117c79a5449707a1cb77db8b"
+  },
+  "configs": {
+   "configs/agent.yaml": "5f9a5998bd32bac7e722c9630657b8517d46a95760f28226116a07d35dc265a4",
+   "configs/knowledge.json": "3d6915f5f7d86a7cef155384fad0f3323e29ad612d51be23d52efb0d85005cc2",
+   "configs/category_schemas.json": "4134eeec0ac5c51279279e76618d138eba78c97fd349ab90b37c72c3e8504bd2"
+  },
+  "model_adapter": {
+   "inference/client.py": "0c0659fd795372f1dd8f24bcfe774fc8ac7c8f92fb69c74d70d511f3b942e677",
+   "inference/model_port.py": "a06e93aedf96f20ad2bf59ebca5d8cdf5dd794e456c3f57dd1029180803d7b4a"
+  },
+  "serving": {
+   "deploy/tacc/service/qwen-service/service.json": "6b539656db358873af1d585e8db6419b8c71a69788b94658fa3ca7543aba94a8",
+   "deploy/tacc/service/qwen-service/serve.py": "8cbf49bd2028a453c3db1a7d210e45788913f12128d57ecaeeea1a3b89ac90bf"
+  },
+  "evaluation": {
+   "evaluations/run.py": "69de972a650820c08ca1c8d72fbe70e0348584370e993d4838903ba23d5a178d",
+   "evaluations/score.py": "4274156bd0f23a2ea04fb6990c534646bd10ab2fb82642a6a4c8e00b19aac38c",
+   "evaluations/catalog.py": "bc680972d27e99758c82c5ee3e1f8a0dff82c3f4935324bca3992dd85d405f8b",
+   "evaluations/cases.jsonl": "fe594d76ce163edd117d5bbb72d63166b0b351d07ef153df87f92d9a80714956"
+  }
+ }
+}

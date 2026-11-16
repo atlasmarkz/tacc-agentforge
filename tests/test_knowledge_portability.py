@@ -219,7 +219,15 @@ class TaccPackagingTests(unittest.TestCase):
             harness=clone/"deploy/tacc/service/agent-e2e"
             harness.mkdir(parents=True)
             shutil.copy2(REPO/"deploy/tacc/service/agent-e2e/stage.sh",harness/"stage.sh")
+            serving_relative = Path("deploy/tacc/service/qwen-service")
+            serving = clone / serving_relative
+            serving.mkdir()
+            for name in ("service.json", "serve.py"):
+                shutil.copy2(REPO / serving_relative / name, serving / name)
             command(["bash","stage.sh"],harness)
+            for name in ("service.json", "serve.py"):
+                self.assertEqual((harness / "pkg" / serving_relative / name).read_bytes(),
+                                 (serving / name).read_bytes())
             self.assertTrue((harness/"pkg/knowledge/service.py").is_file())
             self.assertTrue((harness/"pkg/configs/knowledge.json").is_file())
             for name in staged:

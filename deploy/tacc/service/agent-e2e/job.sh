@@ -18,7 +18,9 @@ LIB="$TACC_USERDIR/agent-pylib"
 export AGENT_CHECKPOINT_DB="${AGENT_CHECKPOINT_DB:-$TACC_USERDIR/tacc-agentforge/checkpoints/agent.sqlite}"
 # This acknowledgement must follow a storage review, not just a successful SQLite open.
 # Known network filesystems are also rejected by agent.checkpoints.
-test "${AGENT_SQLITE_STORAGE_VERIFIED:-0}" = 1 || {
+# The baseline runner (eval_baseline.py) keeps no checkpoints, so it does not need the acknowledgement.
+SCRIPT="$(tr -d '[:space:]' < script.txt 2>/dev/null || echo e2e.py)"
+test "$SCRIPT" = eval_baseline.py || test "${AGENT_SQLITE_STORAGE_VERIFIED:-0}" = 1 || {
     echo 'Verify durable storage supports SQLite WAL, then set AGENT_SQLITE_STORAGE_VERIFIED=1 in this job.' >&2
     exit 1
 }
@@ -64,7 +66,6 @@ PY
     printf '%s\n' "$LOCK_SHA" > "$LIB/.agent-requirements-sha256"
 fi
 export PYTHONPATH="$TACC_WORKDIR/pkg:$LIB${PYTHONPATH:+:$PYTHONPATH}"
-SCRIPT="$(tr -d '[:space:]' < script.txt 2>/dev/null || echo e2e.py)"
 ARGS="$(cat args.txt 2>/dev/null || true)"
 echo "script=$SCRIPT args=$ARGS"
 qwen-python -u "$SCRIPT" $ARGS
