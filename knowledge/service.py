@@ -67,6 +67,10 @@ _FILTER_OPERATORS = {
     "boolean": ("eq",),
     "string": ("eq", "contains"),
 }
+# Symbols the model writes for the same comparisons. On the live page a monitor request failed because the model
+# sent ">=" twice and then gave up searching (issue #25); the meaning is unambiguous, so accept it.
+_OPERATOR_ALIASES = {">=": "gte", "=>": "gte", "<=": "lte", "=<": "lte", ">": "gt", "<": "lt",
+                     "=": "eq", "==": "eq"}
 
 
 def _explicit_specs(text):
@@ -392,6 +396,8 @@ class KnowledgeService:
                     name for c in snapshot.categories.values() for name in c.get("attributes", {})}
                 _invalid_choice("Unknown schema attribute: " + key[:64] + ".", "attributes", names)
             types = {d.get("type") for d in definitions}
+            if isinstance(requirement.get("op"), str) and requirement["op"].strip() in _OPERATOR_ALIASES:
+                requirement = constraints[key] = {**requirement, "op": _OPERATOR_ALIASES[requirement["op"].strip()]}
             operators = sorted({op for value_type in types for op in _FILTER_OPERATORS.get(value_type, ())})
             if requirement.get("op") not in operators or "value" not in requirement:
                 _invalid_choice("Hard constraint needs a value and a supported op.", "operations", operators)

@@ -482,3 +482,24 @@ def test_a_waiting_run_resumes_after_the_harness_service_restarts(tmp_path):
     question_id = asyncio.run(lifetime(ask))                   # first process stops while the run waits
     results = asyncio.run(lifetime(answer(question_id)))       # a new process resumes it from disk
     assert results and results[-1]["status"] == "completed" and results[-1]["verified_plan"]
+
+
+def test_comparison_symbols_mean_the_same_as_operator_names(tmp_path):
+    """The model wrote ">=" for a monitor's refresh rate on the live page and gave up after the refusal."""
+    from knowledge.bootstrap import install_snapshot
+    from knowledge.service import KnowledgeService
+    from knowledge.settings import load_settings
+    settings = load_settings(ROOT / "configs/knowledge.json", data_root=tmp_path)
+    install_snapshot(settings)
+    kb = KnowledgeService(settings.snapshots_root)
+
+    def ids(op):
+        page = kb.search_products(settings.snapshot_id, {"category": "chargers", "include_unknown": False,
+                                                         "hard_constraints": {"power": {"op": op, "value": "65", "unit": "W"}}},
+                                  limit=20)
+        return [c["variant_id"] for c in page["candidates"]]
+
+    assert ids(">=") == ids("gte") and ids("gte")
+    assert ids("<") == ids("lt")
+    with pytest.raises(Exception, match="op"):
+        ids("at least")
