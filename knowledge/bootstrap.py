@@ -29,7 +29,10 @@ def install_snapshot(settings: KnowledgeSettings, *, archive=None, sha256=None, 
                 "snapshot_path": str(destination), "verification": existing}
     source = Path(archive).expanduser().resolve() if archive is not None else settings.seed_archive
     expected = sha256 or settings.seed_sha256
-    remote = url or (settings.seed_url if archive is None and not source.is_file() else None)
+    # The configured URL is used when the repository's archive is missing or is another snapshot (a deployment
+    # that points at a newer published snapshot through the environment, issue #25).
+    local_matches = source.is_file() and hashlib.sha256(source.read_bytes()).hexdigest() == expected
+    remote = url or (settings.seed_url if archive is None and not local_matches else None)
     if remote:
         from .remote import fetch_archive
         source = fetch_archive(remote, settings.data_root / "downloads", expected)

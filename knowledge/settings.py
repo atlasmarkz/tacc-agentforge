@@ -52,7 +52,9 @@ def load_settings(config_path=None, *, data_root=None, snapshots_root=None, snap
     if not isinstance(identifier, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", identifier):
         raise ValueError("snapshot_id must be an identifier, not a filesystem path")
     seed = value.get("seed", {})
-    expected = seed.get("sha256", "")
+    # A deployment can point at another published snapshot without editing this file (cloud host, issue #25):
+    # KNOWLEDGE_SNAPSHOT_ID + KNOWLEDGE_SEED_URL + KNOWLEDGE_SEED_SHA256, still checked before install.
+    expected = os.environ.get("KNOWLEDGE_SEED_SHA256", seed.get("sha256", ""))
     if not isinstance(expected, str) or not re.fullmatch("[a-f0-9]{64}", expected):
         raise ValueError("Seed archive needs a pinned SHA256")
     service = {"cache_size": 512, "max_result_bytes": 8192, "price_ttl_hours": 24}

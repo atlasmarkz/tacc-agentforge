@@ -74,6 +74,7 @@
   .hero h1 { font-size: 26px; line-height: 1.25; margin: 0 0 8px; }
   .hero p { margin: 0 0 14px; color: var(--muted); }
   .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .tiles .tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
   .tile { border: 1px solid var(--line); background: var(--soft); border-radius: 10px; padding: 12px; cursor: pointer; text-align: left; }
   .tile:hover { border-color: var(--cta); }
   .tile b { display: block; font-size: 14px; }
@@ -217,6 +218,9 @@
       <button class="pill" data-q="A USB-C charger for my laptop and phone" data-b="60">Chargers</button>
       <button class="pill" data-q="A mechanical keyboard for programming" data-b="120">Keyboards</button>
       <button class="pill" data-q="A backpack for commuting to work" data-b="80">Backpacks</button>
+      <button class="pill" data-q="A smartwatch with GPS for running" data-b="200">Smartwatches</button>
+      <button class="pill" data-q="A 27-inch monitor for working from home" data-b="250">Monitors</button>
+      <button class="pill" data-q="A wireless mouse for my laptop" data-b="40">Mice</button>
       <label class="opt"><input type="checkbox" id="explain" checked> Explain the pick</label>
     </div>
   </div>
@@ -240,6 +244,9 @@
           <button class="tile" data-q="A fast USB-C charger for a laptop and a phone" data-b="60"><b>Chargers</b><span>USB-C, multi-port</span></button>
           <button class="tile" data-q="A quiet mechanical keyboard for programming" data-b="120"><b>Keyboards</b><span>Mechanical, compact</span></button>
           <button class="tile" data-q="A water-resistant backpack for a 15-inch laptop" data-b="80"><b>Backpacks</b><span>Laptop, commuting</span></button>
+          <button class="tile" data-q="A fitness smartwatch with heart rate and GPS" data-b="200"><b>Smartwatches</b><span>Fitness, GPS, battery</span></button>
+          <button class="tile" data-q="A 27-inch 1440p monitor for work and light gaming" data-b="250"><b>Monitors</b><span>Desk, portable</span></button>
+          <button class="tile" data-q="A quiet wireless mouse for office work" data-b="40"><b>Mice</b><span>Wireless, gaming, ergonomic</span></button>
         </div>
       </div>
     </section>

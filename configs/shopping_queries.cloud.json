@@ -1,0 +1,78 @@
+{
+  "_comment": "Cloud deployment catalog (issue #25): the four pilot categories plus smartwatches, monitors and mice. The added categories are seen by the agent, so they cannot be the reserved fifth (unseen) category. Evaluation keeps using configs/shopping_queries.json and the frozen snapshot. US locale keeps prices in USD.",
+  "locale": {
+    "gl": "us",
+    "hl": "en"
+  },
+  "products_per_query": 5,
+  "queries": [
+    {
+      "category": "earbuds",
+      "q": "wireless earbuds"
+    },
+    {
+      "category": "earbuds",
+      "q": "noise cancelling earbuds under 100"
+    },
+    {
+      "category": "chargers",
+      "q": "usb-c wall charger 65w"
+    },
+    {
+      "category": "chargers",
+      "q": "portable power bank 20000mah"
+    },
+    {
+      "category": "keyboards",
+      "q": "mechanical keyboard"
+    },
+    {
+      "category": "keyboards",
+      "q": "wireless keyboard and mouse combo"
+    },
+    {
+      "category": "backpacks",
+      "q": "laptop backpack 15.6 inch"
+    },
+    {
+      "category": "backpacks",
+      "q": "waterproof travel backpack"
+    },
+    {
+      "category": "smartwatches",
+      "q": "smartwatch"
+    },
+    {
+      "category": "smartwatches",
+      "q": "fitness tracker with heart rate monitor"
+    },
+    {
+      "category": "smartwatches",
+      "q": "smartwatch with gps under 200"
+    },
+    {
+      "category": "monitors",
+      "q": "27 inch 1440p monitor"
+    },
+    {
+      "category": "monitors",
+      "q": "24 inch 1080p monitor"
+    },
+    {
+      "category": "monitors",
+      "q": "portable monitor usb-c"
+    },
+    {
+      "category": "mice",
+      "q": "wireless mouse"
+    },
+    {
+      "category": "mice",
+      "q": "gaming mouse"
+    },
+    {
+      "category": "mice",
+      "q": "ergonomic vertical mouse"
+    }
+  ]
+}

@@ -62,6 +62,64 @@ def _read_runs(data_root):
     return documents, manifest
 
 
+def _read_db(db_path):
+    """Responses already imported into a working catalog, as (record, document) pairs like `_read_runs`.
+
+    A snapshot directory (catalog.sqlite next to raw/) is a complete working catalog, so collection can continue
+    from a snapshot even when the original run directories are gone. Archives are checked against the digests
+    the catalog recorded; read-only.
+    """
+    db_path = Path(db_path).resolve()
+    if not db_path.is_file():
+        return [], []
+    connection = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+    try:
+        rows = connection.execute("SELECT raw_id,call_id,engine,archive_path,archive_sha256,observed_at,params_json "
+                                  "FROM raw_records ORDER BY observed_at,raw_id").fetchall()
+    finally:
+        connection.close()
+    documents, digest = [], hashlib.sha256()
+    for raw_id, call_id, engine, archive_path, archive_sha256, observed_at, params_json in rows:
+        raw = (db_path.parent / archive_path).resolve()
+        if not raw.is_relative_to(db_path.parent) or not raw.is_file():
+            raise ValueError("Catalog archive_path is missing or escapes the catalog directory")
+        body = raw.read_bytes()
+        if hashlib.sha256(body).hexdigest() != archive_sha256:
+            raise ValueError(f"Catalog archive hash mismatch for {raw_id}")
+        params = json.loads(params_json)
+        metadata = params.pop("_acquisition", {}) or {}
+        record = {"call_id": call_id, "engine": engine, "params": params, "status": "ok",
+                  "requested_at": observed_at, **metadata}
+        document = json.loads(body)
+        if not isinstance(document, dict):
+            raise ValueError("Archived catalog JSON must be an object")
+        documents.append((record, document))
+        digest.update(f"{raw_id}:{archive_sha256}\n".encode())
+    return documents, [{"catalog": db_path.name, "raw_records": len(rows), "raw_records_sha256": digest.hexdigest()}]
+
+
+def _read_all(data_root, db_path=None):
+    documents, manifest = _read_runs(data_root)
+    if db_path is not None:
+        more, extra = _read_db(db_path)
+        documents, manifest = documents + more, manifest + extra
+    return documents, manifest
+
+
+def _targets_by_category(target_per_category, categories):
+    """An int (same for every category) or {category: int}; categories left out get none."""
+    if isinstance(target_per_category, dict):
+        unknown = set(target_per_category) - set(categories)
+        if unknown:
+            raise ValueError(f"Targets for unconfigured categories: {sorted(unknown)}")
+        targets = {c: target_per_category.get(c, 0) for c in categories}
+    else:
+        targets = dict.fromkeys(categories, target_per_category)
+    if any(isinstance(n, bool) or not isinstance(n, int) or n < 0 for n in targets.values()) or not any(targets.values()):
+        raise ValueError("target_per_category must be a positive integer or a {category: nonnegative int} map")
+    return targets
+
+
 def _catalog(documents, config):
     queries = config["queries"]
     by_query = {entry["q"]: (i, entry["category"]) for i, entry in enumerate(queries)}
@@ -108,16 +166,18 @@ def _catalog(documents, config):
     return list(candidates.values()), completed
 
 
-def plan_collection(data_root: Path, config_path: Path, target_per_category=10) -> dict:
-    """Plan N NEW detail successes per configured category, without any API request."""
-    if isinstance(target_per_category, bool) or not isinstance(target_per_category, int) or target_per_category < 1:
-        raise ValueError("target_per_category must be a positive integer")
+def plan_collection(data_root: Path, config_path: Path, target_per_category=10, db_path=None) -> dict:
+    """Plan N NEW detail successes per configured category (or {category: N}), without any API request.
+
+    Candidates and completed details come from the run archives under data_root and, with `db_path`, from a
+    working catalog (for example a snapshot copied as the working catalog)."""
     config_path = Path(config_path).resolve()
     config = json.loads(config_path.read_text(encoding="utf-8"))
     categories = list(dict.fromkeys(entry["category"] for entry in config["queries"]))
     if not categories:
         raise ValueError("No configured categories")
-    documents, inputs = _read_runs(data_root)
+    wanted = _targets_by_category(target_per_category, categories)
+    documents, inputs = _read_all(data_root, db_path)
     candidates, completed = _catalog(documents, config)
     by_query = defaultdict(list)
     used = set(completed)
@@ -143,8 +203,10 @@ def plan_collection(data_root: Path, config_path: Path, target_per_category=10) 
                 return candidate
         return None
     targets = []
-    for _ in range(target_per_category):
+    for round_ in range(max(wanted.values())):
         for category in categories:
+            if round_ >= wanted[category]:
+                continue
             candidate = next_candidate(category)
             if candidate is not None:
                 targets.append(candidate)
@@ -158,8 +220,8 @@ def plan_collection(data_root: Path, config_path: Path, target_per_category=10) 
             "target_per_category": target_per_category, "categories": categories,
             "planned_new_details": len(targets), "already_completed_details": len(completed),
             "category_counts": counts,
-            "shortfalls": {c: target_per_category - counts.get(c, 0) for c in categories
-                           if counts.get(c, 0) < target_per_category},
+            "shortfalls": {c: wanted[c] - counts.get(c, 0) for c in categories
+                           if counts.get(c, 0) < wanted[c]},
             "locale": config.get("locale", {"gl": "us", "hl": "en"}),
             "targets": targets, "input_manifest": inputs,
             "attempt_estimate_without_retries_or_refresh": len(targets),
@@ -302,7 +364,7 @@ def _refresh_target(client, ledger, target):
 
 
 def collect_incremental(data_root: Path, config_path: Path, session_dir: Path, key: str,
-                        max_attempts=50, target_per_category=10) -> dict:
+                        max_attempts=50, target_per_category=10, db_path=None) -> dict:
     """Collect only the persisted target plan; invoking again resumes the SAME cap.
 
     The caller supplies the credential without logging it. No account lookup or other
@@ -319,17 +381,21 @@ def collect_incremental(data_root: Path, config_path: Path, session_dir: Path, k
         raise ValueError("session_dir must be data_root/data/serpapi/run-<unique-name>")
     signature = {"data_root": str(data_root), "config_sha256": hashlib.sha256(config_path.read_bytes()).hexdigest(),
                  "target_per_category": target_per_category}
+    if db_path is not None:
+        db_path = Path(db_path).resolve()
+        signature["catalog"] = str(db_path)
     with _task_lock(runs_root / ".acquisition.lock"):
         session_dir.mkdir(parents=True, exist_ok=True)
         database = session_dir / "acquisition.sqlite"
         if not database.exists() and (session_dir / "index.jsonl").exists():
             raise ValueError("Existing run has no ledger; use a new session directory")
-        initial_plan = None if database.exists() else plan_collection(data_root, config_path, target_per_category)
+        initial_plan = None if database.exists() else plan_collection(data_root, config_path, target_per_category,
+                                                                       db_path)
         ledger = AttemptLedger(database, signature, max_attempts, initial_plan)
         try:
             plan = ledger.plan
             _write_json(session_dir / "plan.json", plan)
-            docs, _ = _read_runs(data_root)
+            docs, _ = _read_all(data_root, db_path)
             config = json.loads(config_path.read_text(encoding="utf-8"))
             _, completed = _catalog(docs, config)
             ledger.reconcile(completed)
@@ -390,3 +456,50 @@ def collect_incremental(data_root: Path, config_path: Path, session_dir: Path, k
             return summary
         finally:
             ledger.close()
+
+
+def discover_queries(data_root: Path, config_path: Path, session_dir: Path, key: str, *, max_attempts=20,
+                     db_path=None, refresh_existing=False) -> dict:
+    """Run the configured shopping queries that have no archived result yet (or all of them with
+    `refresh_existing`, which also renews page tokens for later detail lookups).
+
+    Writes an ordinary run directory (index.jsonl + raw/) that planning and ingest read like any other.
+    The session directory must be new; `max_attempts` caps every HTTP attempt, retries included.
+    """
+    if isinstance(max_attempts, bool) or not isinstance(max_attempts, int) or max_attempts < 1:
+        raise ValueError("max_attempts must be a positive integer")
+    if not isinstance(key, str) or not key.strip():
+        raise ValueError("A nonempty key is required")
+    data_root, config_path = Path(data_root).resolve(), Path(config_path).resolve()
+    session_dir = Path(session_dir).resolve()
+    runs_root = data_root / "data" / "serpapi"
+    if session_dir.parent != runs_root or not session_dir.name.startswith("run-"):
+        raise ValueError("session_dir must be data_root/data/serpapi/run-<unique-name>")
+    config = json.loads(config_path.read_text(encoding="utf-8"))
+    with _task_lock(runs_root / ".acquisition.lock"):
+        if session_dir.exists():
+            raise ValueError("Discovery needs a new session directory")
+        documents, _ = _read_all(data_root, db_path)
+        done = {record.get("params", {}).get("q") for record, document in documents
+                if record.get("engine") == "google_shopping" and document.get("shopping_results")}
+        todo = [entry for entry in config["queries"] if refresh_existing or entry["q"] not in done]
+        client = SerpApiClient(key, session_dir, max_attempts, locale=config.get("locale", {"gl": "us", "hl": "en"}))
+        stopped, results = "finished", {}
+        try:
+            for entry in todo:
+                record, data = client.search_shopping(entry["q"], record_meta={"category": entry["category"]},
+                                                      **entry.get("params", {}))
+                results[entry["q"]] = len((data or {}).get("shopping_results") or []) if record.status == "ok" else 0
+        except BudgetExceeded:
+            stopped = "budget_exhausted"
+        except AuthenticationFailed:
+            stopped = "authentication_failed"
+        except QuotaExhausted:
+            stopped = "quota_exhausted"
+        summary = {"session_dir": str(session_dir), "stopped": stopped, "queries_planned": len(todo),
+                   "queries_run": len(results), "results_per_query": results,
+                   "empty_queries": [q for q, n in results.items() if n == 0],
+                   "attempts_used": client.calls_made, "max_attempts": max_attempts,
+                   "by_category": dict(Counter(e["category"] for e in todo if e["q"] in results))}
+        _write_json(session_dir / "summary.json", summary)
+        return summary

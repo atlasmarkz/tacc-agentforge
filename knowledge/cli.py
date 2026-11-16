@@ -12,6 +12,24 @@ import uuid
 REPO = Path(__file__).resolve().parents[1]
 
 
+def _targets(args):
+    """--category-targets earbuds=14,mice=43 as a dict, else --target-per-category."""
+    if not args.category_targets:
+        return args.target_per_category
+    targets = {}
+    for part in args.category_targets.split(","):
+        name, _, number = part.partition("=")
+        if not name.strip() or not number.strip().isdigit():
+            raise ValueError("--category-targets must look like earbuds=14,mice=43")
+        targets[name.strip()] = int(number)
+    return targets
+
+
+def _session(data_root, kind):
+    return data_root / "data/serpapi" / (
+        f"run-{kind}-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8])
+
+
 def _write_result(result, output=None):
     text = json.dumps(result, ensure_ascii=False, indent=2) + "\n"
     if output:
@@ -38,18 +56,35 @@ def main(argv=None):
     p.add_argument("--snapshot-id")
     p.add_argument("--snapshots-root", type=Path)
     p.add_argument("--output", type=Path)
+    catalog_help = ("Also read candidates and completed details from this working catalog (for example "
+                    "catalog.sqlite of a snapshot copied as the working catalog, raw/ next to it)")
+    targets_help = "Per-category new details, e.g. earbuds=14,mice=43 (overrides --target-per-category)"
     p = commands.add_parser("plan", help="Plan new detail targets offline")
     p.add_argument("--target-per-category", type=int, default=10)
+    p.add_argument("--category-targets", help=targets_help)
+    p.add_argument("--catalog", type=Path, help=catalog_help)
     p.add_argument("--output", type=Path)
     p = commands.add_parser("collect", help="Explicit quota-bounded incremental acquisition")
     p.add_argument("--session-dir", type=Path)
     p.add_argument("--key-file", type=Path)
     p.add_argument("--max-attempts", type=int, default=50)
     p.add_argument("--target-per-category", type=int, default=10)
+    p.add_argument("--category-targets", help=targets_help)
+    p.add_argument("--catalog", type=Path, help=catalog_help)
+    p.add_argument("--output", type=Path)
+    p = commands.add_parser("discover", help="Run configured shopping queries that have no archived result yet")
+    p.add_argument("--session-dir", type=Path)
+    p.add_argument("--key-file", type=Path)
+    p.add_argument("--max-attempts", type=int, default=20)
+    p.add_argument("--catalog", type=Path, help=catalog_help)
+    p.add_argument("--refresh-existing", action="store_true",
+                   help="Also rerun queries that already have results (renews page tokens)")
     p.add_argument("--output", type=Path)
     p = commands.add_parser("ingest", help="Idempotently import verified acquisition runs")
     p.add_argument("--run-dir", action="append", type=Path)
     p.add_argument("--db", type=Path)
+    p.add_argument("--category-schemas", type=Path, default=REPO / "configs/category_schemas.json",
+                   help="Attribute schemas per category (cloud catalog: configs/category_schemas.cloud.json)")
     p.add_argument("--output", type=Path)
     p = commands.add_parser("snapshot", help="Export a frozen, portable snapshot")
     p.add_argument("--db", type=Path)
@@ -106,19 +141,25 @@ def main(argv=None):
             result = diagnose(settings)
         elif args.command == "plan":
             from .acquisition import plan_collection
-            result = plan_collection(data_root, args.config, args.target_per_category)
+            result = plan_collection(data_root, args.config, _targets(args), args.catalog)
         elif args.command == "collect":
             from .acquisition import collect_incremental
             from .credentials import load_api_key
-            session = args.session_dir or data_root / "data/serpapi" / (
-                "run-local-" + datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S") + "-" + uuid.uuid4().hex[:8])
+            session = args.session_dir or _session(data_root, "local")
             key = load_api_key(args.key_file)
             result = collect_incremental(data_root, args.config, session, key,
-                                         args.max_attempts, args.target_per_category)
+                                         args.max_attempts, _targets(args), args.catalog)
+        elif args.command == "discover":
+            from .acquisition import discover_queries
+            from .credentials import load_api_key
+            session = args.session_dir or _session(data_root, "discover")
+            key = load_api_key(args.key_file)
+            result = discover_queries(data_root, args.config, session, key, max_attempts=args.max_attempts,
+                                      db_path=args.catalog, refresh_existing=args.refresh_existing)
         elif args.command == "ingest":
             from .store import ingest_runs
             runs = args.run_dir or sorted((data_root / "data/serpapi").glob("run-*"))
-            result = ingest_runs(runs, db, args.config, REPO / "configs/category_schemas.json")
+            result = ingest_runs(runs, db, args.config, args.category_schemas)
         elif args.command == "snapshot":
             from .store import export_snapshot
             result = export_snapshot(db, snapshots_root)

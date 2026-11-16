@@ -190,6 +190,18 @@ def test_bootstrap_installs_from_the_seed_url_when_the_repo_has_no_archive(tmp_p
     result = install_snapshot(settings)
     assert result["status"] == "installed" and result["verification"]["valid"]
     assert result["snapshot_id"] == config["snapshot_id"]
+    # A deployment pointing at another published snapshot: the repo still has an archive, but not that one.
+    other = tmp_path / "published/other.zip"
+    other.parent.mkdir()
+    other.write_bytes(SEED.read_bytes())
+    config["seed"]["archive"] = "assets/knowledge/pilot-snapshot.zip"
+    (tmp_path / "assets/knowledge").mkdir(parents=True)
+    (tmp_path / "assets/knowledge/pilot-snapshot.zip").write_bytes(b"an older archive")
+    (tmp_path / "configs/knowledge.json").write_text(json.dumps(config))
+    monkeypatch.setenv("KNOWLEDGE_SEED_URL", other.as_uri())
+    monkeypatch.setenv("KNOWLEDGE_SEED_SHA256", hashlib.sha256(SEED.read_bytes()).hexdigest())
+    settings = load_settings(tmp_path / "configs/knowledge.json", data_root=tmp_path / "data2")
+    assert install_snapshot(settings)["status"] == "installed"
     monkeypatch.setenv("KNOWLEDGE_SEED_URL", "http://insecure/a.zip")
     with pytest.raises(ValueError, match="seed.url"):
         load_settings(tmp_path / "configs/knowledge.json")
