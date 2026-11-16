@@ -4,6 +4,15 @@
 
 TACC AgentForge is a course project for **Advanced AI Computing and Systems**. The project explores how to deploy a large language model on the TACC platform and build a shopping and budget advisor on top of the deployed model.
 
+## Live Demo
+
+![Browser demo showing a wireless earbuds request, the agent's progress, a budget-checked recommendation, and a source link](docs/images/browser-demo.gif)
+
+The browser sends a shopping request with a $100 budget to the agent running
+with Qwen3.8-27B on TACC. The recording shows the shopping flow from request to
+recommendation, budget summary, and source evidence. Idle waits are shortened.
+See the [app runbook](app/README.md) to run the demo.
+
 ## Project Goals
 
 - Deploy and serve a large language model on TACC.
