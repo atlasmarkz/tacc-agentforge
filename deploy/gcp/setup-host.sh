@@ -6,7 +6,8 @@
 # Afterwards (once, by hand; see deploy/gcp/README.md):
 #   1. /etc/agentforge/agentforge.env   from agentforge.env.example
 #   2. /etc/agentforge/tacc_key         a dedicated SSH key registered with the TACC account (mode 600)
-#   3. cloudflared service install <tunnel token>
+#   3. free setup: tailscale up; tailscale funnel --bg 8765
+#      (own domain, ENTRY=cloudflared: cloudflared service install <tunnel token>)
 #   4. systemctl enable --now agentforge-tunnel agentforge-harness agentforge-backend
 set -euo pipefail
 REPO_URL="${1:?repository URL}"
@@ -43,8 +44,12 @@ ssh-keyscan -p 30041 gw.turing.ust.hk 2>/dev/null >> /home/agentforge/.ssh/known
 sort -u -o /home/agentforge/.ssh/known_hosts /home/agentforge/.ssh/known_hosts
 chown agentforge:agentforge /home/agentforge/.ssh/known_hosts
 
-# cloudflared from Cloudflare's apt repository.
-if ! command -v cloudflared >/dev/null; then
+# Public entry. Free setup: Tailscale Funnel (an https://<vm>.<tailnet>.ts.net address, outbound only).
+# Own domain: set ENTRY=cloudflared to install cloudflared instead.
+if [ "${ENTRY:-tailscale}" = tailscale ] && ! command -v tailscale >/dev/null; then
+  curl -fsSL https://tailscale.com/install.sh | sh
+fi
+if [ "${ENTRY:-tailscale}" = cloudflared ] && ! command -v cloudflared >/dev/null; then
   mkdir -p --mode=0755 /usr/share/keyrings
   curl -fsSL https://pkg.cloudflare.com/cloudflare-main.gpg -o /usr/share/keyrings/cloudflare-main.gpg
   echo 'deb [signed-by=/usr/share/keyrings/cloudflare-main.gpg] https://pkg.cloudflare.com/cloudflared any main' \
@@ -57,5 +62,6 @@ systemctl daemon-reload
 
 [ -f /etc/agentforge/agentforge.env ] || install -o root -g agentforge -m 640 \
   "$APP/repo/deploy/gcp/agentforge.env.example" /etc/agentforge/agentforge.env
-echo "Host ready. Fill /etc/agentforge/agentforge.env, add /etc/agentforge/tacc_key, install the tunnel token,"
-echo "then: systemctl enable --now agentforge-tunnel agentforge-harness agentforge-backend"
+echo "Host ready. Fill /etc/agentforge/agentforge.env, add /etc/agentforge/tacc_key, set up the public entry"
+echo "(free setup: tailscale up, then tailscale funnel --bg 8765), then:"
+echo "  systemctl enable --now agentforge-tunnel agentforge-harness agentforge-backend"

@@ -494,15 +494,21 @@ def main():
                                                            "waiting runs can be answered after a restart)")
     ap.add_argument("--access-team-domain", default=os.environ.get("CF_ACCESS_TEAM_DOMAIN"),
                     help="Cloudflare Access team domain (<team>.cloudflareaccess.com); turns on sign-in checks")
-    ap.add_argument("--access-api-aud", default=os.environ.get("CF_ACCESS_API_AUD"))
-    ap.add_argument("--access-user-aud", default=os.environ.get("CF_ACCESS_USER_AUD"))
+    ap.add_argument("--access-user-aud", default=os.environ.get("CF_ACCESS_USER_AUD"),
+                    help="audience tag of the Access application that protects the page")
+    ap.add_argument("--access-api-aud", default=os.environ.get("CF_ACCESS_API_AUD") or None,
+                    help="own domain: audience tag of the Access application on the API hostname")
+    ap.add_argument("--proxy-secret-env", default="AGENTFORGE_PROXY_SECRET",
+                    help="free setup: environment variable holding the secret the Pages Function sends")
     a = ap.parse_args()
     auth = None
     if a.access_team_domain:
-        if not (a.access_api_aud and a.access_user_aud):
-            raise SystemExit("--access-team-domain needs --access-api-aud and --access-user-aud")
+        secret = os.environ.get(a.proxy_secret_env) or None
+        if not a.access_user_aud or bool(a.access_api_aud) == bool(secret):
+            raise SystemExit("Access sign-in needs CF_ACCESS_USER_AUD and exactly one of CF_ACCESS_API_AUD "
+                             f"(own domain) or {a.proxy_secret_env} (free setup)")
         from app.access import AccessAuth
-        auth = AccessAuth(a.access_team_domain, a.access_api_aud, a.access_user_aud)
+        auth = AccessAuth(a.access_team_domain, a.access_user_aud, api_aud=a.access_api_aud, proxy_secret=secret)
     elif a.bind not in ("127.0.0.1", "localhost", "::1"):
         raise SystemExit("refusing to listen beyond localhost without Cloudflare Access sign-in checks")
     tunnel = None

@@ -1,16 +1,18 @@
 // Same-origin proxy for the page's /api/* calls (issue #25).
 //
-//   browser --(Access login, Pages app)--> this Function --(Access service token)--> API hostname
-//           --> Cloudflare Tunnel --> app/backend.py on the GCE VM (127.0.0.1)
+//   browser --(Access login, Pages app)--> this Function --(proxy credential)--> public entry of the VM
+//           --> app/backend.py on the GCE VM (127.0.0.1)
 //
 // The page keeps calling relative /api/... paths, so there is no CORS and no third-party cookie. The user's
-// Access token for this Pages site is forwarded in X-Agentforge-User-Jwt: Access in front of the API hostname
-// replaces Cf-Access-Jwt-Assertion with the service token's own, and the backend checks both (app/access.py).
+// Access token for this Pages site is forwarded in X-Agentforge-User-Jwt; the backend checks it and the proxy
+// credential (app/access.py).
 //
 // Settings (Pages project -> Settings -> Variables and secrets):
-//   API_ORIGIN               https://api.<your domain>      (plain variable)
-//   CF_ACCESS_CLIENT_ID      service token ID               (secret)
-//   CF_ACCESS_CLIENT_SECRET  service token secret           (secret)
+//   API_ORIGIN               free setup: https://<vm>.<tailnet>.ts.net (Tailscale Funnel)
+//                            own domain: https://api.<your domain> (Cloudflare Tunnel)
+//   PROXY_SECRET             free setup: same value as AGENTFORGE_PROXY_SECRET on the VM (secret)
+//   CF_ACCESS_CLIENT_ID      own domain: service token ID (secret)
+//   CF_ACCESS_CLIENT_SECRET  own domain: service token secret (secret)
 
 const FORWARDED = ["content-type", "accept"];
 
@@ -29,7 +31,8 @@ function jsonError(status, code, message) {
 }
 
 export async function onRequest({ request, env }) {
-  if (!env.API_ORIGIN || !env.CF_ACCESS_CLIENT_ID || !env.CF_ACCESS_CLIENT_SECRET) {
+  const serviceToken = env.CF_ACCESS_CLIENT_ID && env.CF_ACCESS_CLIENT_SECRET;
+  if (!env.API_ORIGIN || (!env.PROXY_SECRET && !serviceToken)) {
     return jsonError(500, "not_configured", "The API proxy is not configured.");
   }
   if (!["GET", "POST"].includes(request.method)) {
@@ -45,8 +48,12 @@ export async function onRequest({ request, env }) {
     const value = request.headers.get(name);
     if (value) headers.set(name, value);
   }
-  headers.set("CF-Access-Client-Id", env.CF_ACCESS_CLIENT_ID);
-  headers.set("CF-Access-Client-Secret", env.CF_ACCESS_CLIENT_SECRET);
+  if (env.PROXY_SECRET) {
+    headers.set("X-Agentforge-Proxy-Secret", env.PROXY_SECRET);
+  } else {
+    headers.set("CF-Access-Client-Id", env.CF_ACCESS_CLIENT_ID);
+    headers.set("CF-Access-Client-Secret", env.CF_ACCESS_CLIENT_SECRET);
+  }
   headers.set("X-Agentforge-User-Jwt", token);
 
   let upstream;

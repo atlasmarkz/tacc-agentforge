@@ -270,14 +270,33 @@ def access():
     key = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     other = rsa.generate_private_key(public_exponent=65537, key_size=2048)
     issuer = "https://team.cloudflareaccess.com"
-    auth = AccessAuth("team.cloudflareaccess.com", "api-aud", "user-aud", key_for_token=lambda t: key.public_key())
+    auth = AccessAuth("team.cloudflareaccess.com", "user-aud", api_aud="api-aud", key_for_token=lambda t: key.public_key())
 
     def token(aud, email="Ann@Example.com", signer=key, exp=300, iss=issuer):
         now = int(time.time())
         claims = {"aud": [aud], "iss": iss, "iat": now, "exp": now + exp, "email": email}
         return jwt.encode(claims, signer, algorithm="RS256")
 
+    auth.free = AccessAuth("team.cloudflareaccess.com", "user-aud", proxy_secret="s" * 40,
+                           key_for_token=lambda t: key.public_key())
     return auth, token, other
+
+
+def test_free_setup_needs_the_proxy_secret_and_a_user_token(access):
+    from app.access import AccessAuth, AuthError, EDGE_HEADER, SECRET_HEADER, USER_HEADER
+    auth, token, _ = access
+    free = auth.free
+    assert free.identify({SECRET_HEADER: "s" * 40, USER_HEADER: token("user-aud")}) == "ann@example.com"
+    for headers in ({USER_HEADER: token("user-aud")},                                    # not from the Function
+                    {SECRET_HEADER: "s" * 39 + "x", USER_HEADER: token("user-aud")},       # wrong secret
+                    {EDGE_HEADER: token("api-aud"), USER_HEADER: token("user-aud")},       # edge token is not it
+                    {SECRET_HEADER: "s" * 40}):                                            # no signed-in user
+        with pytest.raises(AuthError):
+            free.identify(headers)
+    with pytest.raises(ValueError):
+        AccessAuth("t.cloudflareaccess.com", "u", proxy_secret="short")
+    with pytest.raises(ValueError):
+        AccessAuth("t.cloudflareaccess.com", "u", api_aud="a", proxy_secret="s" * 40)
 
 
 def test_access_needs_both_tokens(access):
