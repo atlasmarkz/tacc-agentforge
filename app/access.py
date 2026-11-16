@@ -1,4 +1,8 @@
-"""Cloudflare Access identity for the public backend (issue #25).
+"""Who may call the public backend (issue #25).
+
+Two modes:
+- ProxyAuth (default, public page, anyone may use it): only the Pages Function's shared secret is checked.
+- AccessAuth (optional sign-in with Cloudflare Access): described below.
 
 Request path:  browser --(Access login)--> Cloudflare Pages + Pages Function --(proxy credential)-->
                public entry to the VM --> this backend on 127.0.0.1
@@ -32,14 +36,46 @@ class AuthError(Exception):
     pass
 
 
+CLIENT_IP_HEADER = "X-Agentforge-Client-Ip"
+
+
+def _check_secret(headers, secret: str) -> None:
+    given = headers.get(SECRET_HEADER) or ""
+    if not hmac.compare_digest(given.encode(), secret.encode()):
+        raise AuthError("missing or wrong proxy secret")
+
+
+def _valid_secret(secret: str) -> str:
+    if not re.fullmatch(r"[A-Za-z0-9_-]{32,}", secret or ""):
+        raise ValueError("proxy_secret must be at least 32 letters, digits, '-' or '_' "
+                         "(e.g. openssl rand -hex 32), not the example placeholder")
+    return secret
+
+
+class ProxyAuth:
+    """Public mode: anyone may use the page, no sign-in. The backend only checks that the request came through
+    the Pages Function (shared secret); runs belong to the page's session ID, and the visitor's IP that the
+    Function forwards (Cloudflare's CF-Connecting-IP) is the key for the per-visitor limits."""
+
+    def __init__(self, proxy_secret: str):
+        self.proxy_secret = _valid_secret(proxy_secret)
+
+    def identify(self, headers) -> None:
+        _check_secret(headers, self.proxy_secret)
+        return None
+
+    def limit_key(self, headers) -> str | None:
+        ip = (headers.get(CLIENT_IP_HEADER) or "").strip()
+        return f"ip:{ip}" if re.fullmatch(r"[0-9A-Fa-f:.]{2,45}", ip) else None
+
+
 class AccessAuth:
     def __init__(self, team_domain: str, user_aud: str, *, api_aud: str | None = None,
                  proxy_secret: str | None = None, key_for_token=None):
         if bool(api_aud) == bool(proxy_secret):
             raise ValueError("give exactly one proxy check: api_aud (own domain) or proxy_secret (free setup)")
-        if proxy_secret is not None and not re.fullmatch(r"[A-Za-z0-9_-]{32,}", proxy_secret):
-            raise ValueError("proxy_secret must be at least 32 letters, digits, '-' or '_' "
-                             "(e.g. openssl rand -hex 32), not the example placeholder")
+        if proxy_secret is not None:
+            _valid_secret(proxy_secret)
         import jwt
         self._jwt = jwt
         self.issuer = f"https://{team_domain.removeprefix('https://').rstrip('/')}"
@@ -60,9 +96,7 @@ class AccessAuth:
 
     def _check_proxy(self, headers) -> None:
         if self.proxy_secret is not None:
-            given = headers.get(SECRET_HEADER) or ""
-            if not hmac.compare_digest(given.encode(), self.proxy_secret.encode()):
-                raise AuthError("missing or wrong proxy secret")
+            _check_secret(headers, self.proxy_secret)
         else:
             self._claims(headers.get(EDGE_HEADER), self.api_aud, "edge")
 

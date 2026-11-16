@@ -336,13 +336,15 @@ def make_handler(backend: Backend, auth=None):
             user = self.identify()
             if user is False:
                 return
-            # Runs belong to the signed-in user when Access is on; locally to the page's session.
+            # Runs belong to the signed-in user when Access is on; otherwise to the page's session. Limits count
+            # per visitor IP in public mode (forwarded by the Pages Function), else per owner.
             owner = user or session
+            limit = getattr(auth, "limit_key", lambda headers: None)(self.headers) or owner
             try:
                 if self.path == "/api/ask":
-                    return self.ask(session, owner, body)
+                    return self.ask(session, owner, body, limit)
                 if self.path == "/api/answer":
-                    return self.answer(session, owner, body)
+                    return self.answer(session, owner, body, limit)
                 if self.path == "/api/cancel":
                     return self.cancel(owner, body)
                 if self.path == "/api/lookup":
@@ -361,14 +363,14 @@ def make_handler(backend: Backend, auth=None):
 
         # ---- endpoints ----
 
-        def ask(self, session, owner, body):
+        def ask(self, session, owner, body, limit):
             message, constraints = body.get("message"), body.get("constraints") or {}
             if not isinstance(message, str) or not message.strip() or not isinstance(constraints, dict):
                 return self._json(400, {"error": {"code": "bad_request", "message": "message is required."}})
             parent = body.get("revises")
             if parent is not None and not backend.owned(owner, parent):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
-            if not self.reserve(owner, new_run=True):
+            if not self.reserve(limit, new_run=True):
                 return
             try:
                 kind = "revision" if parent else "request"
@@ -377,20 +379,20 @@ def make_handler(backend: Backend, auth=None):
                            "constraints": constraints, "explain": body.get("explain", True)}
                 self.relay(session, owner, run_id, "/runs", payload, kind=kind, parent=parent)
             finally:
-                backend.release(owner)
+                backend.release(limit)
 
-        def answer(self, session, owner, body):
+        def answer(self, session, owner, body, limit):
             run_id = body.get("run_id")
             if not backend.owned(owner, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
-            if not self.reserve(owner, new_run=False):
+            if not self.reserve(limit, new_run=False):
                 return
             try:
                 self.relay(session, owner, run_id, f"/runs/{run_id}/resume",
                            {"question_id": body.get("question_id"), "answer": body.get("answer") or {}},
                            kind="answer")
             finally:
-                backend.release(owner)
+                backend.release(limit)
 
         def reserve(self, owner, new_run):
             code = backend.acquire(owner, new_run)
@@ -502,15 +504,19 @@ def main():
                     help="free setup: environment variable holding the secret the Pages Function sends")
     a = ap.parse_args()
     auth = None
-    if a.access_team_domain:
-        secret = os.environ.get(a.proxy_secret_env) or None
+    secret = os.environ.get(a.proxy_secret_env) or None
+    if not a.access_team_domain and secret:
+        # Public mode: anyone may use the page; only requests through the Pages Function are accepted.
+        from app.access import ProxyAuth
+        auth = ProxyAuth(secret)
+    elif a.access_team_domain:
         if not a.access_user_aud or bool(a.access_api_aud) == bool(secret):
             raise SystemExit("Access sign-in needs CF_ACCESS_USER_AUD and exactly one of CF_ACCESS_API_AUD "
                              f"(own domain) or {a.proxy_secret_env} (free setup)")
         from app.access import AccessAuth
         auth = AccessAuth(a.access_team_domain, a.access_user_aud, api_aud=a.access_api_aud, proxy_secret=secret)
     elif a.bind not in ("127.0.0.1", "localhost", "::1"):
-        raise SystemExit("refusing to listen beyond localhost without Cloudflare Access sign-in checks")
+        raise SystemExit("refusing to listen beyond localhost without a proxy secret or Access sign-in checks")
     tunnel = None
     if a.harness_url:
         token = a.token_file.read_text(encoding="utf-8").strip() if a.token_file else (a.token or "")
@@ -525,7 +531,9 @@ def main():
         refresh = lambda: tunnel.resolve(refresh=True) if tunnel.remote_addr else None  # noqa: E731
     backend = Backend(client, a.log, refresh=lambda: _quiet(refresh), store_path=a.runs_db)
     server = ThreadingHTTPServer((a.bind, a.port), make_handler(backend, auth))
-    log(f"open http://{a.bind}:{a.port}" + (" (Cloudflare Access sign-in required)" if auth else ""))
+    mode = {"ProxyAuth": " (public: requests through the Pages proxy only)",
+            "AccessAuth": " (Cloudflare Access sign-in required)"}.get(type(auth).__name__, "")
+    log(f"open http://{a.bind}:{a.port}{mode}")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

@@ -1,15 +1,15 @@
 # 云端 agent 服务：Cloudflare Pages + GCE + TACC vLLM（issue #25）
 
-页面放在 Cloudflare Pages，agent 常驻在 Google Cloud 的一台虚拟机上，TACC 只跑 vLLM。默认按**完全免费方案**部署，不需要买域名；如果有自己的域名，见最后一节。
+页面放在 Cloudflare Pages，agent 常驻在 Google Cloud 的一台虚拟机上，TACC 只跑 vLLM。默认按**完全免费方案**部署，不需要买域名，**页面公开，谁都能用**。需要登录保护或者有自己的域名时，见最后两节。
 
 ```
-浏览器 ──HTTPS，Access 登录──▶ Cloudflare Pages：tacc-agentforge.pages.dev（app/static/index.html）
-                               │ functions/api/*：同源代理，带共享密钥和用户令牌
+浏览器 ──HTTPS──▶ Cloudflare Pages：tacc-agentforge.pages.dev（app/static/index.html）
+                               │ functions/api/*：同源代理，带共享密钥和访问者 IP
                                ▼
                         Tailscale Funnel：https://<虚拟机>.<tailnet>.ts.net（只有出站连接，不开入站端口）
                                ▼
   GCE 虚拟机 ─────────────────────────────────────────────────────────────────
-  │ agentforge-backend   app/backend.py   127.0.0.1:8765  校验密钥和 Access 令牌、运行归属、限流
+  │ agentforge-backend   app/backend.py   127.0.0.1:8765  校验代理密钥、运行归属、按访问者 IP 限流
   │ agentforge-harness   app/harness_service.py --cloud   127.0.0.1:8100
   │                      AgentRuntime + 知识库快照 + 预算校验器 + SQLite 检查点（本地盘）
   │ agentforge-tunnel    app/model_tunnel.py  读 service-url.txt，维护 ssh -L，写本地地址文件
@@ -25,10 +25,11 @@
 
 | | 集群内（`stage.sh serve --harness`） | 云端（本目录） |
 |---|---|---|
-| 页面 | 本机后端提供，只有本人能用 | Cloudflare Pages，团队成员登录后使用 |
+| 页面 | 本机后端提供，只有本人能用 | Cloudflare Pages，公开，谁都能用 |
 | harness | 和 vLLM 同一个作业，每小时交接 | 虚拟机上常驻，systemd 崩溃自动重启 |
 | 检查点 | 内存；交接或重启时，等待回答的运行会丢 | 本地盘 SQLite；后端或 harness 重启后仍能继续（#8） |
-| 运行归属 | 页面生成的会话 ID | Access 登录邮箱，存在 `runs.sqlite`，重启后仍有效 |
+| 运行归属 | 页面生成的会话 ID | 同样是会话 ID，但存在 `runs.sqlite`，重启后仍有效 |
+| 限流 | 无 | 每个访问者 IP 同时 2 个请求、每分钟 6 次新提问；全局同时 8 个 |
 | 知识库 | 仓库 zip，每个账户一份 | GCS 按快照 ID 存一份，下载时校验哈希 |
 | 作业名额 | 服务作业加继任作业，两个名额都占 | 同样两个名额，作业里少了 harness 和依赖安装 |
 
@@ -40,10 +41,10 @@
 |---|---|
 | 虚拟机 | us-west1 的 e2-micro 和 30 GB 标准盘在永久免费额度内。官方文档说免费额度不对外部 IP 收费，但开机后仍要看一下账单明细 |
 | GCS | 美国区 5 GB 以内免费；快照约 7 MB |
-| Cloudflare Pages、Access | 免费；Access 免费档最多 50 个用户 |
+| Cloudflare Pages | 免费 |
 | Tailscale Funnel | 个人免费版，限非商业用途；有带宽上限但官方未公布，只传文字够用 |
 
-GCP 计费账户和 Cloudflare Zero Trust 可能都要求绑卡，建议在 GCP 设一个预算提醒（比如超过 1 美元就发邮件）。如果想降低到香港网关的延迟，可以用 `ZONE=asia-east2-a MACHINE=e2-small`，但这个配置收费。
+GCP 计费账户要求绑卡，建议在 GCP 设一个预算提醒（比如超过 1 美元就发邮件）。如果想降低到香港网关的延迟，可以用 `ZONE=asia-east2-a MACHINE=e2-small`，但这个配置收费。
 
 ## 部署步骤
 
@@ -113,10 +114,7 @@ sudo -u agentforge ssh -p 30041 -i /etc/agentforge/tacc_key <TACC 用户名>@gw.
 openssl rand -hex 32
 ```
 
-然后按 `agentforge.env.example` 填写 `/etc/agentforge/agentforge.env`：
-
-- 现在就能填的：TACC 账户、`KNOWLEDGE_SEED_URL`、`AGENTFORGE_PROXY_SECRET`；
-- 第 5 步之后再填的：两个 `CF_ACCESS_*`。
+然后按 `agentforge.env.example` 填写 `/etc/agentforge/agentforge.env`：TACC 账户、`KNOWLEDGE_SEED_URL`、`AGENTFORGE_PROXY_SECRET`。`CF_ACCESS_*` 保持注释状态，页面就是公开的。
 
 **注意：** 是否允许把 TACC 账户的密钥放在云服务器上，需要先和助教确认（见 #25）。
 
@@ -132,9 +130,7 @@ tailscale funnel status              # 记下 https://<虚拟机>.<tailnet>.ts.n
 
 Funnel 把公网 HTTPS 请求转到虚拟机的 127.0.0.1:8765，后端仍然只监听本机。
 
-### 5. Cloudflare Pages 和 Access
-
-**5.1 部署页面**
+### 5. Cloudflare Pages
 
 在本机执行：
 
@@ -145,22 +141,16 @@ bash deploy/cloudflare/deploy.sh
 
 第一次运行会创建名为 `tacc-agentforge` 的 Pages 项目，地址是 `https://tacc-agentforge.pages.dev`。
 
-然后在 Cloudflare 控制台 → Workers & Pages → `tacc-agentforge` → Settings → Variables and secrets 里添加：
+然后设置两个密钥（共享密钥从文件读入，不会显示出来），再部署一次让它们生效：
 
-- 文本变量 `API_ORIGIN` = 第 4 步的 `https://<虚拟机>.<tailnet>.ts.net`；
-- 密钥 `PROXY_SECRET` = 第 3 步生成的共享密钥。
+```bash
+cd deploy/cloudflare
+npx wrangler@4 pages secret put PROXY_SECRET --project-name tacc-agentforge < <共享密钥文件>
+printf %s https://<虚拟机>.<tailnet>.ts.net | npx wrangler@4 pages secret put API_ORIGIN --project-name tacc-agentforge
+cd ../.. && bash deploy/cloudflare/deploy.sh
+```
 
-改完后再执行一次 `deploy.sh`，让变量生效。
-
-**5.2 登录保护**
-
-1. 打开 Zero Trust 控制台（one.dash.cloudflare.com）。第一次进入时要起一个团队名，套餐选 Free。
-2. Access → Applications → Add an application → Self-hosted：
-   - 名字填 `agentforge-shop`；
-   - 域名添加两条：`tacc-agentforge.pages.dev`，以及 `*.tacc-agentforge.pages.dev`（后者覆盖每次部署的预览地址）；
-   - 策略：Action 选 Allow，Include 用 Emails 列出团队成员的邮箱，登录方式用默认的一次性邮箱验证码。
-3. 保存后在应用的 Overview 里复制 AUD Tag，填到虚拟机的 `CF_ACCESS_USER_AUD`；`CF_ACCESS_TEAM_DOMAIN` 填 `<团队名>.cloudflareaccess.com`。
-4. 退出登录或换一个浏览器，确认打开 `https://tacc-agentforge.pages.dev` 时会先跳到登录页。
+如果 `wrangler` 刚登录完就提示没登录：它发现 `~/.wrangler` 目录存在时，会改用这个旧位置找凭据。把 `~/Library/Preferences/.wrangler/config/default.toml` 复制到 `~/.wrangler/config/` 即可（权限 600）。
 
 ### 6. 启动
 
@@ -185,12 +175,12 @@ bash deploy/tacc/service/qwen-service/stage.sh serve          # 不带 --harness
 |---|---|
 | 模型隧道 | `cat /var/lib/agentforge/service-url.txt` 显示 `http://127.0.0.1:<端口>/v1`；日志里有 `tunnel ... -> http://10.x.x.x:8000/v1` |
 | harness | `journalctl -u agentforge-harness` 里有 `READY harness service`；`checkpoint cleanup` 那一行说明检查点库已经打开 |
-| 登录 | 未登录时打开页面会跳到 Access 登录页；直接 `curl https://<虚拟机>.<tailnet>.ts.net/api/health` 不带密钥，返回 401 |
-| 完整请求 | 登录后在页面上提一个带预算的问题，流式进度正常显示，最后给出订单汇总 |
+| 入口 | `curl https://tacc-agentforge.pages.dev/api/health` 返回 200；绕过 Pages 直接 `curl https://<虚拟机>.<tailnet>.ts.net/api/health`（不带密钥）返回 401 |
+| 完整请求 | 在页面上提一个带预算的问题，流式进度正常显示，最后给出订单汇总 |
 | 重启恢复（#8） | 提一个不带预算的问题，页面开始追问时执行 `sudo systemctl restart agentforge-harness agentforge-backend`，再回答，运行能继续完成 |
 | 跨交接 | 在虚拟机上另起一个只监听本机、不做登录检查的后端，用它跑 soak（见下） |
 
-跨交接 soak 绕开登录检查，直接在虚拟机上运行：
+跨交接 soak 绕开代理密钥检查，直接在虚拟机上运行：
 
 ```bash
 sudo -u agentforge /opt/agentforge/venv/bin/python -m app.backend --port 8766 \
@@ -205,9 +195,22 @@ sudo -u agentforge /opt/agentforge/venv/bin/python -m app.cluster_check --backen
 - **TACC 上没有服务。** 本地地址文件会被撤回，请求很快失败为 `model_unavailable`，页面给出提示。正在等待回答的运行不受影响，模型恢复后可以继续回答。
 - **重启后的候选集。** 检查点会保存运行状态，但知识库的 `candidate_set_id` 只存在 harness 进程的内存里（`knowledge/README.md` 第 4 节）。运行在重启后继续时，如果模型引用了旧的候选集，工具会返回可恢复的错误，模型需要重新查询商品；这会多用一次工具调用额度。
 - **网关暂时连不上。** 不拆除现有隧道，下一轮轮询再试。
-- **限流。** 每个用户同时最多 2 个流式请求、每分钟最多 6 次新提问；全局同时最多 8 个（对应 vLLM 的 `max-num-seqs`）。超出时返回 429，页面给出提示。参数在 `app/backend.py` 的 `Limits` 里。
+- **限流。** 每个访问者 IP 同时最多 2 个流式请求、每分钟最多 6 次新提问；全局同时最多 8 个（对应 vLLM 的 `max-num-seqs`）。超出时返回 429，页面给出提示。参数在 `app/backend.py` 的 `Limits` 里。IP 由 Pages Function 从 `CF-Connecting-IP` 转发，只有代理密钥正确时才被信任，浏览器伪造不了。
+- **公开页面的风险。** 谁都能用，就意味着陌生人也可能占满全局并发，组员要排队。需要限制使用者时，改用下面的登录保护。
 - **模型可用性。** 模型能否在线取决于 TACC：能用的节点只有 4 个，被占满时继任作业要排队。页面和 agent 可以一直在线，模型只能做到"大部分时间在线"。
 - **延迟。** 拓扑变了，端到端延迟不能和 #11 冻结基线的数字直接比较，迁移后需要在新拓扑上重测。
+
+## 可选：登录保护（Cloudflare Access）
+
+只想让名单里的人使用时：
+
+1. 打开 Zero Trust 控制台（one.dash.cloudflare.com）。第一次进入时要起一个团队名，套餐选 Free（最多 50 个用户）。
+2. Access → Applications → Add an application → Self-hosted：
+   - 名字填 `agentforge-shop`；
+   - 域名添加两条：`tacc-agentforge.pages.dev`，以及 `*.tacc-agentforge.pages.dev`（后者覆盖每次部署的预览地址）；
+   - 策略：Action 选 Allow，Include 用 Emails 列出允许的邮箱，登录方式用默认的一次性邮箱验证码。
+3. 在虚拟机的配置文件里取消注释 `CF_ACCESS_TEAM_DOMAIN`（`<团队名>.cloudflareaccess.com`）和 `CF_ACCESS_USER_AUD`（应用 Overview 里的 AUD Tag），然后重启 `agentforge-backend`。
+4. 之后运行按登录邮箱归属，限流按人计算。
 
 ## 有自己域名时：Cloudflare Tunnel
 

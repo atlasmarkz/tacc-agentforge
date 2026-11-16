@@ -343,6 +343,39 @@ def test_backend_with_access_keys_runs_by_user_not_by_session(access, tmp_path):
         server.shutdown()
 
 
+def test_public_mode_needs_the_proxy_secret_and_limits_per_visitor_ip(tmp_path):
+    from app.access import CLIENT_IP_HEADER, ProxyAuth, SECRET_HEADER
+    from app.backend import Backend, Limits
+    with pytest.raises(ValueError):
+        ProxyAuth("<64 hex characters>")                       # the example placeholder is refused
+    secret = "a" * 64
+    b = Backend(SlowHarness(), tmp_path / "log.jsonl", limits=Limits(per_owner_per_minute=1))
+    server = start_backend(b, ProxyAuth(secret))
+    port = server.server_address[1]
+    proxy = {SECRET_HEADER: secret, CLIENT_IP_HEADER: "203.0.113.7"}
+    try:
+        assert call(port, "/api/health", method="GET")[0] == 401                    # not through the Function
+        assert call(port, "/api/ask", {"session_id": SESSION, "message": "hi"},
+                    {SECRET_HEADER: "b" * 64})[0] == 401                             # wrong secret
+        status, events = call(port, "/api/ask", {"session_id": SESSION, "message": "hi"}, proxy)
+        assert status == 200
+        run_id = events[0][1]["run_id"]
+        # A new session ID from the same visitor does not get a fresh allowance; another visitor does.
+        status, body = call(port, "/api/ask", {"session_id": "eeeeeeee-3333", "message": "again"}, proxy)
+        assert status == 429 and body["error"]["code"] == "rate_limited"
+        other = {SECRET_HEADER: secret, CLIENT_IP_HEADER: "198.51.100.2"}
+        assert call(port, "/api/ask", {"session_id": "eeeeeeee-3333", "message": "hi"}, other)[0] == 200
+        # Runs still belong to the session that started them.
+        assert call(port, "/api/cancel", {"session_id": SESSION, "run_id": run_id}, proxy)[0] == 200
+        assert call(port, "/api/cancel", {"session_id": "eeeeeeee-3333", "run_id": run_id}, proxy)[0] == 403
+        # A malformed forwarded address falls back to the session as the limit key.
+        auth = ProxyAuth(secret)
+        assert auth.limit_key({CLIENT_IP_HEADER: "1.2.3.4; drop"}) is None
+        assert auth.limit_key({CLIENT_IP_HEADER: "2001:db8::1"}) == "ip:2001:db8::1"
+    finally:
+        server.shutdown()
+
+
 def test_backend_refuses_a_public_bind_without_access(monkeypatch):
     import sys
     from app import backend

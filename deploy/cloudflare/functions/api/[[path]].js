@@ -3,9 +3,9 @@
 //   browser --(Access login, Pages app)--> this Function --(proxy credential)--> public entry of the VM
 //           --> app/backend.py on the GCE VM (127.0.0.1)
 //
-// The page keeps calling relative /api/... paths, so there is no CORS and no third-party cookie. The user's
-// Access token for this Pages site is forwarded in X-Agentforge-User-Jwt; the backend checks it and the proxy
-// credential (app/access.py).
+// The page keeps calling relative /api/... paths, so there is no CORS and no third-party cookie. The backend
+// checks the proxy credential (app/access.py). Public mode (default): anyone may use the page. With the optional
+// Access sign-in, the user's token for this Pages site is forwarded in X-Agentforge-User-Jwt and checked too.
 //
 // Settings (Pages project -> Settings -> Variables and secrets):
 //   API_ORIGIN               free setup: https://<vm>.<tailnet>.ts.net (Tailscale Funnel)
@@ -38,8 +38,8 @@ export async function onRequest({ request, env }) {
   if (!["GET", "POST"].includes(request.method)) {
     return jsonError(405, "method_not_allowed", "Use GET or POST.");
   }
+  // Public mode has no sign-in, so there may be no user token; with Access on, the backend requires it.
   const token = userToken(request);
-  if (!token) return jsonError(401, "unauthorized", "Please sign in again.");
 
   const url = new URL(request.url);
   const target = new URL(url.pathname + url.search, env.API_ORIGIN);
@@ -54,7 +54,11 @@ export async function onRequest({ request, env }) {
     headers.set("CF-Access-Client-Id", env.CF_ACCESS_CLIENT_ID);
     headers.set("CF-Access-Client-Secret", env.CF_ACCESS_CLIENT_SECRET);
   }
-  headers.set("X-Agentforge-User-Jwt", token);
+  if (token) headers.set("X-Agentforge-User-Jwt", token);
+  // The visitor's address as Cloudflare saw it: the backend's per-visitor limits use it (trusted only together
+  // with the proxy secret, so a browser cannot set it).
+  const ip = request.headers.get("CF-Connecting-IP");
+  if (ip) headers.set("X-Agentforge-Client-Ip", ip);
 
   let upstream;
   try {
