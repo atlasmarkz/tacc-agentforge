@@ -135,8 +135,10 @@ class BudgetPlanValidator:
 
     def decision_policy(self, constraints=None):
         """向决策模型公开实际校验策略，而不是复制一份可能漂移的提示默认值。"""
+        basis = (constraints or {}).get("budget_basis", self.default_basis)
         return {"default_budget_basis": self.default_basis,
-                "budget_basis": (constraints or {}).get("budget_basis", self.default_basis),
+                "budget_basis": basis,
+                "tax_counted": basis == "all_in",
                 "require_verified_identity": self.require_verified_identity,
                 "unknown_shipping_scope_allowed_for_quantity_one": True,
                 "price_freshness": "frozen_snapshot_replay",

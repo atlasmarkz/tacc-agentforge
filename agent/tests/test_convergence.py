@@ -80,12 +80,13 @@ def test_recoverable_error_is_not_cached_and_success_restores_progress():
     assert result.status == "completed" and search.calls == result.usage.tool_calls == 2
 
 
-def test_final_decision_can_abstain_without_inventing_a_plan():
+@pytest.mark.parametrize("reason", ["evidence_insufficient", "requirements_unverified"])
+def test_final_decision_can_abstain_without_inventing_a_plan(reason):
     message = "No cited evidence establishes the required simultaneous charging wattage."
-    model = Scripted({"type": "report_incomplete", "reason": "requirements_unverified", "message": message})
+    model = Scripted({"type": "report_incomplete", "reason": reason, "message": message})
     runtime = AgentRuntime(AgentDependencies(model, demo_tools(), MockPlanValidator()), RunPolicy(max_model_calls=1))
     result = asyncio.run(runtime.run(demo_request()))
-    assert result.status == "incomplete" and result.stop_reason == "requirements_unverified"
+    assert result.status == "incomplete" and result.stop_reason == reason
     assert result.verified_plan is None and result.issues[-1].message == message
     assert result.message == message, "the user-facing page and the evaluator need the model's own wording"
     assert "report_incomplete" in model.requests[0].action_schema["discriminator"]["mapping"]
@@ -128,6 +129,7 @@ def test_question_never_creates_a_wait_with_no_resume_budget(limit):
     result = asyncio.run(runtime.run(demo_request()))
     assert result.status == "incomplete" and result.pending_question is None
     assert result.stop_reason == "clarification_budget_exhausted"
+    assert result.message is None, "policy stops must leave wording to the caller's stop_reason messages"
 
 
 def test_late_answer_can_use_one_reserved_evidence_call_then_propose():
@@ -212,7 +214,8 @@ def test_belkin_unknown_ports_and_power_disagreement_can_use_text_and_pass_real_
             read_tool("resolve_evidence", evidence_ids=[DESCRIPTION]),
             read_tool("get_offer_facts", offer_ids=[OID]), BELKIN_PLAN)
         deps, source = real_dependencies(catalog, model)
-        runtime = AgentRuntime(deps)
+        # 本用例验证候选和证据摘要，显式留足上下文空间，避免依赖策略提示的长度边界。
+        runtime = AgentRuntime(deps, RunPolicy(max_context_chars=20000))
         try:
             result = await runtime.run(charger_request(catalog[1]))
             assert result.status == "completed" and result.usage.model_calls == 6, result.model_dump()
@@ -227,6 +230,7 @@ def test_belkin_unknown_ports_and_power_disagreement_can_use_text_and_pass_real_
             text = json.dumps(memory["evidence"])
             assert "45W" in text and "20W" in text and DESCRIPTION in text
             assert "default_budget_basis" in final.messages[0].content
+            assert '"tax_counted": false' in final.messages[0].content
             assert "raw description" in final.messages[0].content.lower()
             trace = await runtime.export_trace(result.run_id)
             assert trace["shopping_context"]["notes"]
@@ -345,8 +349,15 @@ def test_explicit_usd_alias_can_fill_a_missing_currency_but_not_change_an_existi
         normalize_legacy_answer({"max_price_usd": "80.00"}, {"currency": "EUR"})
 
 
-def test_actual_validator_policy_includes_the_request_override():
-    validator = BudgetPlanValidator(None, default_basis="pre_tax", require_verified_identity=True)
-    policy = validator.decision_policy({"budget_basis": "all_in"})
-    assert policy["budget_basis"] == "all_in" and policy["default_budget_basis"] == "pre_tax"
+@pytest.mark.parametrize("default_basis,constraints,basis,tax_counted", [
+    ("pre_tax", {}, "pre_tax", False),
+    ("all_in", {}, "all_in", True),
+    ("pre_tax", {"budget_basis": "all_in"}, "all_in", True),
+    ("all_in", {"budget_basis": "pre_tax"}, "pre_tax", False),
+])
+def test_actual_validator_policy_includes_the_request_override(default_basis, constraints, basis, tax_counted):
+    validator = BudgetPlanValidator(None, default_basis=default_basis, require_verified_identity=True)
+    policy = validator.decision_policy(constraints)
+    assert policy["budget_basis"] == basis and policy["default_budget_basis"] == default_basis
+    assert policy["tax_counted"] is tax_counted
     assert policy["require_verified_identity"] is True

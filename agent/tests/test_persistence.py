@@ -14,7 +14,7 @@ from langgraph.checkpoint.base import empty_checkpoint
 from langgraph.checkpoint.serde.types import INTERRUPT
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
-from agent import AgentDependencies, AgentRuntime, RunPolicy, RunStateError
+from agent import AgentDependencies, AgentRuntime, ModelReply, RunPolicy, RunStateError
 from agent.checkpoint_cleanup import RetentionPolicy, cleanup_checkpoints
 from agent.checkpoints import open_checkpointer
 from agent.examples.mock_run import MockModel, MockPlanValidator, demo_request, demo_tools
@@ -100,19 +100,34 @@ def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, o
 
 
 def test_resume_does_not_regain_spent_model_calls(tmp_path):
-    """恢复时请求更大的预算也应被忽略：检查点里保存的策略决定总额度，强杀不会退还已用的调用。"""
+    """恢复时请求更大的预算也应被忽略：保存的策略限制总额度，重开检查点不会退还已用调用。"""
+    class KeepSearching:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate(self, request, context):
+            self.calls += 1
+            return ModelReply(content=json.dumps({"type": "call_tool", "tool_name": "search_products",
+                                                  "arguments": {"query": "earbuds"}}))
+
     async def scenario():
         path = tmp_path / "agent.sqlite"
         limit = 4
+        # 避免重复搜索的停滞策略先于总调用上限结束探针。
+        policy = RunPolicy(max_model_calls=limit, max_no_progress_calls=20)
         async with open_checkpointer(path) as saver:
-            waiting = await runtime(saver, RunPolicy(max_model_calls=limit)).run(missing_budget("quota"))
+            waiting = await runtime(saver, policy).run(missing_budget("quota"))
             assert waiting.status == "waiting_user" and waiting.usage.model_calls == 1
         async with open_checkpointer(path, create=False) as saver:
-            agent = runtime(saver, RunPolicy(max_model_calls=100))
+            model = KeepSearching()
+            agent = AgentRuntime(AgentDependencies(model, demo_tools(), MockPlanValidator()),
+                                 policy.model_copy(update={"max_model_calls": 100}), checkpointer=saver)
             result = await agent.resume("quota", waiting.pending_question.question_id, {"purchase_cap": "100.00"})
-            assert result.status == "completed"
-            # 恢复后只补一次证据再提案，总数为 1 + 2，请求的 100 不生效。
-            assert result.usage.model_calls == 3, "a resumed run must keep counting the calls already spent"
+            assert result.usage.model_calls == limit
+            assert waiting.usage.model_calls + model.calls == limit, "spent calls must not be refunded"
+            assert result.status == "incomplete" and result.stop_reason == "convergence_failed"
+            assert result.verified_plan is None
+            assert result.usage.tool_calls == 1, "exploration must close at the saved limit"
     asyncio.run(scenario())
 
 

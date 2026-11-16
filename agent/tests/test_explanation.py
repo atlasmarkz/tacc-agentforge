@@ -8,8 +8,10 @@ import pytest
 from pydantic import ValidationError
 
 from agent import AgentDependencies, AgentResult, AgentRuntime, CapabilityError, ModelReply, RunPolicy
+from agent.contracts import EvidenceFact
 from agent.examples.mock_run import (
-    DEMO_EVIDENCE, MockEvidenceResolver, MockModel, MockPlanValidator, demo_request, demo_runtime, demo_tools,
+    DEMO_EVIDENCE, DEMO_OFFER, DEMO_PRICE, MockEvidenceResolver, MockModel, MockPlanValidator, demo_request,
+    demo_runtime, demo_tools,
 )
 from agent.explanation import ExplanationRejected, build_explanation_request, check_explanation
 from agent.checkpoints import open_checkpointer
@@ -218,6 +220,49 @@ def test_rule_check_normalizes_amounts_and_excludes_identifiers_but_not_user_cla
     with pytest.raises(ExplanationRejected, match="context_limit"):
         build_explanation_request(demo_request().model_copy(update={"message": "x" * 8000}), plan, [],
                                   RunPolicy(max_context_chars=1000))
+
+
+def facts_for(plan, *, title, excerpt="", scope=None, merchant="Synthetic store"):
+    return [EvidenceFact(snapshot_id=plan.snapshot_id, offer_id=item.offer_id, evidence_id=eid,
+                         title=title, merchant=merchant, unit_price=str(DEMO_PRICE), currency="USD",
+                         excerpt=excerpt, scope=scope)
+            for item in plan.items for eid in item.evidence_ids]
+
+
+def test_specification_numbers_quoted_from_evidence_are_not_invented():
+    plan = asyncio.run(demo_runtime().run(demo_request())).verified_plan
+    facts = facts_for(plan, title="Soundcore P20i 30H Long Playtime, 2 Mics, Bluetooth 5.3",
+                      excerpt="The battery lasts 30 hours, 2 mics reduce call noise, it weighs 0.5 pounds.")
+    for text in ("The P20i lasts 30 hours, so 49.99 USD is fair. [E1]",
+                 "Bluetooth 5.3 and 2 mics keep calls clear. [E1]",
+                 "It reaches 30H of playtime with 2 mics. [E1]",
+                 "It weighs 0.5 pounds and lasts 30 hours. [E1]",
+                 "这款 P20i 支持三十小时续航，两个麦克风，合计 49.99 USD。 [E1]"):
+        assert check_explanation(text, plan, facts, 8000).verified
+    for text in ("It reaches 80 hours of playtime. [E1]",
+                 "Total 20 USD. [E1]",
+                 "It is 20% off today. [E1]",
+                 "The 3 mics are better. [E1]",
+                 "Use code SAVE30 for a discount. [E1]",
+                 "现在打八折，只要二十美元。 [E1]"):
+        with pytest.raises(ExplanationRejected, match="unlisted_number"):
+            check_explanation(text, plan, facts, 8000)
+
+
+def test_prices_and_discounts_read_from_evidence_stay_unquotable():
+    plan = asyncio.run(demo_runtime().run(demo_request())).verified_plan
+    facts = facts_for(plan, title="Soundcore earbuds", excerpt="Was $79.99, now cheaper. 20% off today.")
+    assert check_explanation("The earbuds are the pick. [E1]", plan, facts, 8000).verified
+    for text in ("It used to cost 79.99. [E1]", "It is 20% off. [E1]", "You save 20 today. [E1]"):
+        with pytest.raises(ExplanationRejected, match="unlisted_number"):
+            check_explanation(text, plan, facts, 8000)
+
+
+def test_user_message_numbers_are_still_not_quotable():
+    plan = asyncio.run(demo_runtime().run(demo_request())).verified_plan
+    facts = facts_for(plan, title="Soundcore P20i", excerpt="Synthetic fixture.")
+    with pytest.raises(ExplanationRejected, match="unlisted_number"):
+        check_explanation("Well within your 100 USD budget. [E1]", plan, facts, 8000)
 
 
 def test_non_completed_result_cannot_contain_explanation():

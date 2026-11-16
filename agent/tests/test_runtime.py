@@ -134,7 +134,7 @@ def test_model_limit_stops_a_repeating_decision():
     bad = {**SEARCH, "tool_name": "missing"}
     result = run(runtime(ScriptedModel(bad, bad), policy=RunPolicy(max_model_calls=2)))
     assert result.stop_reason == "convergence_failed" and result.usage.model_calls == 2
-    assert result.message, "policy stops still need a user-facing explanation"
+    assert result.message is None, "policy stops must leave wording to the caller's stop_reason messages"
 
 
 def test_tool_limit_counts_actual_calls_only():

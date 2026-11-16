@@ -127,8 +127,6 @@ class RunScope:
 
 
 STOP_MESSAGES = {
-    "clarification_budget_exhausted": "Not enough decisions remain to use another answer.",
-    "convergence_failed": "No supported plan was submitted before exploration closed.",
     "evidence_insufficient": "There is not enough evidence to support a plan.",
     "requirements_unverified": "The requirements could not be verified from the available evidence.",
 }
@@ -137,7 +135,7 @@ USER_FACING_ISSUES = {"evidence_insufficient", "requirements_unverified"}
 
 
 def result_message(state):
-    """把停止原因整理为面向用户的说明；模型弃答时优先使用模型给出的文本。"""
+    """仅为模型弃答提供说明；其他停止原因由调用页面根据 stop_reason 展示文案。"""
     reason = state["stop_reason"]
     if not reason:
         return None
