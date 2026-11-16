@@ -32,7 +32,7 @@ from urllib.request import urlopen
 
 from client import ModelClient, ModelClientError
 
-PORT = 8000
+PORT = 8000                     # preferred; pick_port() moves to a free port when another process holds it
 PROBE_MESSAGES = [{"role": "user", "content": 'Reply with the JSON object {"ok": true} and nothing else.'}]
 PROBE_SCHEMA = {"type": "object", "properties": {"ok": {"type": "boolean"}}, "required": ["ok"]}
 METRICS = re.compile(r"^(vllm:(num_requests_running|num_requests_waiting|gpu_cache_usage_perc|kv_cache_usage_perc|"
@@ -350,7 +350,30 @@ def monitor(a, proc, local, start, address, handover_done: bool) -> str:
                 atomic_write(a.address_file, address + "\n")   # re-publish after a transient withdrawal
 
 
+def pick_port(preferred: int) -> int:
+    """`preferred` if nothing listens on it, otherwise a free port chosen by the kernel.
+
+    Nodes are not exclusive to Slurm jobs: in job 28868 another user's vLLM (same course model, same served
+    name) already listened on 8000 of 10-0-1-10. Our vLLM then died at bind time ("Address already in use")
+    after loading, while the readiness probe reached the other server and published it as ours."""
+    for port in (preferred, 0):
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            try:
+                s.bind(("0.0.0.0", port))
+            except OSError:
+                continue
+            return s.getsockname()[1]
+    raise RuntimeError("no free port")
+
+
+def port_answers(port: int) -> bool:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        s.settimeout(2)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+
 def main() -> int:
+    global PORT
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=Path, required=True)
     ap.add_argument("--address-file", type=Path, required=True)
@@ -376,6 +399,13 @@ def main() -> int:
 
     start = time.monotonic()
     host = socket.gethostname()
+    preferred = PORT
+    PORT = pick_port(preferred)
+    if PORT != preferred:
+        log(f"port {preferred} is taken by another process on this node; using {PORT}")
+        event(a.out, "port_moved", preferred=preferred, port=PORT)
+    if port_answers(PORT):                          # nothing may answer before our vLLM has started
+        raise SystemExit(f"port {PORT} answers before vLLM started")
     address = f"http://{node_ip()}:{PORT}/v1"     # an IP: other nodes cannot resolve every hostname
     local = ModelClient(base_url=f"http://127.0.0.1:{PORT}/v1", model=cfg["served_name"], max_attempts=1)
     env = dict(os.environ, **cfg.get("env", {}))

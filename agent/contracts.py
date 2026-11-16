@@ -8,6 +8,8 @@ from typing import Annotated, Callable, Literal, Protocol, Union, TYPE_CHECKING
 
 from pydantic import BaseModel, ConfigDict, Field, JsonValue, TypeAdapter, model_validator
 
+from .budget_fields import USD_ALIASES
+
 if TYPE_CHECKING:
     from .tools import ToolRegistry
 
@@ -79,6 +81,8 @@ class AskUser(Schema):
                     "message", "constraints", "policy", "usage"}
         if len(set(self.required_fields)) != len(self.required_fields) or reserved.intersection(self.required_fields):
             raise ValueError("ask_user must name unique, top-level constraint fields")
+        if USD_ALIASES.intersection(self.required_fields):
+            raise ValueError("Budget questions must use purchase_cap and currency, not USD budget aliases")
         return self
 
 
@@ -91,6 +95,14 @@ class PendingQuestion(Schema):
     expires_at: float = Field(gt=0)  # UTC 纪元秒，用于独立限制用户等待时间。
 
 
+class ReportIncomplete(Schema):
+    """证据不足时显式弃答；收敛不能强迫模型编造商品或证据 ID。"""
+
+    type: Literal["report_incomplete"]
+    reason: Literal["evidence_insufficient", "requirements_unverified"]
+    message: str = Field(min_length=1, max_length=500, pattern=r"\S")
+
+
 class ResumeRequest(Schema):
     """恢复一个等待中的问题；answer 只包含被询问的约束字段。"""
 
@@ -99,7 +111,7 @@ class ResumeRequest(Schema):
     answer: dict[str, JsonValue]
 
 
-Action = Annotated[Union[CallTool, ProposePlan, AskUser], Field(discriminator="type")]
+Action = Annotated[Union[CallTool, ProposePlan, AskUser, ReportIncomplete], Field(discriminator="type")]
 ACTION_ADAPTER = TypeAdapter(Action)
 
 
@@ -281,6 +293,8 @@ class AgentResult(Schema):
     snapshot_id: Identifier
     status: Status
     stop_reason: str | None = None
+    # 面向用户的结束说明；完成和等待用户时为空，其余情况由停止原因或模型弃答给出。
+    message: str | None = Field(default=None, max_length=500)
     verified_plan: VerifiedPlan | None = None
     clarification: AskUser | None = None
     pending_question: PendingQuestion | None = None

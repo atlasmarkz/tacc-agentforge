@@ -133,6 +133,7 @@ def plan(oid, qty=1, ev=("ev-1",)):
     (("plan", plan("o-cheap", qty=2)), "wrong_quantity", False),
     (("plan", plan("o-cheap", ev=("ev-made-up",))), "unknown_evidence_id", False),
     (("ask_user", {"question": "Budget?", "required_fields": ["purchase_cap"]}), "unnecessary_clarification", False),
+    (("abstain", {"reason": "evidence_insufficient", "message": "No verified price."}), "abstain_without_plan", False),
     (("error", {"error": "timeout"}), "error:timeout", False),
 ])
 def test_score_when_a_plan_is_expected(outcome, expected_reason, success):
@@ -148,6 +149,11 @@ def test_score_when_no_plan_is_feasible_or_input_is_missing():
     assert score_record(rec("ask_user", question="Nothing fits.", required_fields=["purchase_cap"]), infeasible, gt, CATALOG)["success"]
     s = score_record(rec("plan", **plan("o-cheap")), infeasible, gt, CATALOG)
     assert s["reason"] == "plan_when_infeasible" and s["over_budget"] is True
+    # A model-authored abstention is the right answer when nothing is feasible, and still a failure otherwise.
+    abstain = dict(reason="evidence_insufficient", message="No feasible plan.")
+    assert score_record(rec("abstain", **abstain), infeasible, gt, CATALOG)["success"]
+    assert score_record(rec("abstain", **abstain), CASE, ground_truth(CASE, CATALOG),
+                        CATALOG)["reason"] == "abstain_without_plan"
     missing = {**CASE, "constraints": {"currency": "USD"}}
     gt = ground_truth(missing, CATALOG)
     assert score_record(rec("ask_user", question="Budget?", required_fields=["budget"]), missing, gt, CATALOG)["success"]
@@ -455,3 +461,25 @@ def test_b3v_does_not_deliver_a_plan_the_validator_keeps_rejecting(tmp_path):
     b3v = records["B3v"]
     assert b3v["status"] != "completed" and b3v["outcome"]["kind"] == "error"
     assert b3v["validator"] and all(v["status"] == "failed" and "unknown_offer" in v["issues"] for v in b3v["validator"])
+
+
+def test_recording_validator_forwards_the_optional_policy_hooks():
+    """评测包装器必须转发预检与决策策略，否则 B3v 测不到服务端实际执行的规则。"""
+    from evaluations.run import RecordingValidator
+
+    class Inner:
+        def preflight(self, constraints):
+            return "budget?"
+
+        def decision_policy(self, constraints=None):
+            return {"budget_basis": (constraints or {}).get("budget_basis", "pre_tax")}
+
+        async def validate(self, request, context):
+            raise AssertionError("validate is not part of this check")
+
+    wrapper = RecordingValidator(Inner())
+    assert wrapper.preflight({}) == "budget?"
+    assert wrapper.decision_policy({"budget_basis": "all_in"}) == {"budget_basis": "all_in"}
+    # B3 is the ablation: the stand-in has no policy and therefore no preflight question.
+    assert RecordingValidator().preflight({}) is None
+    assert RecordingValidator().decision_policy() is None

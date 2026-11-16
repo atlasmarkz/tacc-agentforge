@@ -7,6 +7,7 @@
 | 要做的事 | 命令或位置 |
 |---|---|
 | 启动服务 | `bash deploy/tacc/service/qwen-service/stage.sh serve`,然后提交该目录(见第 2 节) |
+| 连同 harness 服务一起启动(Task 5) | `stage.sh serve --harness`,一个作业里跑 vLLM 和 harness,第二个名额留给交接(见第 2、5 节) |
 | 服务是否可用 | `$TACC_USERDIR/tacc-agentforge-service/service-url.txt` 存在,且内容是一个地址 |
 | 服务事件 | `$TACC_USERDIR/tacc-agentforge-service/service-<作业号>/events.jsonl` |
 | 调用 | 集群内用 `inference/client.py` 的 `ModelClient(address_file=...)`(见第 4 节) |
@@ -21,7 +22,7 @@
 | 位置 | 作用 |
 |---|---|
 | `deploy/tacc/service/qwen-service/serve.py` | 服务主程序:启动 vLLM,探测通过才发布地址,异常时撤回并重启,到点交接 |
-| `deploy/tacc/service/qwen-service/job.sh` | 作业脚本:激活课程环境,选择模式,运行交接辅助循环 |
+| `deploy/tacc/service/qwen-service/job.sh` | 作业脚本:激活课程环境,检查 GPU,选择模式,运行交接辅助循环;带 `--harness` 时还启动和停止 harness 服务 |
 | `deploy/tacc/service/qwen-service/service.json` | vLLM 参数:双卡张量并行、最大长度 16384、最多 8 个并发序列、前缀缓存、CUDA graphs |
 | `deploy/tacc/service/qwen-service/stage.sh` | 提交前的准备:复制客户端,写入模式 |
 | `deploy/tacc/service/load-test/` | 压测和故障注入作业 |
@@ -43,6 +44,8 @@
 | `service-chain.json` | 允许自动交接的剩余次数,例如 `{"remaining": 3}` |
 | `service-stop` | 存在时不再交接(用于结束链条) |
 | `fault-request` | 仅测试用:在 `validate` 模式下写入地址会杀掉 vLLM |
+| `harness-url.txt`、`harness-token.txt` | 带 `--harness` 时:当前 harness 服务的地址和令牌(权限 600),本机后端经 SSH 读取 |
+| `service-<作业号>/harness.log`、`harness-stop` | harness 服务的日志;`harness-stop` 由 `job.sh` 写入,让 harness 收尾退出 |
 
 ## 2. 启动服务
 
@@ -76,7 +79,21 @@ cd deploy/tacc/service/qwen-service && "$TCLOUD_BIN" submit
 
 **额外参数**:写在 `deploy/tacc/service/qwen-service/args.txt`(不纳入 git),一行,原样追加给 `serve.py`。例如开启交接:`--handover-lead-s 900`。测试结束后记得清空,否则会带进下一次正式运行。
 
-**作业资源**:1 个节点、2 块 GPU、1 小时上限,排除节点 10-0-1-11(在那个节点上 vLLM 无法启动,报 NVMLError)。
+**连同 harness 服务**(Task 5 的浏览器页面要用):
+
+```bash
+bash deploy/tacc/service/qwen-service/stage.sh serve --harness
+bash deploy/tacc/tools/submit-win.sh deploy/tacc/service/qwen-service
+```
+
+`--harness` 把 `app/` 和 harness 打包进 `pkg/`。作业在 vLLM 加载期间装好依赖,vLLM 就绪后启动 harness 服务,发布 `harness-url.txt` 和 `harness-token.txt`。harness 通过 `service-url.txt` 调用模型,所以交接后会自动改用继任作业的 vLLM。harness 用自己的一份运行时目录(自己的 proot 根文件系统):和 `serve.py` 共用时,`serve.py` 的 proot 一退出,harness 就看不到 `/mnt/home` 下的文件(作业 28943,探测作业 28952 证实)。harness 出错不会影响 vLLM。可选的 harness 参数写在 `harness-args.txt`(不纳入 git)。
+
+**作业资源**:1 个节点、2 块 GPU、1 小时上限,排除节点 10-0-1-10 和 10-0-1-11。这两个节点的 GPU 被 Slurm 以外的进程占着(每块 15 到 23 GiB,探测作业 28961/28962),vLLM 会内存不足(作业 28960)。
+
+**启动前的 GPU 检查**(`job.sh`):
+
+- 在 10-0-*-11 节点上,Slurm 给的 `CUDA_VISIBLE_DEVICES` 是 `2,3`,但作业里只看得到自己的两块卡,编号为 0 和 1,于是 vLLM 报 NVMLError(作业 28936、28955)。分配的编号超出可见卡数时,`job.sh` 改用 `0,1`,日志里会有一行 `CUDA_VISIBLE_DEVICES 2 3 is outside the 2 visible GPUs; using 0,1`。两台节点的 GPU UUID 不同,改号后用的仍是分配给本作业的卡(探测作业 28956/28957)。
+- 任何一块分配到的卡在启动时已用超过 2 GiB,作业立即退出(退出码 3),并记下节点和卡号,不再花 20 分钟反复内存不足。
 
 ## 3. 判断服务是否正常
 
@@ -96,7 +113,7 @@ C:/Windows/System32/OpenSSH/ssh.exe -p 30041 -i <私钥> <用户名>@gw.turing.u
 
 ## 4. 调用服务
 
-服务只能从 TACC 集群内部访问,集群没有对外的 HTTP 入口。调用方(例如 harness)必须作为另一个作业运行在集群上。
+服务只能从 TACC 集群内部访问,集群没有对外的 HTTP 入口。调用方(例如 harness)必须运行在集群上:另一个作业,或者用 `stage.sh serve --harness` 放进服务作业本身。集群外(例如本机浏览器)经 SSH 隧道访问 harness 服务,见 `app/README.md`。
 
 **直接调用**
 
@@ -151,7 +168,21 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 
 实测(作业 28583 交接给 28584):在设定时间点提交继任作业,继任作业 3 秒后在另一个节点开始,513 秒后就绪;旧作业 0.42 秒后察觉并退出,地址全程没有中断。
 
-**重要限制**:每人最多同时运行 2 个作业。如果服务和 harness 同时在运行,继任作业只能排队,等旧作业结束才启动,每小时会中断 5 到 8.5 分钟(即继任作业的启动时间)。要做到无缝交接,必须空出一个名额,例如让 harness 和服务跑在同一个作业里。这属于 issue #10 的架构决定。
+**名额限制**:每人最多同时运行 2 个作业,交接时旧作业和继任作业各占一个。所以 harness 不能再单独占一个作业,否则继任作业只能排队,每小时中断 5 到 8.5 分钟。用 `stage.sh serve --harness` 把 harness 放进服务作业(issue #10)。
+
+**带 harness 的交接**:继任作业的 vLLM 就绪后,它的 harness 随即启动并发布 `harness-url.txt`。旧作业被取代后,先等继任作业的 harness 地址出现(最多 5 分钟),再写 `harness-stop`。旧 harness 停止接收新请求,处理完正在进行的请求后退出;120 秒内没退出就由 `job.sh` 结束它的进程(只结束父进程不够:Slurm 用 `proctrack/linuxproc`,孤儿进程会在作业结束后继续占着节点,作业 28925、28943、28946 都留下过)。交接前后,旧 harness 已经通过 `service-url.txt` 改用继任作业的 vLLM。
+
+实测(作业 28971 交接给 28973,2026-11-14,表中时间为集群日志的 UTC;本机后端经 SSH 隧道每 30 秒发一个真实请求,共 30 分钟,结果在 `app/results/handover-soak-28971.json`):
+
+| 指标 | 结果 |
+|---|---|
+| 请求 | 60 个全部 HTTP 200,没有 `harness_unavailable`、`model_unavailable` |
+| 切换 | 继任 harness 17:04:38 发布;旧 harness 17:04:41 停止接收,17:04:45 退出(22 个运行,0 个错误) |
+| 切换前后 | 第 21 个请求由旧 harness 处理,但已在调用继任作业的 vLLM;第 22 个起由 28973 处理 |
+| 节点 | 28971 在 10-0-3-10,28973 在 10-0-3-11(GPU 编号改为 0,1 后正常启动) |
+| 未完成 | 23 个停在 `model_call_limit`(充电器请求 19/20),与交接无关,见 issue #21 |
+
+上一轮(28963 交接给 28964)集群侧同样无缝,但本机后端连到了旧隧道,见 `app/README.md`。
 
 **实现说明**:`serve.py` 运行在课程环境的 proot 隔离根文件系统里,那里没有 `sbatch` 和 Slurm 配置。所以 `serve.py` 只写一个 `handover-request` 文件,由 `job.sh` 在 proot 外运行的辅助循环代为提交,结果写回 `handover-result`。
 
@@ -221,7 +252,9 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 | 现象 | 原因 | 处理 |
 |---|---|---|
 | 作业在运行,但没有 `service-url.txt` | 还在启动(5 到 8.5 分钟) | 等待;超过 20 分钟仍未就绪,看 `server.log` |
-| 在节点 10-0-1-11 上启动失败,报 NVMLError | 该节点的已知问题 | `tuxiv.conf` 已排除这个节点,不要删掉 `exclude` |
+| 在 10-0-*-11 节点上启动失败,报 NVMLError | Slurm 给的 GPU 编号是 `2,3`,作业里只看得到编号 0、1 | 当前的 `job.sh` 会自动改号(日志里有 `using 0,1`);还报错说明用的是旧版本 |
+| 作业立刻退出(退出码 3),日志里有 `GPUs already in use by processes outside this job` | 节点的 GPU 被 Slurm 以外的进程占着(10-0-1-10、10-0-1-11) | `tuxiv.conf` 已排除这两个节点;新出现的节点也加进 `exclude`,并告诉助教 |
+| 交接后 harness 地址指向已停止的作业 | 旧作业没能正常收尾 | 当前的 `job.sh` 会在退出前撤回自己的 `harness-url.txt`;本机后端每次重新读取地址 |
 | 作业立刻失败,日志里有 `$'\r': command not found` | 脚本被转成了 Windows 换行(CRLF) | 仓库的 `.gitattributes` 已固定为 LF;已经出问题的文件用 `sed -i 's/\r$//' 文件` 修复 |
 | 调用方一直收到 `ServiceUnavailable` | 服务没在运行、正在重启或正在交接 | 看 `events.jsonl`。重启约 5 分钟;交接排队时取决于名额 |
 | 偶发 `StreamInterrupted` | vLLM 在生成途中退出 | 适配器把它标记为可恢复错误(`model_unavailable`),调用方可以重试整次调用;harness 如何处理以它的实现为准 |
@@ -246,3 +279,8 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 | `handover-service-28583`、`handover-successor-28584` | 作业交接 |
 | `chain-probe-28574` | 作业内能否提交继任作业 |
 | `soak-load-28587`、`soak-service-28586` | 长时间稳定性 |
+
+| 其他结果 | 内容 |
+|---|---|
+| `app/results/handover-soak-28971.json` | 带 harness 的交接(28971 交接给 28973):经浏览器后端 30 分钟、60 个请求 |
+| `app/results/handover-soak-28943.json`、`-28954.json` | 修复前的两轮(共用 proot 根文件系统、harness 进程残留) |
