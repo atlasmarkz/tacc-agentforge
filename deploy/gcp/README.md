@@ -198,6 +198,40 @@ journalctl -u agentforge-cluster -u agentforge-keeper -f   # 集群作业的提�
 
 **运行期间的代价：** 交接链会占用你的 2 个作业名额和课程 GPU。要跑评测或训练时，先停掉总开关。
 
+## 扩充知识库并切换快照
+
+线上服务的快照可以单独扩充和切换，评测继续使用冻结的旧快照。2026-11-16 这样做过一次：用掉当月全部 202 次 SerpApi 搜索，从 4 个品类、80 个详情商品扩充到 7 个品类、221 个详情商品（`snapshot_03e616f6aec6c262ff792f18`）。
+
+1. **准备工作库。** 把当前快照目录里的 `catalog.sqlite` 和 `raw/` 复制到 `<工作目录>/data/knowledge/`。快照本身就是完整的工作库，不需要原始的采集目录。
+2. **改配置。** 搜索词放在 `configs/shopping_queries.cloud.json`，属性定义放在 `configs/category_schemas.cloud.json`。`main` 用的 `configs/shopping_queries.json` 和 `configs/category_schemas.json` 不要动，评测冻结和 SFT 的品类划分依赖它们。新品类以后就不能再选作第 5 个保留品类。
+3. **发现，然后抓详情。** 密钥只放进进程的环境变量：
+
+   ```bash
+   W=<工作目录>; C=configs/shopping_queries.cloud.json; DB=$W/data/knowledge/catalog.sqlite
+   export SERPAPI_API_KEY="$(ssh <TACC 网关> 'cat ~/USERDIR/secrets/serpapi_key')"
+   python -m knowledge --data-root $W --config $C discover --catalog $DB --refresh-existing --max-attempts 20
+   python -m knowledge --data-root $W --config $C plan --catalog $DB --category-targets earbuds=14,mice=43   # 离线，不花额度
+   python -m knowledge --data-root $W --config $C collect --catalog $DB --category-targets earbuds=14,mice=43 --max-attempts <剩余额度>
+   ```
+
+   - `--refresh-existing` 会把已有的搜索词也重跑一遍。旧的页面令牌几天后可能失效，刷新后抓详情的成功率更高。
+   - 每次尝试（包括重试和"没有结果"）都计入额度。上次的失败率约 15%。
+4. **导入和导出。**
+
+   ```bash
+   python -m knowledge --data-root $W --config $C ingest --db $DB --category-schemas configs/category_schemas.cloud.json \
+     --run-dir $W/data/serpapi/run-<discover> --run-dir $W/data/serpapi/run-<details>
+   python -m knowledge --data-root $W snapshot --db $DB --snapshots-root $W/data/knowledge/snapshots
+   python -m knowledge --data-root $W verify $W/data/knowledge/snapshots/<新 ID>
+   ```
+
+5. **打包、发布、切换。** 把快照目录打成顶层目录名为快照 ID 的 zip，用 `publish-snapshot.sh` 发布到 GCS。然后在虚拟机的 `/etc/agentforge/agentforge.env` 里设置以下三项，再重启 `agentforge-harness`：
+   - `KNOWLEDGE_SNAPSHOT_ID`
+   - `KNOWLEDGE_SEED_URL`
+   - `KNOWLEDGE_SEED_SHA256`
+
+   harness 启动时会从 GCS 下载新快照，校验哈希后再安装。仓库里的 `configs/knowledge.json` 不用改。
+
 ## 检查
 
 | 检查项 | 怎么看 |
@@ -223,6 +257,7 @@ sudo -u agentforge /opt/agentforge/venv/bin/python -m app.cluster_check --backen
 - **vLLM 换节点。** `model_tunnel` 每 10 秒读一次 `service-url.txt`。地址一变，它在新的本机端口上建隧道，并改写本地地址文件；旧隧道再保留 180 秒，让旧 vLLM 上还没结束的流式请求跑完。`ModelClient` 每次重试前都会重读地址文件，所以 harness 不用重启。
 - **TACC 上没有服务。** 本地地址文件会被撤回，请求很快失败为 `model_unavailable`，页面给出提示。正在等待回答的运行不受影响，模型恢复后可以继续回答。
 - **重启后的候选集。** 检查点会保存运行状态，但知识库的 `candidate_set_id` 只存在 harness 进程的内存里（`knowledge/README.md` 第 4 节）。运行在重启后继续时，如果模型引用了旧的候选集，工具会返回可恢复的错误，模型需要重新查询商品；这会多用一次工具调用额度。
+- **继任作业启动过慢。** 2026-11-16 作业 29166 交接给 29168 时，29168 的第一次 vLLM 启动在 10-0-3-11 上加载卡住，20 分钟后才因启动超时自动重启。旧作业 1 小时到点就退出了，中间模型不可用了一段时间。值守只在"名下没有作业"时补交，看不出"作业在运行但迟迟不就绪"的情况；这类中断目前只能靠 `serve.py` 自己的超时重启来恢复。
 - **网关暂时连不上。** 不拆除现有隧道，下一轮轮询再试。
 - **限流。** 每个访问者 IP 同时最多 2 个流式请求、每分钟最多 6 次新提问；全局同时最多 8 个（对应 vLLM 的 `max-num-seqs`）。超出时返回 429，页面给出提示。参数在 `app/backend.py` 的 `Limits` 里。IP 由 Pages Function 从 `CF-Connecting-IP` 转发，只有代理密钥正确时才被信任，浏览器伪造不了。
 - **公开页面的风险。** 谁都能用，就意味着陌生人也可能占满全局并发，组员要排队。需要限制使用者时，改用下面的登录保护。

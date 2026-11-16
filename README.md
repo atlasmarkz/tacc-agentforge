@@ -48,7 +48,9 @@ The whole setup costs nothing: the VM and the bucket stay inside the GCP Always 
 - SerpApi Google Shopping collection with quota limits; the API key never enters the data.
 - SQLite with FTS5 full-text search, exported as immutable snapshots with an ID and hashes.
 - Five agent tools: list categories and attributes, filter products, retrieve evidence, offer facts, resolve evidence.
-- Current snapshot: four categories (earbuds, backpacks, chargers, keyboards), 80 products with details, 251 offers, 380 reviews, 3,525 evidence records.
+- Live snapshot `snapshot_03e616f6aec6c262ff792f18`: seven categories (earbuds, chargers, keyboards, backpacks, smartwatches, monitors, mice), 221 products with details, 607 offers, 974 reviews, 6,759 attributes, 9,416 evidence records. The cloud catalog's queries and attribute schemas are in `configs/shopping_queries.cloud.json` and `configs/category_schemas.cloud.json`.
+- Evaluation stays on the frozen pilot snapshot `snapshot_5bcd00723fb0b7589cbe50c8` (four categories, 80 detailed products), so baselines remain comparable. Smartwatches, monitors and mice are now seen by the agent and cannot be the reserved fifth (unseen) category.
+- The catalog can grow from a published snapshot: `knowledge discover` runs new shopping queries, `knowledge collect --catalog` fetches details for planned products, and the result is ingested and exported as a new snapshot ([deploy/gcp/README.md](deploy/gcp/README.md#扩充知识库并切换快照)).
 
 **Agent** ([agent/](agent/README.md))
 
