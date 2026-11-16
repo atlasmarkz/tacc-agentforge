@@ -46,6 +46,7 @@ from pydantic import Field, TypeAdapter
 from agent import AgentDependencies, AgentRequest, AgentRuntime, Issue, RunPolicy, ValidationResult
 from agent.budget import BudgetPlanValidator
 from agent.contracts import ACTION_ADAPTER, AskUser, ProposePlan
+from agent.nodes import USER_FACING_ISSUES
 from inference.client import ModelClient, ModelClientError
 from inference.model_port import VllmModelPort, decoder_schema, to_chat_messages
 from knowledge.agent_tools import build_knowledge_tools
@@ -139,6 +140,14 @@ class RecordingValidator:
             return result
         return ValidationResult(status="unavailable", proposal_fingerprint=request.proposal_fingerprint,
                                 issues=[Issue(code="validator_not_implemented", message="No budget validator yet (Task 3).")])
+
+    # The agent looks these up by name, not by type, so the wrapper must forward them: without this the
+    # evaluation never ran the preflight or the validation policy that the service does.
+    def preflight(self, constraints):
+        return self.inner.preflight(constraints) if self.inner is not None else None
+
+    def decision_policy(self, constraints=None):
+        return self.inner.decision_policy(constraints) if self.inner is not None else None
 
 
 def request_json(case: dict, hint: bool) -> dict:
@@ -262,6 +271,9 @@ async def harness_call(client, tools, snapshot_id, case, config, rep, temperatur
     elif result.clarification is not None:
         rec["outcome"] = {"kind": "ask_user", "question": result.clarification.question,
                           "required_fields": list(result.clarification.required_fields)}
+    elif result.stop_reason in USER_FACING_ISSUES:
+        # The model itself reported that it cannot answer: a valid outcome on infeasible cases, not an error.
+        rec["outcome"] = {"kind": "abstain", "reason": result.stop_reason, "message": result.message}
     else:
         rec["outcome"] = {"kind": "error", "error": result.stop_reason or result.status}
     return rec

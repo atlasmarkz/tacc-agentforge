@@ -106,7 +106,14 @@ a configured resolver failure uses the plan-only template.
 Run on the final text, using only the inputs from 3.3:
 
 1. Number whitelist: every number and amount in the text must appear among the allowed values (total,
-   remaining funds, breakdown values, unit prices, quantities, price ages). Otherwise `reason = "unlisted_number"`.
+   remaining funds, breakdown values, unit prices, quantities, price ages), or be a specification number
+   quoted from this run's evidence (`title`, `merchant`, `excerpt`, `scope`). Evidence numbers never
+   extend the allowance while they sit in a money context: a currency symbol/code, `%`, `percent`,
+   "dollars", `元`, `折` and similar markers on either side, in the source or in the text, keep the value
+   out, so a price or discount read from a source cannot be restated as a verified amount. A number
+   embedded in a token (`P20i`, `30H`) must also have that exact token in the evidence, which rejects
+   invented codes such as `SAVE30`. Numbers in the user message are never allowed. Otherwise
+   `reason = "unlisted_number"`.
 2. Citation check: every inline marker `[E1]`-style must map to an evidence ID given to the model.
    Otherwise `reason = "unknown_citation"`.
 3. Optional: minimum length, and the text must not be only whitespace.
@@ -123,6 +130,9 @@ Streaming shows the text before the check completes. Suggested UI contract: labe
 - Event order: `explain_started`, one or more `explain_delta`, `explain_done`, then `run_completed`;
   concatenated deltas equal `Explanation.text` when `fallback` is false.
 - Check failure (inject an unlisted number): fallback used, status still `completed`.
+- Specification numbers present in the evidence (`30 hours`, `Bluetooth 5.3`, `P20i`, `30H`) pass; a number
+  absent from both the plan and the evidence, a price or discount even when the evidence contains it, and a
+  digit embedded in a token that the evidence does not contain are all rejected with `unlisted_number`.
 - Model error and timeout during explanation: fallback used, status still `completed`.
 - Cancellation during explanation: no `explain_done`, status `cancelled`.
 - `RunPolicy(explain=False)` (default): event sequence and pre-existing result fields unchanged.
@@ -168,4 +178,6 @@ state errors and checkpointed user resume, plus an opt-in durable SQLite host he
 4. The agent owns the resolver/fact contracts, knowledge owns the adapter, and the host injects it.
 
 The `verified` flag denotes numeric/citation/format checks, not proof of all prose semantics.
+The whitelist keeps value-level discipline only: a digit that already occurs in the evidence can still be
+reused in a claim the evidence does not support (a wrong quantity, a made-up feature).
 The UI must continue to display authoritative amounts from the structured plan.

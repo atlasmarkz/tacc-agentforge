@@ -1,6 +1,7 @@
 """提供异步运行及问答恢复入口；状态由检查点保存，事件队列按调用隔离。"""
 
 import asyncio
+from copy import deepcopy
 from contextlib import aclosing
 from typing import AsyncIterator
 
@@ -65,6 +66,20 @@ class AgentRuntime:
                      *, cancellation: asyncio.Event | None = None) -> AgentResult:
         """匹配等待中的问题并恢复原任务；调用次数和执行时间预算不会重置。"""
         return await self._result(self.astream_resume(run_id, question_id, answer, cancellation=cancellation))
+
+    async def export_trace(self, run_id: str) -> dict:
+        """从检查点导出有界诊断；可用于等待、终态和重启后恢复的任务。"""
+        saved = await self.checkpointer.aget_tuple({"configurable": {"thread_id": f"agent:{run_id}"}})
+        if saved is None:
+            raise RunStateError("run_not_found", "Run does not exist.")
+        state = saved.checkpoint["channel_values"]
+        return deepcopy({"run_id": run_id, "snapshot_id": state["request"]["snapshot_id"],
+                         "request": state["request"], "policy": state["policy"],
+                         "pending_question": state.get("pending_question"), "issues": state.get("issues", []),
+                         "status": state.get("status"), "usage": state["usage"],
+                         "progress": state.get("progress", {}),
+                         "shopping_context": state.get("shopping_context", {}),
+                         "entries": state.get("trace", [])})
 
     async def astream_resume(self, run_id: str, question_id: str, answer: dict,
                              *, cancellation: asyncio.Event | None = None) -> AsyncIterator[AgentEvent]:

@@ -14,7 +14,7 @@ from langgraph.checkpoint.base import empty_checkpoint
 from langgraph.checkpoint.serde.types import INTERRUPT
 from langgraph.checkpoint.sqlite.aio import AsyncSqliteSaver
 
-from agent import AgentDependencies, AgentRuntime, RunPolicy, RunStateError
+from agent import AgentDependencies, AgentRuntime, ModelReply, RunPolicy, RunStateError
 from agent.checkpoint_cleanup import RetentionPolicy, cleanup_checkpoints
 from agent.checkpoints import open_checkpointer
 from agent.examples.mock_run import MockModel, MockPlanValidator, demo_request, demo_tools
@@ -36,7 +36,7 @@ def missing_budget(run_id):
     return demo_request(run_id).model_copy(update={"constraints": {"currency": "USD"}})
 
 
-@pytest.mark.parametrize("original_limit,explain", [(8, False), (2, False), (8, True)])
+@pytest.mark.parametrize("original_limit,explain", [(8, False), (4, False), (8, True)])
 def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, original_limit, explain):
     async def scenario():
         async def launch(phase, *extra):
@@ -85,21 +85,49 @@ def test_sigkill_then_fresh_process_resumes_without_replaying_search(tmp_path, o
         events = before["events"] + after["events"]
         assert [e["sequence"] for e in events] == list(range(1, len(events) + 1))
         assert after["events"][0]["type"] == "run_resumed"
-        if original_limit == 8:
-            assert result["status"] == "completed"
-            assert result["usage"]["model_calls"] == 3 and after["local_model_calls"] == 1 + int(explain)
-            assert result["usage"]["explain_model_calls"] == int(explain)
-            if explain:
-                assert result["explanation"]["verified"] and not result["explanation"]["fallback"]
-            assert result["verified_plan"]["remaining_funds"] == "50.01"
-            assert any('"observation"' in m["content"] for m in after["messages"])
-            assert any('"clarification_answer"' in m["content"] for m in after["messages"])
-        else:
-            assert result["stop_reason"] == "model_call_limit"
-            assert result["usage"]["model_calls"] == 2 and after["local_model_calls"] == 0
+        assert result["status"] == "completed"
+        assert result["usage"]["model_calls"] == 3 and after["local_model_calls"] == 1 + int(explain)
+        assert result["usage"]["explain_model_calls"] == int(explain)
+        if explain:
+            assert result["explanation"]["verified"] and not result["explanation"]["fallback"]
+        assert result["verified_plan"]["remaining_funds"] == "50.01"
+        assert any('"observation"' in m["content"] for m in after["messages"])
+        assert any('"clarification_answer"' in m["content"] for m in after["messages"])
         async with open_checkpointer(tmp_path / "checkpoints/agent.sqlite", create=False) as saver:
             saved = await saver.aget_tuple(config("restart-run"))
             assert saved.checkpoint["channel_values"].get("explanation") == result["explanation"]
+    asyncio.run(scenario())
+
+
+def test_resume_does_not_regain_spent_model_calls(tmp_path):
+    """恢复时请求更大的预算也应被忽略：保存的策略限制总额度，重开检查点不会退还已用调用。"""
+    class KeepSearching:
+        def __init__(self):
+            self.calls = 0
+
+        async def generate(self, request, context):
+            self.calls += 1
+            return ModelReply(content=json.dumps({"type": "call_tool", "tool_name": "search_products",
+                                                  "arguments": {"query": "earbuds"}}))
+
+    async def scenario():
+        path = tmp_path / "agent.sqlite"
+        limit = 4
+        # 避免重复搜索的停滞策略先于总调用上限结束探针。
+        policy = RunPolicy(max_model_calls=limit, max_no_progress_calls=20)
+        async with open_checkpointer(path) as saver:
+            waiting = await runtime(saver, policy).run(missing_budget("quota"))
+            assert waiting.status == "waiting_user" and waiting.usage.model_calls == 1
+        async with open_checkpointer(path, create=False) as saver:
+            model = KeepSearching()
+            agent = AgentRuntime(AgentDependencies(model, demo_tools(), MockPlanValidator()),
+                                 policy.model_copy(update={"max_model_calls": 100}), checkpointer=saver)
+            result = await agent.resume("quota", waiting.pending_question.question_id, {"purchase_cap": "100.00"})
+            assert result.usage.model_calls == limit
+            assert waiting.usage.model_calls + model.calls == limit, "spent calls must not be refunded"
+            assert result.status == "incomplete" and result.stop_reason == "convergence_failed"
+            assert result.verified_plan is None
+            assert result.usage.tool_calls == 1, "exploration must close at the saved limit"
     asyncio.run(scenario())
 
 
