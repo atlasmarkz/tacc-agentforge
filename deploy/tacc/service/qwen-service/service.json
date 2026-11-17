@@ -7,5 +7,5 @@
            "--dtype", "bfloat16", "--gpu-memory-utilization", "0.85",
            "--max-model-len", "16384", "--max-num-seqs", "8",
            "--max-num-batched-tokens", "4096", "--reasoning-parser", "qwen3",
-           "--enable-prefix-caching", "--disable-custom-all-reduce"]
+           "--disable-custom-all-reduce"]
 }

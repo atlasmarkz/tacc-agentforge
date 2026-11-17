@@ -1,0 +1,12 @@
+{
+  "identity": {
+    "model": "qwen3.8-27b",
+    "runtime": "evaluations.v1.model_adapter:respond",
+    "temperature": 0,
+    "thinking": false,
+    "max_output_tokens": 1024,
+    "scope": "single-call synthetic fixture baseline; not the production advisor"
+  },
+  "validator_configs": [],
+  "cache_policy": "Use a fresh serving process without prefix caching for controlled latency comparisons. Record actual serving configuration before running."
+}

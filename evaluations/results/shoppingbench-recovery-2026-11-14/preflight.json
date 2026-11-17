@@ -1,0 +1,20 @@
+{
+  "track": "ShoppingBench-voucher",
+  "commit": "204dfba767cf849fe33535e42293e8973fb017ea",
+  "tasks": 250,
+  "hashes": {
+    "src/agent/run_rollout.py": "b0e03d284ae986213a9adc31b6c8ab71057bf8de84bfac97c255ccb94a04ff7d",
+    "src/agent/run_evaluate.py": "1ca40a1c543717e57d5b9fdd4a240be56eda88e217c1f86098295cefe3fff8cc",
+    "src/search_engine/server.py": "f069f4af2f0db9ac0f96e13bf54da474e4ef58b90ccb9bf466690354eb1f44aa",
+    "src/agent/toolkit/python_execute.py": "ce3f74d45e1415da40829aa0a8693f988e4889ec5a688961caad02f298673db8",
+    "requirements.txt": "a79853d27973a844c6d4e4e7643ce3e41b2467c162f856d29be3712ffd029739",
+    "data/synthesize_voucher_test.jsonl": "2291294181d49517f898027acf9d893f9be0951c00eece4fb21640adca94d1ad",
+    "resources/documents.jsonl.gz": "a0ba9a8618ce72a7b383a6de31acf6e5bf138873da0d13ad8a1a6b0271e8e9d1"
+  },
+  "blockers": [],
+  "ready": true,
+  "corpus_contract": {
+    "sha256": "a0ba9a8618ce72a7b383a6de31acf6e5bf138873da0d13ad8a1a6b0271e8e9d1",
+    "bytes": 1471795629
+  }
+}

@@ -16,8 +16,9 @@ A plan must also be grounded: every cited evidence ID exists and is about the sa
 supports, and (when the record says which IDs the model saw) every cited ID was visible to the model.
 Errors, timeouts and limits always fail. Text quality is not judged here (needs reviewers).
 
-BVR = delivered plans whose known total exceeds the budget / delivered plans (n/m, None when m = 0).
-Amount error rate needs amounts reported by the system; no configuration reports them yet, so it is None.
+BVR = delivered plans whose known total exceeds the budget / delivered plans with a known total
+(n/m, None when m = 0). Plans with unverifiable costs are reported separately and are not
+silently treated as non-violations. Amount error rate needs amounts reported by the system.
 """
 from __future__ import annotations
 
@@ -141,7 +142,7 @@ def aggregate(scores: list[dict], records: list[dict]) -> dict:
                     "rate": round(sum(1 for s in sub if s.get(key)) / len(sub), 3) if sub else None}
 
         by_expected = {}
-        for exp in ("plan", "no_feasible_plan", "clarify"):
+        for exp in ("plan", "no_feasible_plan", "clarify", "insufficient_evidence"):
             sub = [s for s in ss if s["expected"] == exp]
             if sub:
                 by_expected[exp] = rate(sub, "success")
@@ -154,8 +155,9 @@ def aggregate(scores: list[dict], records: list[dict]) -> dict:
         report[config] = {
             "runs": len(ss), "tsr": rate(ss, "success"), "tsr_by_case": case_bootstrap(per_case),
             "tsr_by_expected": by_expected, "tsr_by_category": by_category,
-            "bvr": {"n": sum(1 for s in known_total if s["over_budget"]), "m": len(plans),
-                    "rate": (round(sum(1 for s in known_total if s["over_budget"]) / len(plans), 3) if plans else None)},
+            "bvr": {"n": sum(1 for s in known_total if s["over_budget"]), "m": len(known_total),
+                    "rate": (round(sum(1 for s in known_total if s["over_budget"]) / len(known_total), 3)
+                             if known_total else None)},
             "plans_delivered": len(plans),
             "constraint_violation": rate(plans, "violates"), "unverifiable_claim": rate(plans, "unverifiable"),
             "ungrounded_ids": rate(plans, "ungrounded"),
@@ -167,7 +169,8 @@ def aggregate(scores: list[dict], records: list[dict]) -> dict:
             "model_calls_mean": _mean(r.get("model_calls") for r in recs),
             "prompt_tokens_mean": _mean(r.get("prompt_tokens") for r in recs),
             "completion_tokens_mean": _mean(r.get("completion_tokens") for r in recs),
-            "invalid_actions": sum(r.get("invalid_actions", 0) for r in recs),
+            "invalid_actions": sum(max(int(r.get("invalid_actions") or 0),
+                                       1 if r.get("stop_reason") == "invalid_action" else 0) for r in recs),
         }
     return report
 

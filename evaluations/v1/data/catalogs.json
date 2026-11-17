@@ -1,0 +1,3146 @@
+{
+  "v1-dev-00": {
+    "catalog_id": "v1-dev-00",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-00-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-dev-00-earbuds-0"
+      },
+      {
+        "offer_id": "v1-dev-00-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-00-earbuds-1"
+      },
+      {
+        "offer_id": "v1-dev-00-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-00-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-00-earbuds-0",
+        "offer_id": "v1-dev-00-earbuds-0",
+        "text": "{\"offer_id\": \"v1-dev-00-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-dev-00-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-00-earbuds-1",
+        "offer_id": "v1-dev-00-earbuds-1",
+        "text": "{\"offer_id\": \"v1-dev-00-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-00-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-00-earbuds-2",
+        "offer_id": "v1-dev-00-earbuds-2",
+        "text": "{\"offer_id\": \"v1-dev-00-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-00-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-01": {
+    "catalog_id": "v1-dev-01",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-01-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-dev-01-chargers-0"
+      },
+      {
+        "offer_id": "v1-dev-01-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-01-chargers-1"
+      },
+      {
+        "offer_id": "v1-dev-01-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-01-chargers-2"
+      },
+      {
+        "offer_id": "v1-dev-01-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-dev-01-keyboards-0"
+      },
+      {
+        "offer_id": "v1-dev-01-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-01-keyboards-1"
+      },
+      {
+        "offer_id": "v1-dev-01-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-01-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-01-chargers-0",
+        "offer_id": "v1-dev-01-chargers-0",
+        "text": "{\"offer_id\": \"v1-dev-01-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-dev-01-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-01-chargers-1",
+        "offer_id": "v1-dev-01-chargers-1",
+        "text": "{\"offer_id\": \"v1-dev-01-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-01-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-01-chargers-2",
+        "offer_id": "v1-dev-01-chargers-2",
+        "text": "{\"offer_id\": \"v1-dev-01-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-01-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-01-keyboards-0",
+        "offer_id": "v1-dev-01-keyboards-0",
+        "text": "{\"offer_id\": \"v1-dev-01-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-dev-01-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-01-keyboards-1",
+        "offer_id": "v1-dev-01-keyboards-1",
+        "text": "{\"offer_id\": \"v1-dev-01-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-01-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-01-keyboards-2",
+        "offer_id": "v1-dev-01-keyboards-2",
+        "text": "{\"offer_id\": \"v1-dev-01-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-01-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-02": {
+    "catalog_id": "v1-dev-02",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-02-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-dev-02-keyboards-0"
+      },
+      {
+        "offer_id": "v1-dev-02-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-02-keyboards-1"
+      },
+      {
+        "offer_id": "v1-dev-02-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-02-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-02-keyboards-0",
+        "offer_id": "v1-dev-02-keyboards-0",
+        "text": "{\"offer_id\": \"v1-dev-02-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-dev-02-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-02-keyboards-1",
+        "offer_id": "v1-dev-02-keyboards-1",
+        "text": "{\"offer_id\": \"v1-dev-02-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-02-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-02-keyboards-2",
+        "offer_id": "v1-dev-02-keyboards-2",
+        "text": "{\"offer_id\": \"v1-dev-02-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-02-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-03": {
+    "catalog_id": "v1-dev-03",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-03-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-dev-03-backpacks-0"
+      },
+      {
+        "offer_id": "v1-dev-03-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-03-backpacks-1"
+      },
+      {
+        "offer_id": "v1-dev-03-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-03-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-03-backpacks-0",
+        "offer_id": "v1-dev-03-backpacks-0",
+        "text": "{\"offer_id\": \"v1-dev-03-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-dev-03-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-03-backpacks-1",
+        "offer_id": "v1-dev-03-backpacks-1",
+        "text": "{\"offer_id\": \"v1-dev-03-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-03-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-03-backpacks-2",
+        "offer_id": "v1-dev-03-backpacks-2",
+        "text": "{\"offer_id\": \"v1-dev-03-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-03-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-04": {
+    "catalog_id": "v1-dev-04",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-04-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-dev-04-earbuds-0",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-dev-04-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-04-earbuds-1",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-dev-04-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-04-earbuds-2",
+        "stale": true
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-04-earbuds-0",
+        "offer_id": "v1-dev-04-earbuds-0",
+        "text": "{\"offer_id\": \"v1-dev-04-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-dev-04-earbuds-0\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-04-earbuds-1",
+        "offer_id": "v1-dev-04-earbuds-1",
+        "text": "{\"offer_id\": \"v1-dev-04-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-04-earbuds-1\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-04-earbuds-2",
+        "offer_id": "v1-dev-04-earbuds-2",
+        "text": "{\"offer_id\": \"v1-dev-04-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-04-earbuds-2\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-05": {
+    "catalog_id": "v1-dev-05",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-05-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-dev-05-chargers-0"
+      },
+      {
+        "offer_id": "v1-dev-05-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-05-chargers-1"
+      },
+      {
+        "offer_id": "v1-dev-05-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-05-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-05-chargers-0",
+        "offer_id": "v1-dev-05-chargers-0",
+        "text": "{\"offer_id\": \"v1-dev-05-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-dev-05-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-05-chargers-1",
+        "offer_id": "v1-dev-05-chargers-1",
+        "text": "{\"offer_id\": \"v1-dev-05-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-05-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-05-chargers-2",
+        "offer_id": "v1-dev-05-chargers-2",
+        "text": "{\"offer_id\": \"v1-dev-05-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-05-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-06": {
+    "catalog_id": "v1-dev-06",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-06-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-dev-06-keyboards-0"
+      },
+      {
+        "offer_id": "v1-dev-06-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-06-keyboards-1"
+      },
+      {
+        "offer_id": "v1-dev-06-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-dev-06-keyboards-2"
+      },
+      {
+        "offer_id": "v1-dev-06-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-dev-06-backpacks-0"
+      },
+      {
+        "offer_id": "v1-dev-06-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-06-backpacks-1"
+      },
+      {
+        "offer_id": "v1-dev-06-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-06-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-06-keyboards-0",
+        "offer_id": "v1-dev-06-keyboards-0",
+        "text": "{\"offer_id\": \"v1-dev-06-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-dev-06-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-06-keyboards-1",
+        "offer_id": "v1-dev-06-keyboards-1",
+        "text": "{\"offer_id\": \"v1-dev-06-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-06-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-06-keyboards-2",
+        "offer_id": "v1-dev-06-keyboards-2",
+        "text": "{\"offer_id\": \"v1-dev-06-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-dev-06-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-06-backpacks-0",
+        "offer_id": "v1-dev-06-backpacks-0",
+        "text": "{\"offer_id\": \"v1-dev-06-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-dev-06-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-06-backpacks-1",
+        "offer_id": "v1-dev-06-backpacks-1",
+        "text": "{\"offer_id\": \"v1-dev-06-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-06-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-06-backpacks-2",
+        "offer_id": "v1-dev-06-backpacks-2",
+        "text": "{\"offer_id\": \"v1-dev-06-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-06-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-07": {
+    "catalog_id": "v1-dev-07",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-07-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-dev-07-backpacks-0"
+      },
+      {
+        "offer_id": "v1-dev-07-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-07-backpacks-1"
+      },
+      {
+        "offer_id": "v1-dev-07-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-dev-07-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-07-backpacks-0",
+        "offer_id": "v1-dev-07-backpacks-0",
+        "text": "{\"offer_id\": \"v1-dev-07-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-dev-07-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-07-backpacks-1",
+        "offer_id": "v1-dev-07-backpacks-1",
+        "text": "{\"offer_id\": \"v1-dev-07-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-07-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-07-backpacks-2",
+        "offer_id": "v1-dev-07-backpacks-2",
+        "text": "{\"offer_id\": \"v1-dev-07-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-dev-07-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-08": {
+    "catalog_id": "v1-dev-08",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-08-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-dev-08-earbuds-0"
+      },
+      {
+        "offer_id": "v1-dev-08-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-08-earbuds-1"
+      },
+      {
+        "offer_id": "v1-dev-08-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-dev-08-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-08-earbuds-0",
+        "offer_id": "v1-dev-08-earbuds-0",
+        "text": "{\"offer_id\": \"v1-dev-08-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-dev-08-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-08-earbuds-1",
+        "offer_id": "v1-dev-08-earbuds-1",
+        "text": "{\"offer_id\": \"v1-dev-08-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-08-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-08-earbuds-2",
+        "offer_id": "v1-dev-08-earbuds-2",
+        "text": "{\"offer_id\": \"v1-dev-08-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-dev-08-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-dev-09": {
+    "catalog_id": "v1-dev-09",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-dev-09-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-dev-09-chargers-0"
+      },
+      {
+        "offer_id": "v1-dev-09-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-09-chargers-1"
+      },
+      {
+        "offer_id": "v1-dev-09-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-dev-09-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-dev-09-chargers-0",
+        "offer_id": "v1-dev-09-chargers-0",
+        "text": "{\"offer_id\": \"v1-dev-09-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-dev-09-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-09-chargers-1",
+        "offer_id": "v1-dev-09-chargers-1",
+        "text": "{\"offer_id\": \"v1-dev-09-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-09-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-dev-09-chargers-2",
+        "offer_id": "v1-dev-09-chargers-2",
+        "text": "{\"offer_id\": \"v1-dev-09-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-dev-09-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-00": {
+    "catalog_id": "v1-heldout-00",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-00-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-00-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-00-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-00-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-00-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-00-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-00-earbuds-0",
+        "offer_id": "v1-heldout-00-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-00-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-00-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-00-earbuds-1",
+        "offer_id": "v1-heldout-00-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-00-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-00-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-00-earbuds-2",
+        "offer_id": "v1-heldout-00-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-00-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-00-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-01": {
+    "catalog_id": "v1-heldout-01",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-01-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-01-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-01-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-01-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-01-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-01-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-01-earbuds-0",
+        "offer_id": "v1-heldout-01-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-01-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-01-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-01-earbuds-1",
+        "offer_id": "v1-heldout-01-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-01-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-01-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-01-earbuds-2",
+        "offer_id": "v1-heldout-01-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-01-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-01-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-02": {
+    "catalog_id": "v1-heldout-02",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-02-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-02-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-02-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-02-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-02-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-02-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-02-earbuds-0",
+        "offer_id": "v1-heldout-02-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-02-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-02-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-02-earbuds-1",
+        "offer_id": "v1-heldout-02-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-02-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-02-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-02-earbuds-2",
+        "offer_id": "v1-heldout-02-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-02-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-02-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-03": {
+    "catalog_id": "v1-heldout-03",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-03-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-03-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-03-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-earbuds-2"
+      },
+      {
+        "offer_id": "v1-heldout-03-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-03-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-03-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-03-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-03-earbuds-0",
+        "offer_id": "v1-heldout-03-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-03-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-03-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-03-earbuds-1",
+        "offer_id": "v1-heldout-03-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-03-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-03-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-03-earbuds-2",
+        "offer_id": "v1-heldout-03-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-03-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-03-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-03-chargers-0",
+        "offer_id": "v1-heldout-03-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-03-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-03-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-03-chargers-1",
+        "offer_id": "v1-heldout-03-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-03-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-03-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-03-chargers-2",
+        "offer_id": "v1-heldout-03-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-03-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-03-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-04": {
+    "catalog_id": "v1-heldout-04",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-04-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-04-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-04-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-04-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-04-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-04-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-04-earbuds-0",
+        "offer_id": "v1-heldout-04-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-04-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-04-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-04-earbuds-1",
+        "offer_id": "v1-heldout-04-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-04-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-04-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-04-earbuds-2",
+        "offer_id": "v1-heldout-04-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-04-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-04-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-05": {
+    "catalog_id": "v1-heldout-05",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-05-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-05-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-05-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-earbuds-2"
+      },
+      {
+        "offer_id": "v1-heldout-05-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-05-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-05-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-05-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-05-earbuds-0",
+        "offer_id": "v1-heldout-05-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-05-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-05-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-05-earbuds-1",
+        "offer_id": "v1-heldout-05-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-05-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-05-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-05-earbuds-2",
+        "offer_id": "v1-heldout-05-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-05-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-05-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-05-keyboards-0",
+        "offer_id": "v1-heldout-05-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-05-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-05-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-05-keyboards-1",
+        "offer_id": "v1-heldout-05-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-05-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-05-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-05-keyboards-2",
+        "offer_id": "v1-heldout-05-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-05-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-05-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-06": {
+    "catalog_id": "v1-heldout-06",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-06-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-06-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-06-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-06-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-06-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-06-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-06-earbuds-0",
+        "offer_id": "v1-heldout-06-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-06-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-06-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-06-earbuds-1",
+        "offer_id": "v1-heldout-06-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-06-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-06-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-06-earbuds-2",
+        "offer_id": "v1-heldout-06-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-06-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-06-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-07": {
+    "catalog_id": "v1-heldout-07",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-07-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-07-earbuds-0",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-07-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-07-earbuds-1",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-07-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-07-earbuds-2",
+        "stale": true
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-07-earbuds-0",
+        "offer_id": "v1-heldout-07-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-07-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-07-earbuds-0\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-07-earbuds-1",
+        "offer_id": "v1-heldout-07-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-07-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-07-earbuds-1\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-07-earbuds-2",
+        "offer_id": "v1-heldout-07-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-07-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-07-earbuds-2\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-08": {
+    "catalog_id": "v1-heldout-08",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-08-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-08-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-08-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-08-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-08-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-08-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-08-chargers-0",
+        "offer_id": "v1-heldout-08-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-08-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-08-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-08-chargers-1",
+        "offer_id": "v1-heldout-08-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-08-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-08-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-08-chargers-2",
+        "offer_id": "v1-heldout-08-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-08-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-08-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-09": {
+    "catalog_id": "v1-heldout-09",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-09-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-09-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-09-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-09-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-09-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-09-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-09-chargers-0",
+        "offer_id": "v1-heldout-09-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-09-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-09-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-09-chargers-1",
+        "offer_id": "v1-heldout-09-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-09-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-09-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-09-chargers-2",
+        "offer_id": "v1-heldout-09-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-09-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-09-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-10": {
+    "catalog_id": "v1-heldout-10",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-10-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-10-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-10-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-10-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-10-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-10-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-10-chargers-0",
+        "offer_id": "v1-heldout-10-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-10-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-10-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-10-chargers-1",
+        "offer_id": "v1-heldout-10-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-10-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-10-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-10-chargers-2",
+        "offer_id": "v1-heldout-10-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-10-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-10-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-11": {
+    "catalog_id": "v1-heldout-11",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-11-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-11-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-11-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-11-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-11-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-11-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-11-chargers-0",
+        "offer_id": "v1-heldout-11-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-11-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-11-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-11-chargers-1",
+        "offer_id": "v1-heldout-11-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-11-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-11-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-11-chargers-2",
+        "offer_id": "v1-heldout-11-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-11-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-11-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-12": {
+    "catalog_id": "v1-heldout-12",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-12-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-12-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-12-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-12-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-12-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-12-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-12-chargers-0",
+        "offer_id": "v1-heldout-12-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-12-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-12-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-12-chargers-1",
+        "offer_id": "v1-heldout-12-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-12-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-12-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-12-chargers-2",
+        "offer_id": "v1-heldout-12-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-12-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-12-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-13": {
+    "catalog_id": "v1-heldout-13",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-13-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-13-chargers-0",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-13-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-13-chargers-1",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-13-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-13-chargers-2",
+        "stale": true
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-13-chargers-0",
+        "offer_id": "v1-heldout-13-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-13-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-13-chargers-0\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-13-chargers-1",
+        "offer_id": "v1-heldout-13-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-13-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-13-chargers-1\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-13-chargers-2",
+        "offer_id": "v1-heldout-13-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-13-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-13-chargers-2\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-14": {
+    "catalog_id": "v1-heldout-14",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-14-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-14-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-14-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-14-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-14-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-14-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-14-chargers-0",
+        "offer_id": "v1-heldout-14-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-14-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-14-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-14-chargers-1",
+        "offer_id": "v1-heldout-14-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-14-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-14-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-14-chargers-2",
+        "offer_id": "v1-heldout-14-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-14-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-14-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-15": {
+    "catalog_id": "v1-heldout-15",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-15-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-15-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-15-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-15-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-15-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-15-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-15-chargers-0",
+        "offer_id": "v1-heldout-15-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-15-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-15-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-15-chargers-1",
+        "offer_id": "v1-heldout-15-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-15-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-15-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-15-chargers-2",
+        "offer_id": "v1-heldout-15-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-15-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-15-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-16": {
+    "catalog_id": "v1-heldout-16",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-16-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-16-keyboards-0",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-16-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-16-keyboards-1",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-16-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-16-keyboards-2",
+        "stale": true
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-16-keyboards-0",
+        "offer_id": "v1-heldout-16-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-16-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-16-keyboards-0\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-16-keyboards-1",
+        "offer_id": "v1-heldout-16-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-16-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-16-keyboards-1\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-16-keyboards-2",
+        "offer_id": "v1-heldout-16-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-16-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-16-keyboards-2\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-17": {
+    "catalog_id": "v1-heldout-17",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-17-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-17-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-17-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-17-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-17-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-17-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-17-keyboards-0",
+        "offer_id": "v1-heldout-17-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-17-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-17-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-17-keyboards-1",
+        "offer_id": "v1-heldout-17-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-17-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-17-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-17-keyboards-2",
+        "offer_id": "v1-heldout-17-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-17-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-17-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-18": {
+    "catalog_id": "v1-heldout-18",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-18-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-18-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-18-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-18-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-18-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-18-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-18-keyboards-0",
+        "offer_id": "v1-heldout-18-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-18-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-18-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-18-keyboards-1",
+        "offer_id": "v1-heldout-18-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-18-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-18-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-18-keyboards-2",
+        "offer_id": "v1-heldout-18-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-18-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-18-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-19": {
+    "catalog_id": "v1-heldout-19",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-19-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-19-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-19-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-19-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-19-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-19-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-19-keyboards-0",
+        "offer_id": "v1-heldout-19-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-19-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-19-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-19-keyboards-1",
+        "offer_id": "v1-heldout-19-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-19-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-19-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-19-keyboards-2",
+        "offer_id": "v1-heldout-19-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-19-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-19-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-20": {
+    "catalog_id": "v1-heldout-20",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-20-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-20-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-20-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-20-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-20-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-20-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-20-keyboards-0",
+        "offer_id": "v1-heldout-20-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-20-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-20-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-20-keyboards-1",
+        "offer_id": "v1-heldout-20-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-20-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-20-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-20-keyboards-2",
+        "offer_id": "v1-heldout-20-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-20-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-20-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-21": {
+    "catalog_id": "v1-heldout-21",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-21-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-21-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-21-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-21-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-21-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-21-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-21-keyboards-0",
+        "offer_id": "v1-heldout-21-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-21-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-21-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-21-keyboards-1",
+        "offer_id": "v1-heldout-21-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-21-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-21-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-21-keyboards-2",
+        "offer_id": "v1-heldout-21-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-21-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-21-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-22": {
+    "catalog_id": "v1-heldout-22",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-22-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-22-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-22-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-22-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-22-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-22-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-22-keyboards-0",
+        "offer_id": "v1-heldout-22-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-22-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-22-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-22-keyboards-1",
+        "offer_id": "v1-heldout-22-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-22-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-22-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-22-keyboards-2",
+        "offer_id": "v1-heldout-22-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-22-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-22-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-23": {
+    "catalog_id": "v1-heldout-23",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-23-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-23-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-23-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-23-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-23-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-23-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-23-keyboards-0",
+        "offer_id": "v1-heldout-23-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-23-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-23-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-23-keyboards-1",
+        "offer_id": "v1-heldout-23-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-23-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-23-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-23-keyboards-2",
+        "offer_id": "v1-heldout-23-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-23-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-23-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-24": {
+    "catalog_id": "v1-heldout-24",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-24-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-24-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-24-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-backpacks-2"
+      },
+      {
+        "offer_id": "v1-heldout-24-chargers-0",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-chargers-0"
+      },
+      {
+        "offer_id": "v1-heldout-24-chargers-1",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-chargers-1"
+      },
+      {
+        "offer_id": "v1-heldout-24-chargers-2",
+        "category": "chargers",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "power_w": 65
+        },
+        "fact_evidence_id": "ev-v1-heldout-24-chargers-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-24-backpacks-0",
+        "offer_id": "v1-heldout-24-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-24-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-24-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-24-backpacks-1",
+        "offer_id": "v1-heldout-24-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-24-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-24-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-24-backpacks-2",
+        "offer_id": "v1-heldout-24-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-24-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-24-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-24-chargers-0",
+        "offer_id": "v1-heldout-24-chargers-0",
+        "text": "{\"offer_id\": \"v1-heldout-24-chargers-0\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": null}, \"fact_evidence_id\": \"ev-v1-heldout-24-chargers-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-24-chargers-1",
+        "offer_id": "v1-heldout-24-chargers-1",
+        "text": "{\"offer_id\": \"v1-heldout-24-chargers-1\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-24-chargers-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-24-chargers-2",
+        "offer_id": "v1-heldout-24-chargers-2",
+        "text": "{\"offer_id\": \"v1-heldout-24-chargers-2\", \"category\": \"chargers\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"power_w\": 65}, \"fact_evidence_id\": \"ev-v1-heldout-24-chargers-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-25": {
+    "catalog_id": "v1-heldout-25",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-25-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-25-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-25-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-25-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-25-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-25-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-25-backpacks-0",
+        "offer_id": "v1-heldout-25-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-25-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-25-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-25-backpacks-1",
+        "offer_id": "v1-heldout-25-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-25-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-25-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-25-backpacks-2",
+        "offer_id": "v1-heldout-25-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-25-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-25-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-26": {
+    "catalog_id": "v1-heldout-26",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-26-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-26-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-26-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-backpacks-2"
+      },
+      {
+        "offer_id": "v1-heldout-26-earbuds-0",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-earbuds-0"
+      },
+      {
+        "offer_id": "v1-heldout-26-earbuds-1",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-earbuds-1"
+      },
+      {
+        "offer_id": "v1-heldout-26-earbuds-2",
+        "category": "earbuds",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "anc": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-26-earbuds-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-26-backpacks-0",
+        "offer_id": "v1-heldout-26-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-26-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-26-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-26-backpacks-1",
+        "offer_id": "v1-heldout-26-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-26-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-26-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-26-backpacks-2",
+        "offer_id": "v1-heldout-26-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-26-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-26-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-26-earbuds-0",
+        "offer_id": "v1-heldout-26-earbuds-0",
+        "text": "{\"offer_id\": \"v1-heldout-26-earbuds-0\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": null}, \"fact_evidence_id\": \"ev-v1-heldout-26-earbuds-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-26-earbuds-1",
+        "offer_id": "v1-heldout-26-earbuds-1",
+        "text": "{\"offer_id\": \"v1-heldout-26-earbuds-1\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-26-earbuds-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-26-earbuds-2",
+        "offer_id": "v1-heldout-26-earbuds-2",
+        "text": "{\"offer_id\": \"v1-heldout-26-earbuds-2\", \"category\": \"earbuds\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"anc\": true}, \"fact_evidence_id\": \"ev-v1-heldout-26-earbuds-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-27": {
+    "catalog_id": "v1-heldout-27",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-27-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-27-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-27-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-27-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-27-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": null,
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-27-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-27-backpacks-0",
+        "offer_id": "v1-heldout-27-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-27-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-27-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-27-backpacks-1",
+        "offer_id": "v1-heldout-27-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-27-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-27-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-27-backpacks-2",
+        "offer_id": "v1-heldout-27-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-27-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": null, \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-27-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-28": {
+    "catalog_id": "v1-heldout-28",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-28-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-28-backpacks-0",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-28-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-28-backpacks-1",
+        "stale": true
+      },
+      {
+        "offer_id": "v1-heldout-28-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-28-backpacks-2",
+        "stale": true
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-28-backpacks-0",
+        "offer_id": "v1-heldout-28-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-28-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-28-backpacks-0\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-28-backpacks-1",
+        "offer_id": "v1-heldout-28-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-28-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-28-backpacks-1\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-28-backpacks-2",
+        "offer_id": "v1-heldout-28-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-28-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-28-backpacks-2\", \"stale\": true}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-29": {
+    "catalog_id": "v1-heldout-29",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-29-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-29-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-29-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-backpacks-2"
+      },
+      {
+        "offer_id": "v1-heldout-29-keyboards-0",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-keyboards-0"
+      },
+      {
+        "offer_id": "v1-heldout-29-keyboards-1",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-keyboards-1"
+      },
+      {
+        "offer_id": "v1-heldout-29-keyboards-2",
+        "category": "keyboards",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "mechanical": true
+        },
+        "fact_evidence_id": "ev-v1-heldout-29-keyboards-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-29-backpacks-0",
+        "offer_id": "v1-heldout-29-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-29-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-29-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-29-backpacks-1",
+        "offer_id": "v1-heldout-29-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-29-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-29-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-29-backpacks-2",
+        "offer_id": "v1-heldout-29-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-29-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-29-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-29-keyboards-0",
+        "offer_id": "v1-heldout-29-keyboards-0",
+        "text": "{\"offer_id\": \"v1-heldout-29-keyboards-0\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": null}, \"fact_evidence_id\": \"ev-v1-heldout-29-keyboards-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-29-keyboards-1",
+        "offer_id": "v1-heldout-29-keyboards-1",
+        "text": "{\"offer_id\": \"v1-heldout-29-keyboards-1\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-29-keyboards-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-29-keyboards-2",
+        "offer_id": "v1-heldout-29-keyboards-2",
+        "text": "{\"offer_id\": \"v1-heldout-29-keyboards-2\", \"category\": \"keyboards\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"mechanical\": true}, \"fact_evidence_id\": \"ev-v1-heldout-29-keyboards-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-30": {
+    "catalog_id": "v1-heldout-30",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-30-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-30-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-30-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-30-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-30-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-30-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-30-backpacks-0",
+        "offer_id": "v1-heldout-30-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-30-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-30-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-30-backpacks-1",
+        "offer_id": "v1-heldout-30-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-30-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-30-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-30-backpacks-2",
+        "offer_id": "v1-heldout-30-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-30-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-30-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  },
+  "v1-heldout-31": {
+    "catalog_id": "v1-heldout-31",
+    "synthetic": true,
+    "offers": [
+      {
+        "offer_id": "v1-heldout-31-backpacks-0",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "10.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": null
+        },
+        "fact_evidence_id": "ev-v1-heldout-31-backpacks-0"
+      },
+      {
+        "offer_id": "v1-heldout-31-backpacks-1",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "15.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-31-backpacks-1"
+      },
+      {
+        "offer_id": "v1-heldout-31-backpacks-2",
+        "category": "backpacks",
+        "currency": "USD",
+        "price": "20.00",
+        "shipping": "2.00",
+        "shipping_group": "merchant-A",
+        "tax": "1.00",
+        "attributes": {
+          "capacity_l": 25
+        },
+        "fact_evidence_id": "ev-v1-heldout-31-backpacks-2"
+      }
+    ],
+    "evidence": [
+      {
+        "evidence_id": "ev-v1-heldout-31-backpacks-0",
+        "offer_id": "v1-heldout-31-backpacks-0",
+        "text": "{\"offer_id\": \"v1-heldout-31-backpacks-0\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"10.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": null}, \"fact_evidence_id\": \"ev-v1-heldout-31-backpacks-0\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-31-backpacks-1",
+        "offer_id": "v1-heldout-31-backpacks-1",
+        "text": "{\"offer_id\": \"v1-heldout-31-backpacks-1\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"15.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-31-backpacks-1\"}",
+        "source": "synthetic://controlled-fixture"
+      },
+      {
+        "evidence_id": "ev-v1-heldout-31-backpacks-2",
+        "offer_id": "v1-heldout-31-backpacks-2",
+        "text": "{\"offer_id\": \"v1-heldout-31-backpacks-2\", \"category\": \"backpacks\", \"currency\": \"USD\", \"price\": \"20.00\", \"shipping\": \"2.00\", \"shipping_group\": \"merchant-A\", \"tax\": \"1.00\", \"attributes\": {\"capacity_l\": 25}, \"fact_evidence_id\": \"ev-v1-heldout-31-backpacks-2\"}",
+        "source": "synthetic://controlled-fixture"
+      }
+    ]
+  }
+}

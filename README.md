@@ -43,3 +43,5 @@ Once the service is ready, run `python -m app.backend` and open [the local app](
 ## Evaluation
 
 The full agent scored **42 successes in 96 attempts** on the frozen four-category held-out baseline. That result is tied to the recorded code and catalog snapshot. The [baseline report](docs/experiments/baseline.md) records the scoring rules, latency, and failure traces.
+
+The v1 benchmark implementation and runbook are in [evaluations/README.md](evaluations/README.md); the design rationale is in [docs/benchmark-design.md](docs/benchmark-design.md).

@@ -1,211 +1,234 @@
-# 评测:用例、独立枚举器、评分与 baseline(Task 6)
+# Benchmark 运行手册（v1）
 
-指标定义见 [docs/evaluation-metrics.md](../docs/evaluation-metrics.md)。本目录实现其中能够自动化的部分,并说明哪些部分还需要人工或其他模块完成。
+本目录是项目 benchmark 的唯一入口。设计背景、数据契约和未完成项见
+[benchmark-design](../docs/benchmark-design.md)，指标定义见
+[evaluation-metrics](../docs/evaluation-metrics.md)。旧 v0 用例和结果说明已归档到
+[README-v0.md](README-v0.md)，不要用 v0 的 TSR 口径解释 v1。
 
-## 1. 文件
+当前范围：**10 个开发用例 + 32 个保留用例 + 8 个待冻结释放的第五类用例**，6 个配置
+`B0/B1/B2/B3/A1/A2`，统一用独立 oracle 和确定性规则评分。正式计划是 40 个 heldout
+用例 × 6 配置 × 3 次 = **720 次尝试**。数据是显式标注的 synthetic fixture，不是
+SerpApi 真实商品，也不是浏览器端到端结果。
 
-| 文件 | 作用 |
-|---|---|
-| `cases.jsonl` | 42 个用例:10 个开发用例,32 个保留用例 |
-| `catalog.py` | 独立枚举器:直接读冻结快照,为每个用例算出标准答案 |
-| `score.py` | 确定性评分:TSR、BVR、约束违反、不可验证的声明、不存在的 ID、按用例的 bootstrap 区间 |
-| `run.py` | baseline 运行器:在 TACC 上依次运行各配置并评分 |
-| `freeze.py`、`freeze.json` | 冻结清单:被评测系统的每个文件的哈希,以及解析后的运行策略和模型设置 |
-| `retrieval.py` | 检索指标:构建待标注的证据池,标注后计算 Recall@5 和 MRR@5 |
-| `relevance_pool.jsonl` | 待标注的证据池,`relevant` 字段需人工填写 |
-| `results/` | 每次运行的原始记录、评分和报告 |
+---
 
-## 2. 用例
-
-**组成**:4 个品类(耳机、充电器、键盘、双肩包),中英文混合。
-
-| 划分 | 数量 | 应给方案 | 不存在可行方案 | 应追问预算 |
-|---|---|---|---|---|
-| 开发集 | 10 | 6 | 2 | 2 |
-| 保留集 | 32 | 20 | 8 | 4 |
-
-计划中还有第五个品类的 8 个保留用例,按 `tasks/plan.md` 要在系统冻结后才加入,而且需要用 SerpApi 采集新数据,所以本次没有包含。
-
-**每个用例包含**:
-- 系统看到的内容:用户原话(`message`)和结构化约束(币种、预算)。
-- 评分用的规格:品类、硬性要求(属性、比较方式、取值、单位)、预算口径、检索查询。
-
-**标准答案由枚举器计算,不是人为指定**:
-- 存在至少一个可验证的可行报价时,期望给出方案。
-- 一个都没有时,期望说明无法满足。
-- 缺少预算时,期望追问预算。
-
-编写用例时有几个预期和计算结果不一致,一律以计算结果为准。
-
-## 3. 预算口径
-
-在这个快照里,251 个报价的税费全部未知,"价格是否含税"和配送范围也全部未知。如果严格要求"所有必需费用都已知才能确认买得起",那么没有任何用例能有可验证的方案,TSR 就失去意义。
-
-因此每个用例都写明预算口径。目前只定义了 `pre_tax`(不含税):总价 = 单价 × 数量 + 运费;运费未知的报价无法被证明在预算内。
-
-**项目已决定按不含税比较**,预算校验器(`agent/budget.py`)的默认口径也是 `pre_tax`,与这里一致。
-
-## 4. 独立枚举器
-
-`catalog.py` 用自己的代码直接读取快照里的 SQLite 文件,不经过系统的检索、工具或校验器。对一个用例,它把该品类的每个报价分成四类:
-
-| 类别 | 条件 |
-|---|---|
-| 可行 | 费用已知且在预算内,所有硬性要求已知且满足 |
-| 超预算 | 费用已知且超出预算 |
-| 违反要求 | 某个硬性要求已知且不满足 |
-| 无法验证 | 费用或某个要求的属性未知,并且没有因前两类被排除 |
-
-细节:
-- 金额用 Decimal 精确计算,预算边界含等号。
-- 单位不一致时不做换算,判为未知。
-- 文本类要求按小写子串匹配。
-
-**评测衡量的是"相对冻结快照是否正确",不是"在现实中是否正确"**。快照里的数据错误会被标准答案继承。已发现的例子:Onn Mini Sticks 标注的是 "Environmental Noise Canceling"(通话降噪,不是主动降噪),但知识库记成了 `anc = true`。
-
-## 5. 评分规则
-
-**成功(TSR 的分子)按期望结果判定**:
-
-| 期望 | 判为成功 | 判为失败 |
-|---|---|---|
-| 给出方案 | 方案中每一项都可行,数量正确 | 追问(不必要的澄清)、超预算、违反要求、无法验证的声明、不存在的 ID、品类错误、数量错误 |
-| 不存在可行方案 | 没有给出方案(说明或追问) | 给出任何方案 |
-| 追问预算 | 追问的字段里包含预算 | 给出方案;追问了别的 |
-
-错误、超时、超出调用上限一律判失败。
-
-**其他指标**:
-- **BVR**:已交付方案中,已知总价超出预算的数量 / 已交付方案数,以 n/m 报告。没有方案时为"不适用",不报 0。
-- **约束违反率、无法验证声明率、不存在 ID 率**:分母都是已交付方案数。
-- **金额错误率**:需要系统报告金额,目前没有任何配置报告,所以为"不适用"。
-- **区间**:TSR 的 95% 区间按用例重采样(同一用例的重复留在一起);配置之间报告按用例配对的差值。
-
-**不做评判的部分**:追问或解释的文字质量,需要人工评审。
-
-## 6. 配置
-
-| 配置 | 模型拿到的内容 | 执行方式 |
-|---|---|---|
-| B0 | 同一组结构化候选:该品类在预算内的前 10 个候选,包括属性、报价和价格 | 单次调用 |
-| B1 | B0 加上关键词检索的前 5 条证据 | 单次调用 |
-| B2 | B0 加上过滤检索的前 5 条证据 | 单次调用 |
-| B3 | 部署形态的 harness:真实知识库工具,设置与部署的服务相同(`configs/agent.yaml` 的 `tacc-fast`) | 多步工具循环 |
-| B3v | B3 加上真实的预算校验器(`agent/budget.py`,不含税口径) | 多步工具循环;只有校验器批准的方案才算交付 |
-| B3h | B3 加上品类列表提示 | 诊断用,用来看修复 issue #4 的效果,不作为 baseline |
-
-所有配置都关闭思考、温度 0、约束 JSON 输出,使用同一模型和同一快照。
-
-**注意**:
-- **B3 仍是消融 A2**(没有校验器):用一个只记录方案、始终返回"不可用"的替身,方案由评分器独立判定。保留它是为了和之前的结果可比,也让 B3 与 B3v 只差一个校验器。
-- **B3v 是完整系统**:用真实校验器。方案被拒后模型可以修改或追问;如果最终仍被拒(例如 `plan_repair_limit`),没有交付任何方案,记录为错误并按评分规则判失败,即使该用例本来就没有可行方案。这一点比较严格,分析时需结合 `records.jsonl` 里的 `validator` 字段(每次校验的状态和问题代码)。B3v 的方案还记录系统自己报告的合计和剩余资金(`reported_total`、`reported_remaining`),目前评分器尚未使用,金额错误率仍为"不适用"。
-- **B1 的关键词检索会跨品类**:它搜索整个证据池,而不只是候选集。例如在耳机用例里,它把一个笔记本双肩包排在了第二。这是指标文档的设计,但会给模型带来无关证据。
-
-## 7. 冻结与保留集封存
-
-**冻结清单**(`freeze.json`,由 `python -m evaluations.freeze write` 生成)记下"被评测的系统"是什么:
-
-- 每个相关文件的 SHA-256:harness(`agent/*.py`、依赖锁)、知识库工具、配置(`configs/agent.yaml`、`knowledge.json`)、模型适配器和客户端、vLLM 服务参数(`service.json`、`serve.py`)、用例和评分器。换行符统一成 LF 后再算,Windows 和集群上的结果一致。
-- 解析后的运行策略和模型设置(`tacc-fast`:关闭思考、温度 0、512 输出 token、36000 字符上下文、32 条历史消息、8 次模型调用)。
-- 快照 ID、各划分的用例数和用例 ID 的哈希。
-
-**规则**:
-- 运行器拒绝 `--split heldout`,除非显式加 `--unseal-heldout`,**并且**当前文件与冻结清单一致。改了提示、工具、策略或评分,就必须重新冻结(并在报告里说明)。
-- 开发集不受限制,报告里会写明当前文件是否与冻结一致。
-- `python -m evaluations.freeze check` 列出与冻结不同的文件。
-
-**本次冻结**(当前摘要 `03b0cdea`):保留集在 `c3f8ee0a`(对应提交 `b98cd7f`)下运行;之后只有 `agent/budget.py` 按 #18 的评审修正了税费口径,冻结快照的税费全部未知,两版在这个快照上的判定完全相同,所以没有重跑(见 `docs/experiments/baseline.md` 第 2 节)。更早的第一次冻结 `bbcdb27a` 之后改用了平台实测过的 `serve.py`,检查当即报出差异,于是重新冻结,两者之间没有运行过保留集。冻结内容:包含真实预算校验器(#18)和 issue #4 的修复(#15)。issue #6 的问题由部署设置解决(36000 字符、32 条历史消息)。已知未解决:issue #21(部分请求用完 8 次模型调用),作为 baseline 的一部分如实测量。
-
-**与之前开发集结果的区别**:之前的 B3 用 harness 的默认设置,只改了上下文和输出额度,只保留 12 条历史消息;8 次决策会产生 16 条动作和观察,早期步骤会被丢掉。现在与部署的服务一致,所以下面第 10 节的 B3 数字和冻结后的结果不能直接比较。
-
-## 8. 运行方法
-
-**本地自检**(Windows 上需要 UTF-8 模式,原因见 issue #5):
+## 1. 30 秒检查（不需要模型）
 
 ```bash
-PYTHONUTF8=1 PYTHONPATH=. agent/.venv/Scripts/python.exe -m pytest tests/test_evaluation.py -q
+cd tacc-agentforge
+python3.12 -m venv .venv
+.venv/bin/python -m pip install -r agent/requirements.lock
+
+PYTHON=.venv/bin/python
+$PYTHON -m evaluations.bench check
+
+# 不需要模型端点：从已有运行目录生成 proposal 风格 REPORT.md
+$PYTHON -m evaluations.bench report \
+  --input evaluations/results/v1-replay-smoke-2026-11-15
+# 输出 evaluations/results/v1-replay-smoke-2026-11-15/REPORT.md
 ```
 
-**在 TACC 上运行**:
-1. 按 `deploy/tacc/service/RUNBOOK.md` 启动服务(`stage.sh serve`)。评测需要一个多小时时,开启交接(`service-chain.json` 加 `args.txt` 的 `--handover-lead-s 900`)。
-2. 复用 `agent-e2e` 作业:`script.txt` 写 `eval_baseline.py`,`args.txt` 写例如 `--split heldout --unseal-heldout --configs B0,B1,B2,B3,B3v --repeats 3 --out <目录> --resume`。
-3. 运行 `stage.sh`,然后提交该作业。作业 1 小时到期时,用同样的参数再提交一次,`--resume` 会跳过已记录的尝试。
+`check` 会检查数据哈希、冻结状态、adapter 声明、Python 依赖和模型端点；没有配置端点
+时只给 warning，仍然可以查看/渲染已有结果。
 
-**运行器的行为**:
-- 先等服务就绪,不测量启动过程。
-- 每个用例内交替运行各配置,顺序按用例和重复轮换,避免前缀缓存和预热总是偏向同一个配置。
-- 因为模型服务不可用(服务作业之间的空档)而失败的尝试不算系统失败:运行器等服务恢复后重做,并记到 `infra.jsonl`。每次尝试的 `infra_retries` 记录重做次数。
-- 被作业时限截断的最后一行会被丢弃,该尝试在下一个作业里重做。
-- 报告只用完整的重复轮次(每个用例和配置都有记录),保证配置之间可以配对比较。
+样例报告：
 
-结果目录:
-- `records.jsonl`:每次尝试的原始结果(含开始时间);
-- `scores.jsonl`:每次尝试的评分;
-- `ground_truth.json`:标准答案;
-- `infra.jsonl`:因服务不可用而重做的尝试;
-- `report.json`:汇总,包括冻结摘要和是否一致、harness 设置。
+- **2026-11-17 修复 prompt 后新跑 dev**：[10 个 dev 用例 × 1 次 = 60 attempts，job 29437](results/v1-dev-29437/REPORT.md)
+- 修复前对照：[job 29415](results/v1-dev-29415/REPORT.md)（旧 prompt，仅供对比）
+- 历史 3 用例冒烟：[job 28969](results/v1-dev-smoke-28969/REPORT.md)（旧夹具）
+- 当前数据契约回放：[replay](results/v1-replay-smoke-2026-11-15/REPORT.md)（不是新模型运行）
 
-**检索指标**:
+job 29437 的 proposal 四列如下（TACC 2-GPU `qwen-service`，`qwen3.8-27b`，
+数据哈希 `cf137191...`；**dev、1 次 repeat、无人工 Faithfulness**，不是正式 heldout 结果）：
+
+| Method | TSR % | Faithfulness | BVR % | p95 s |
+| --- | ---: | ---: | ---: | ---: |
+| B0 Single call | 40.0 | N/A | 0.0 | 7.49 |
+| B1 Keyword RAG | 40.0 | N/A | 0.0 | 7.72 |
+| B2 Structured RAG | 40.0 | N/A | 0.0 | 7.81 |
+| B3 Full advisor | 90.0 | N/A | 0.0 | 10.29 |
+| A1 Without loop | 90.0 | N/A | 0.0 | 6.92 |
+| A2 Without validator | 20.0 | N/A | 0.0 | 14.78 |
+
+这次 dev 的自动诊断：B0/B1/B2 的金额错误率都是 4/6；B3/A1 为 0/5；A2 为 3/5。
+B3/A1 的 TSR 90%，B0/B1/B2 都是 40%，A2 是 20%。由于只有 10 个 dev case，区间很宽，
+且 B0/B1/B2 在这批 fixture 上结果相同；不能把差异当成正式模型结论。完整计算见
+[REPORT.md](results/v1-dev-29437/REPORT.md)。
+
+job 29415 是修复 prompt 前的旧结果（B0/B1/B2 TSR 30%、金额错误 5/6）；只用于说明
+`budget_basis` 歧义确实会压低单次调用配置，不能和 29437 混算。
+
+正式 40 个 heldout 用例 × 3 次 = **720 次尚未运行**：需要先 freeze/release 第五类，
+并配置稳定的模型端点（约 2 小时）。本报告运行完已释放 TACC 服务作业，当前没有常驻服务。
+
+---
+
+## 2. 接模型跑 dev smoke
+
+以下命令中的 `$PYTHON` 指第 1 节创建的 `.venv/bin/python`；新开 shell 请重新 `export PYTHON=.venv/bin/python`。
+
+模型需要是 **OpenAI 兼容、免鉴权**的 `/v1` 端点（TACC 的 `qwen-service` 就是这样）。
+也可以直接给 `--base-url` / `--address-file`，命令会自动设置对应环境变量。
 
 ```bash
-python -m evaluations.retrieval pool --data-root <目录>
-python -m evaluations.retrieval score --data-root <目录> --labels evaluations/relevance_pool.jsonl
+export BENCHMARK_BASE_URL=http://<host>:<port>/v1
+export BENCHMARK_MODEL=qwen3.8-27b
+
+# 可选：TACC 服务地址文件（ModelClient 每次调用前重新读取）
+# export BENCHMARK_ADDRESS_FILE=$TACC_USERDIR/tacc-agentforge-service/service-url.txt
+
+$PYTHON -m evaluations.bench check --out /tmp/v1-smoke
+$PYTHON -m evaluations.bench run \
+  --split dev --only v1-dev-01,v1-dev-03,v1-dev-04 --repeats 1 \
+  --out /tmp/v1-smoke
 ```
 
-## 9. 还需要人工或其他模块完成的部分
+第一次只跑 3 个 dev 用例 × 6 配置 = 18 次，确认 6 个配置都能完成、金额/引用检查正常。
+成功后会打印 `Report: /tmp/v1-smoke/REPORT.md`。
 
-| 事项 | 需要谁 |
-|---|---|
-| 检索相关性标注:`relevance_pool.jsonl` 共 602 行 | 人工 |
-| 偏好匹配 1–5 分,两位评审独立打分并报告一致性 | 人工 |
-| 第五个品类的数据和 8 个用例 | 知识库负责人;按计划在冻结后进行 |
-| 全流程延迟(浏览器到结果) | 需要应用层,Task 5 |
+完整 dev（10 用例 × 6 配置 × 1 次 = 60 次，约 10 分钟）：
 
-## 10. 冻结基线
+```bash
+$PYTHON -m evaluations.bench run --split dev --repeats 1 --out /tmp/v1-dev
+```
 
-保留集基线已完成:32 个用例 × B0、B1、B2、B3、B3v × 3 次,冻结摘要 `c3f8ee0a`。完整报告见 [docs/experiments/baseline.md](../docs/experiments/baseline.md),原始数据在 `results/frozen-heldout/`、`results/frozen-dev/` 和 `results/frozen-trace-dev/`。
+`check` 会请求 `<endpoint>/models` 验证地址，并确认端点确实提供 `BENCHMARK_MODEL`
+（默认 `qwen3.8-27b`）这个 alias；不会触发生成。如果端点需要 API key，当前 client
+不会发送认证头，需要加一个本地反代或在冻结前扩展 client。
 
-| 配置 | 保留集 TSR | 停在调用上限 |
-|---|---|---|
-| B0 单次调用 | 54/96 | – |
-| B1 / B2 单次调用加检索 | 57/96 | – |
-| B3 harness(无校验器) | 32/96 | 48 |
-| B3v 完整系统 | 42/96 | 48 |
+---
 
-## 11. 冻结前的开发集结果(作业 28617/28618)
+## 3. 正式 heldout（40 用例 × 6 配置 × 3 次 = 720）
 
-以下是冻结前的结果,B3 用的是 harness 默认设置(12 条历史消息),issue #4 也还没修,数字不能和冻结基线直接比较。
+正式 heldout 是 sealed 的，必须先冻结代码、释放第五类，再显式 `--unseal-heldout`：
 
-10 个开发用例 × 5 个配置 × 3 次重复,共 150 次尝试,没有基础设施错误。原始数据在 `results/dev-28618/`。
+```bash
+$PYTHON -m evaluations.v1.suite freeze
+$PYTHON -m evaluations.v1.suite release-fifth
+$PYTHON -m evaluations.v1.suite verify
 
-**主结果**
+$PYTHON -m evaluations.bench check --split heldout --unseal-heldout
+$PYTHON -m evaluations.bench run \
+  --split heldout --unseal-heldout --repeats 3 \
+  --out /tmp/v1-heldout
+```
 
-| 配置 | TSR | 按用例均值(95% 区间) | 应给方案 | 无可行方案 | 应追问 | BVR | 每次运行提示 token | 每次运行耗时 p50 |
-|---|---|---|---|---|---|---|---|---|
-| B0 单次调用 | 21/30 | 0.70 (0.40–1.00) | 9/18 | 6/6 | 6/6 | 0/12 | 6.0K | 5.8 秒 |
-| B1 + 关键词检索 | 21/30 | 0.70 (0.40–1.00) | 9/18 | 6/6 | 6/6 | 0/12 | 6.9K | 2.9 秒 |
-| B2 + 过滤检索 | 21/30 | 0.70 (0.40–1.00) | 9/18 | 6/6 | 6/6 | 0/12 | 6.9K | 2.7 秒 |
-| B3 harness(无校验器) | 8/30 | 0.27 (0.00–0.53) | 2/18 | 3/6 | 3/6 | 0/2 | 4.5K | 1.6 秒 |
-| B3h 加品类提示(诊断) | 12/30 | 0.40 (0.10–0.70) | 6/18 | 3/6 | 3/6 | 0/15 | 16.0K | 4.0 秒 |
+注意：
 
-**配对差值**(按用例,95% 区间):B0→B1 为 0.00(−0.30–0.30);B1→B2 为 0.00;B2→B3 为 **−0.43(−0.73–−0.13)**;B3→B3h 为 +0.13(0.00–0.37)。
+- **freeze 是单向门**。`suite freeze` 会给 `agent/`、`budget/`、`inference/`、
+  `knowledge/`、`configs/`、`evaluations/` 下所有 `.py/.yaml/.sql` 生成指纹；冻结后
+  任何代码改动都会让 release 失效。代码定稿后再 freeze。
+- 720 次约 **2 小时**（按当前冒烟每次约 10 秒估算）。端点需要在这段时间稳定可用；
+  TACC 的 qwen-service 需要开启 handover，并留一个作业名额给继任服务。
+- 单次 episode 默认 `--timeout 240`（intent 提取 + agent 110s deadline 的最坏情况留余量）；
+  如果模型明显更慢，可显式调大。
+- 中断后继续，不丢已完成的 attempts：
 
-**读法**
+  ```bash
+  $PYTHON -m evaluations.bench run --split heldout --unseal-heldout --repeats 3 \
+    --out /tmp/v1-heldout --resume
+  # 其余参数必须和第一次一致：data/configs/adapter/timeout/adapter manifest
+  ```
 
-- **单次调用的三个配置**:温度为 0 时三次重复完全一样,所以每个配置实际上只有 10 个独立结果,区间很宽。
-  - 文字证据修好了 dev-06:没有证据时,B0 选了一个不是机械轴的键盘。
-  - 但证据也带来了新的失败:dev-04 变成不必要的追问,dev-09 选了一个防水属性未知的报价。
-  - 总分持平,但失败的用例不同。
-- **部署形态的 harness(B3)比单次调用差得多**。30 次里有 22 次在第一次调用工具时就以 `invalid_arguments` 结束:模型猜错品类名,而知识库把这类错误标为不可恢复(issue #4)。B3 的低分主要反映这个缺陷,不是多步循环本身。
-- **加上品类提示(B3h)只修好了一部分**,剩下的失败有三类:
-  - 猜错属性名,仍然是 `invalid_arguments`,9 次;
-  - 缺预算时直接给方案(dev-05);
-  - 不存在可行方案时仍给方案(dev-07)。
-  后两类正好是预算校验器(issue #9)应该拦下的。
-- **没有任何已交付方案在费用已知的情况下超预算**:所有配置的 BVR 都是 0。
-- **所有配置都没解决 dev-08**(至少 25 升、预算 120 美元的通勤包),全部是不必要的追问。单次调用看到的 10 个候选里只有 1 个可行,这个用例偏难,但追问仍然不合理。
+  `--resume` 只补缺失的 roster 条目；如果数据、代码、adapter 或 roster 改变，会拒绝继续。
+- 如果只是 `records.jsonl` 损坏或想按完整 roster 重新出分，使用：
 
-**测量上的注意**
-- **顺序效应**:每个用例内部按 B0、B1、B2 的顺序运行,而三者的候选前缀相同,后面的配置会命中前缀缓存,所以 B0 的耗时偏高。耗时只用作诊断,不作为配置之间的结论。
-- **耗时口径**:这里只计模型调用(单次调用配置)或整次 harness 运行,不包括应用层。
-- **只是开发集**:这些数字用来检查评测流程,不是 baseline 的最终结论;正式结论要等系统冻结后在保留集上得出。
+  ```bash
+  $PYTHON -m evaluations.v1.run --rescore /tmp/v1-heldout
+  ```
+
+  `--rescore` 会把缺失条目记为失败，**不会**重新调用模型；不要把它当续跑。
+
+---
+
+## 4. 指标与 proposal 的对应关系
+
+`REPORT.md` 的主表就是 proposal 的四列：TSR、Faithfulness、BVR、p95。
+
+| Proposal 指标 | 报告字段 / 来源 | 自动？ | 说明 |
+| --- | --- | --- | --- |
+| TSR % ↑ | `summary.*.tsr` | 是 | 成功 / 全部尝试；缺失、超时、崩溃计入分母 |
+| Faithfulness ↑ | `review.py score` 的 `faithfulness_micro` | 否 | 两位评审 claim-level 标注；没有标注时 N/A |
+| BVR % ↓ | `summary.*.bvr` | 是 | 已交付且费用可核实的计划中，超出真实可用预算的比例 |
+| p95 s ↓ | `summary.*.wall_s.p95` | 是 | **adapter 子进程完整往返**，不含浏览器/桥接/用户等待 |
+| exact amount error | `summary.*.amount_error_rate` | 是 | 报告金额与独立 Decimal 枚举不一致的比例 |
+| hard constraint violation | `summary.*.constraint_violation` | 是 | 已交付计划违反规格/数量/约束的比例 |
+| citation / grounding | `ungrounded_ids`、`evidence_of_another_product`、`ids_not_in_context` | 是 | ID 存在且对应商品、实际可见 |
+| preference fit 1–5 | `review.py score` 的 `preference_mean` | 否 | 两位评审独立打分，报告加权 kappa |
+| Recall@5 / MRR@5 | `evaluations/retrieval.py` + `relevance_pool.jsonl` | 否 | 需要先人工标注证据相关性，不在 v1 fixture 轨道 |
+| TTFT / TPOT / 吞吐 | `inference/` 服务基准 | 否 | 不是本 benchmark 的 fixture 轨道 |
+
+### 加入人工评审
+
+```bash
+# 1) 导出盲评包（会生成 reviewer-a/b 和 private-key；private-key 不要外发）
+$PYTHON -m evaluations.review export --records /tmp/v1-dev/records.jsonl \
+  --out /tmp/v1-dev/review
+
+# 2) 两位不同评审分别填写 reviewer-a.jsonl / reviewer-b.jsonl（rubric 在目录内）
+
+# 3) 汇总结论
+$PYTHON -m evaluations.review score \
+  --a /tmp/v1-dev/review/reviewer-a.jsonl \
+  --b /tmp/v1-dev/review/reviewer-b.jsonl \
+  --key /tmp/v1-dev/review/private-key.jsonl \
+  --out /tmp/v1-dev/review-report.json
+
+# 4) 把 Faithfulness / preference 合进主报告
+$PYTHON -m evaluations.bench report \
+  --input /tmp/v1-dev --review /tmp/v1-dev/review-report.json
+```
+
+没有标签时 Faithfulness 保持 N/A；不要用 0 或 1 代替，也不要用单一“标准答案”做字符串匹配。
+
+---
+
+## 5. 输出文件
+
+每次运行目录包含：
+
+| 文件 | 内容 |
+| --- | --- |
+| `manifest.json` | 数据哈希、roster、configs/repeats、adapter 声明、代码指纹、git commit/dirty、模型/服务信息、resume 记录 |
+| `records.jsonl` | 每次尝试的 outcome、耗时、tokens、调用数；heldout 会剥离 turns/traces |
+| `scores.jsonl` | 每次尝试的确定性评分 |
+| `report.json` | summary/strata/paired 的机器可读指标 |
+| `REPORT.md` | `evaluations.bench` 自动生成的 proposal 风格报告 |
+
+运行目录必须不存在（或使用 `--resume`）；不要覆盖已有正式结果。
+
+---
+
+## 6. 当前限制
+
+- 数据是 synthetic fixture：不能声称真实 SerpApi 目录、现实价格正确性或完整应用正确率。
+- `B1/B2` 的检索差异只在 fixture 候选上验证；真实知识库检索收益需要 KB 快照轨道。
+- 10 / 32 个用例规模很小，case-level bootstrap 区间会很宽；3 次 repeat 是同一 case 的重复，不是独立样本。
+- `p95` 目前只是 adapter 往返；浏览器到结果的完整请求 p95、TTFT/TPOT 需要应用/推理观测。
+- 正式 720 次需要稳定模型端点和约 2 小时连续运行；没有服务时只能跑 `check`/`report` 或已有历史结果。
+- 公开 ShoppingBench 250 题是另一条轨道，见 [恢复状态](results/shoppingbench-recovery-2026-11-14/README.md) 和 [公开评分冒烟](results/shoppingbench-public-smoke-2026-11-15/README.md)。
+
+---
+
+## 7. 常见问题
+
+| 现象 | 处理 |
+| --- | --- |
+| `heldout sealed` | 先 `suite freeze`、`release-fifth`、`verify`，再加 `--unseal-heldout` |
+| `release or code changed after freeze` | 代码在 freeze 后改过；恢复 pre-release 数据后重新 freeze/release，不能继续用旧 release |
+| `check` 报端点不可用 | 确认 URL 是 `.../v1`，`GET .../v1/models` 可访问；端点不能用旧地址文件 |
+| 端点返回 401/403 | 当前 `ModelClient` 不带 API key；加反代或在冻结前扩展认证 |
+| `out` 已存在 | 换一个新目录；确认是同一 run 时用 `--resume` |
+| `--resume` 报 manifest/adapter/code 改变 | 不能混跑；重新开始一次 run，或先重新 freeze |
+| 运行被 kill | 用同样的参数加 `--resume`；不要手改 roster |
+| `report.json` 缺失 | `python -m evaluations.v1.run --rescore DIR` 重建评分（缺失记为失败） |
+| dev 想保存 prompt/reply | `--record-traces`；heldout 不允许导出原始轨迹 |
+
+---
+
+## 8. TACC 上跑
+
+`deploy/tacc/service/benchmark/` 是 **dev-only smoke worker**：它只打包 dev split、固定 3 个
+用例、30 分钟上限，不能直接跑 720。正式 720 建议在不受 1 小时作业限制的主机/云主机上跑，
+模型服务由 TACC 提供；或者把正式 runner 分片并实现 resume（当前 `evaluations.bench` 已支持
+单进程 `--resume`，但 TACC 分片调度仍需额外脚本）。不要在共享 TACC USERDIR 落 heldout 数据。

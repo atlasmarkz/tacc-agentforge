@@ -81,3 +81,9 @@ deploy/tacc/train-sft/pkg/
 deploy/tacc/train-sft/args.txt
 
 deploy/tacc/train-sft-serve/args.txt
+
+# Staged public source copy for the benchmark CPU worker.
+deploy/tacc/service/benchmark/pkg/
+
+# Blind-review mapping must never be committed with reviewer templates.
+**/review/private-key.jsonl

@@ -1,0 +1,15 @@
+{
+  "identity": {
+    "model": "qwen3.8-27b",
+    "runtime": "agent.AgentRuntime",
+    "adapter": "evaluations.v1.agent_adapter:respond",
+    "validator": "budget.validator.AgentPlanValidator (integer cents; independent of evaluation oracle)",
+    "intent": "same model extracts requirements from user/history; extraction errors count as task failures",
+    "temperature": 0,
+    "thinking": false,
+    "max_output_tokens": 1024,
+    "scope": "normalized synthetic fixture catalog, not the SerpApi KB or browser"
+  },
+  "validator_configs": ["B3", "A1"],
+  "cache_policy": "Cyclic config order; deploy/tacc/service/qwen-service/service.json disables prefix caching for this track. Record the actual serving config in the run manifest; report latency as diagnostic until cache state is independently verified."
+}
