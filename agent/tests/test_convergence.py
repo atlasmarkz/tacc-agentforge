@@ -69,6 +69,9 @@ def test_repeated_read_queries_reuse_success_and_force_a_proposal():
         trace = await runtime.export_trace(result.run_id)
         assert len([e for e in trace["entries"] if e.get("cached")]) == 2
         assert trace["progress"]["no_progress_calls"] == 2
+        cached = json.loads(model.requests[-1].messages[-1].content)["observation"]
+        assert cached["no_new_information"] is True
+        assert cached["previous_operation_id"].endswith(":tool:1")
     asyncio.run(scenario())
 
 
@@ -80,7 +83,7 @@ def test_recoverable_error_is_not_cached_and_success_restores_progress():
     assert result.status == "completed" and search.calls == result.usage.tool_calls == 2
 
 
-@pytest.mark.parametrize("reason", ["evidence_insufficient", "requirements_unverified"])
+@pytest.mark.parametrize("reason", ["evidence_insufficient", "requirements_unverified", "no_feasible_plan"])
 def test_final_decision_can_abstain_without_inventing_a_plan(reason):
     message = "No cited evidence establishes the required simultaneous charging wattage."
     model = Scripted({"type": "report_incomplete", "reason": reason, "message": message})
@@ -110,6 +113,18 @@ def test_search_page_without_a_known_satisfying_candidate_is_not_progress():
     assert state["progress"]["no_progress_calls"] == 0
 
 
+def test_correcting_an_error_leaves_one_targeted_evidence_read_before_stalling():
+    from agent.progress import record_result
+    state = initial_state(demo_request(), RunPolicy())
+    state["progress"] = record_result(state, "search_products", {"code": "invalid_arguments"}, error=True)
+    unknown = {"candidates": [{"variant_id": "v1", "selected_price": None,
+                              "constraint_status": "unknown"}]}
+    state["progress"] = record_result(state, "search_products", unknown)
+    assert state["progress"]["no_progress_calls"] == 1
+    state["progress"] = record_result(state, "search_products", unknown)
+    assert state["progress"]["no_progress_calls"] == 2
+
+
 def test_pagination_is_progress_and_response_timestamps_are_not():
     from agent.progress import record_result
     state = initial_state(demo_request(), RunPolicy())
@@ -120,6 +135,66 @@ def test_pagination_is_progress_and_response_timestamps_are_not():
     page2 = {"responded_at": "later", "evidence": [{"text": "20W bottom port", "text_start": 1400}]}
     state["progress"] = record_result(state, "resolve_evidence", page2)
     assert state["progress"]["no_progress_calls"] == 0
+
+
+def test_handles_cursors_order_and_ranking_do_not_manufacture_new_evidence():
+    from agent.progress import record_result
+    state = initial_state(demo_request(), RunPolicy())
+    facts = [{"evidence_id": "e1", "text": "45W top port", "text_start": 0},
+             {"evidence_id": "e2", "text": "20W bottom port", "text_start": 0}]
+    state["progress"] = record_result(state, "retrieve_evidence", {
+        "candidate_set_id": "first", "next_cursor": "page2", "evidence": facts})
+    state["progress"] = record_result(state, "retrieve_evidence", {
+        "candidate_set_id": "new-handle", "next_cursor": "page3",
+        "evidence": [{**f, "rank": n, "score": n / 10} for n, f in enumerate(reversed(facts))]})
+    assert state["progress"]["no_progress_calls"] == 1
+    # 同一事实跨 retrieve/resolve 读取也不是进展；后续新文本片段仍是进展。
+    state["progress"] = record_result(state, "resolve_evidence", {"evidence": facts[:1]})
+    assert state["progress"]["no_progress_calls"] == 2
+    state["progress"] = record_result(state, "resolve_evidence", {
+        "evidence": [{**facts[0], "text": "USB PD supported", "text_start": 100}]})
+    assert state["progress"]["no_progress_calls"] == 0
+
+
+def test_different_empty_searches_are_discoveries_but_pagination_is_not():
+    from agent.progress import record_result
+    state = initial_state(demo_request(), RunPolicy())
+    empty = {"candidates": [], "total_count": 0, "scope_complete": True, "next_cursor": None}
+    for cap in (1000, 1500):
+        state["progress"] = record_result(state, "search_products", empty,
+                                           arguments={"filters": {"max_price_minor": cap}})
+        assert state["progress"]["no_progress_calls"] == 0
+    state["progress"] = record_result(state, "search_products", empty,
+        arguments={"filters": {"max_price_minor": 1500}, "limit": 20, "cursor": "different"})
+    assert state["progress"]["no_progress_calls"] == 1
+    empty_evidence = {"candidate_set_id": "a", "evidence": []}
+    state["progress"] = record_result(state, "retrieve_evidence", empty_evidence,
+        arguments={"candidate_set_id": "a", "query": "charging"})
+    state["progress"] = record_result(state, "retrieve_evidence", {**empty_evidence, "candidate_set_id": "b"},
+        arguments={"candidate_set_id": "b", "query": "charging"})
+    assert state["progress"]["no_progress_calls"] == 1
+
+
+def test_last_decision_never_executes_a_tool_even_if_the_model_ignores_schema():
+    search = CountedSearch()
+    model = Scripted(*[deepcopy(SEARCH) for _ in range(8)])
+    runtime = AgentRuntime(AgentDependencies(model, demo_tools(search)),
+                           RunPolicy(finalize_reserve_model_calls=1, max_no_progress_calls=20))
+    result = asyncio.run(runtime.run(demo_request()))
+    assert result.usage.model_calls == 8 and result.usage.tool_calls == search.calls == 7
+    assert result.stop_reason == "convergence_failed"
+    mapping = model.requests[-1].action_schema["discriminator"]["mapping"]
+    assert set(mapping) == {"propose_plan", "report_incomplete"}
+
+
+def test_eighth_decision_can_repair_a_proposal_without_raising_the_limit():
+    model = Scripted(*[deepcopy(SEARCH) for _ in range(6)], {"type": "propose_plan", "plan": {}}, PLAN)
+    runtime = AgentRuntime(AgentDependencies(model, demo_tools(), MockPlanValidator()),
+                           RunPolicy(max_no_progress_calls=20))
+    result = asyncio.run(runtime.run(demo_request()))
+    assert result.status == "completed" and result.usage.model_calls == 8
+    assert result.usage.action_repairs == 1 and result.usage.tool_calls == 6
+    assert "call_tool" not in model.requests[-1].action_schema["discriminator"]["mapping"]
 
 
 @pytest.mark.parametrize("limit", [1, 2])
@@ -203,6 +278,34 @@ BELKIN_PLAN = {"type": "propose_plan", "plan": {"items": [
 
 def read_tool(name, **arguments):
     return {"type": "call_tool", "tool_name": name, "arguments": arguments}
+
+
+def test_infeasible_dev_case_can_finish_early_with_a_scoped_catalog_conclusion(catalog):
+    from evaluations.catalog import Catalog, ground_truth
+    root = Path(__file__).resolve().parents[2]
+    case = next(c for c in map(json.loads, (root / "evaluations/cases.jsonl").read_text().splitlines())
+                if c["case_id"] == "dev-07")
+    independent = Catalog(catalog[0] / catalog[1] / "catalog.sqlite")
+    try:
+        assert ground_truth(case, independent)["expected"] == "no_feasible_plan"
+    finally:
+        independent.close()
+    model = Scripted(
+        read_tool("search_products", filters={"category": "keyboards", "currency": "USD",
+                  "max_price_minor": 1000, "include_unknown": False}),
+        {"type": "report_incomplete", "reason": "no_feasible_plan",
+         "message": "No verifiable keyboard under 10 USD before tax in this catalog. Unknown prices cannot establish affordability."})
+    deps, source = real_dependencies(catalog, model)
+    try:
+        runtime = AgentRuntime(deps, RunPolicy(max_context_chars=36000))
+        result = asyncio.run(runtime.run(AgentRequest(run_id="dev07", conversation_id="dev07",
+            snapshot_id=catalog[1], message=case["message"], constraints=case["constraints"])))
+        assert result.status == "incomplete" and result.stop_reason == "no_feasible_plan"
+        assert result.usage.model_calls == 2 and result.usage.tool_calls == 1
+        assert result.verified_plan is None and "10 USD" in result.message
+        assert '"total_count": 0' in model.requests[-1].messages[-1].content
+    finally:
+        close(deps, source)
 
 
 def test_belkin_unknown_ports_and_power_disagreement_can_use_text_and_pass_real_budget(catalog):
