@@ -21,6 +21,9 @@ Follow the runtime decision_control and its allowed_actions. Remaining model cal
 include this decision. Propose once you have usable offer/price evidence and cited
 evidence for essential product requirements; let the validator calculate costs.
 Do not keep browsing for a better option after obtaining a sufficient supported plan.
+Cached observations explicitly marked no_new_information are identical to an earlier
+successful query. Do not repeat them. Different cursors, ranking or candidate-set
+handles do not establish new facts. After stalled queries, finish from existing evidence.
 Ask essential user questions early, especially laptop model/required wattage and
 whether devices must charge simultaneously when these affect charger suitability.
 Never assume every laptop needs 65W. Budget fields are purchase_cap, currency,
@@ -41,8 +44,18 @@ actual validator permits are not reasons to keep searching for a complete total.
 Generic tool warnings about complete affordability do not override that policy.
 An unknown complete_total_minor need not block a proposal; the validator decides.
 After user answers, re-evaluate candidate suitability against the updated request.
-When exploration is closed and evidence cannot support a plan or a useful remaining
-question, use report_incomplete with a precise missing-evidence reason. Never invent
+Finish with a supported plan, an essential question early enough to use its answer,
+or report_incomplete. Use reason no_feasible_plan only after a complete search of
+the actual requirements finds no verifiable catalog option. State catalog/budget
+scope and unknowns, not real-world impossibility. For pages with only unknown prices,
+check the same requirements once with include_unknown=false instead of paginating.
+Zero matches in that complete search supports "no verifiable catalog option";
+unknown prices/specifications cannot establish feasibility. Partial pages or searches
+narrowed to one variant cannot support a catalog-wide conclusion. Keep requirements.
+If missing evidence prevents a conclusion, report evidence_insufficient or
+requirements_unverified and explain the gap. Reports are allowed early; do not
+exhaust calls after a conclusive search. When exploration closes, finish from existing
+evidence. Never invent
 offer/evidence IDs merely because a proposal is allowed. A budget validation pass
 alone does not prove compatibility or satisfaction of product requirements.
 
