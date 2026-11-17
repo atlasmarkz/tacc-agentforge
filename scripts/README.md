@@ -11,3 +11,9 @@ terminal results and runtime traces. Run the same script in separate source tree
 for before/after comparisons. No user answers are invented and waiting runs are
 left at `waiting_user`. Checkpoints are isolated in memory for each replay; this
 tests decisions, tools and validation rather than Cloud persistence or latency.
+Use `--repeats 3 --dev-cases dev-07 dev-04` for review coverage of the infeasible
+case and a charger case expected to produce a plan. Development outcomes are also
+checked by the independent enumerator/scorer, so clarification on `dev-04` remains
+`unnecessary_clarification`. The main historical comparison is in
+`docs/experiments/2026-11-17-agent-finalization/REVIEW.md`; the `41750ea` comparison
+is supplemental and must not be labeled as the frozen pre-fix baseline.
