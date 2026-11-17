@@ -125,6 +125,16 @@ def test_correcting_an_error_leaves_one_targeted_evidence_read_before_stalling()
     assert state["progress"]["no_progress_calls"] == 2
 
 
+def test_new_repair_diagnostics_allow_correction_but_repeated_errors_still_stall():
+    from agent.progress import record_result
+    state = initial_state(demo_request(), RunPolicy())
+    for message in ("Use category chargers", "Use attribute power"):
+        state["progress"] = record_result(state, "search_products", {"message": message}, error=True)
+        assert state["progress"]["no_progress_calls"] == 1
+    state["progress"] = record_result(state, "search_products", {"message": message}, error=True)
+    assert state["progress"]["no_progress_calls"] == 2
+
+
 def test_pagination_is_progress_and_response_timestamps_are_not():
     from agent.progress import record_result
     state = initial_state(demo_request(), RunPolicy())
@@ -278,6 +288,25 @@ BELKIN_PLAN = {"type": "propose_plan", "plan": {"items": [
 
 def read_tool(name, **arguments):
     return {"type": "call_tool", "tool_name": name, "arguments": arguments}
+
+
+def test_category_then_attribute_repair_does_not_close_tools_before_the_valid_query(catalog):
+    model = Scripted(
+        read_tool("search_products", filters={"category": "charger", "hard_constraints": {
+            "wattage": {"op": "gte", "value": 30, "unit": "W"}}}),
+        read_tool("search_products", filters={"category": "chargers", "hard_constraints": {
+            "wattage": {"op": "gte", "value": 30, "unit": "W"}}}),
+        read_tool("search_products", filters={"category": "chargers", "currency": "USD", "variant_ids": [VID]}),
+        BELKIN_PLAN)
+    deps, source = real_dependencies(catalog, model)
+    try:
+        runtime = AgentRuntime(deps, RunPolicy(max_context_chars=36000))
+        result = asyncio.run(runtime.run(charger_request(catalog[1])))
+        assert result.status == "completed" and result.usage.model_calls == 4
+        assert result.usage.tool_calls == 3
+        assert "call_tool" in model.requests[2].action_schema["discriminator"]["mapping"]
+    finally:
+        close(deps, source)
 
 
 def test_infeasible_dev_case_can_finish_early_with_a_scoped_catalog_conclusion(catalog):

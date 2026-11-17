@@ -1,12 +1,14 @@
-# Issue #21：8 次调用内的收尾回归
+# 补充实验：Cloud 分支收尾对照（非冻结基线）
 
 2026-11-17（Asia/Shanghai）。对应 [issue #21](https://github.com/atlasmarkz/tacc-agentforge/issues/21)。
+
+**审阅修订后的主报告见 [REVIEW.md](REVIEW.md)**：以冻结测量和 issue 原始测量作为修复前基线，并补充追问判断标准、评分与页面接线。本文件保留 `41750ea` 与前一轮修复代码 `183e631` 的对照，不能用于衡量整个 #21 修复相对冻结系统的收益。
 
 ## 结论
 
 保留 `cloud-fast` 的 **8 次累计决策上限**，前后各重放 3 次，两条请求结果均一致：
 
-| 请求 | 修复前模型调用 | 修复前结束状态 | 修复后模型调用 | 修复后结束状态 |
+| 请求 | Cloud `41750ea` 模型调用 | Cloud `41750ea` 结束状态 | 前一轮修复模型调用 | 前一轮修复结束状态 |
 |---|---|---|---|---|
 | issue 原始充电器请求，60 USD | 1 / 1 / 1 | `waiting_user` × 3 | 1 / 1 / 1 | `waiting_user` × 3 |
 | dev-07：10 USD 以内键盘，不含税 | 3 / 3 / 3 | `incomplete / evidence_insufficient` × 3 | 3 / 3 / 3 | `incomplete / no_feasible_plan` × 3 |
@@ -17,8 +19,8 @@
 
 ## 对照条件与原始证据
 
-- 前测：Cloud 分支提交 `41750ea`，未修改其 Agent 实现。
-- 后测：当前修复代码；逐文件 SHA256 记录在 [after.json](after.json)，已核对与最终代码一致。
+- Cloud 对照：提交 `41750ea`，已经包含 #23/#24 的改动，未修改其 Agent 实现。
+- 前一轮修复：提交 `183e631` 对应的 Agent 代码；逐文件 SHA256 记录在 [after.json](after.json)。本轮审阅修改的原始数据另存为 `review-after.json`。
 - 使用相同重放脚本、Python 依赖、模型进程、请求 ID 和冻结快照；前后解析出的整个 `RunPolicy` 相同。
 - `cloud-fast`：关闭思考、温度 0、约束 JSON 解码、512 输出 token、36000 字符上下文、8 次模型决策、8 次工具调用；解释关闭。
 - 使用真实 `KnowledgeService`、知识库工具和 `BudgetPlanValidator`；每次重放使用独立内存检查点，不自动编造用户答案。

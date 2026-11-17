@@ -1,4 +1,4 @@
-"""Replay issue #21 and infeasible dev-07 with real tools/validator and cloud-fast.
+"""Replay issue #21 and selected dev cases with real tools/validator and cloud-fast.
 
 Run this same file in separate before/after source trees. Only the model transport
 is overridden; the eight-decision policy, sampling and output budget stay intact.
@@ -17,6 +17,8 @@ from agent import AgentDependencies, AgentRequest, AgentRuntime
 from agent.budget import BudgetPlanValidator
 from agent.settings import load_runtime_settings
 from evaluations.catalog import Catalog, ground_truth
+from evaluations.run import ID_PATTERN, USER_FACING_ISSUES
+from evaluations.score import score_record
 from inference.client import ModelClient
 from inference.model_port import VllmModelPort
 from knowledge.agent_tools import build_knowledge_tools
@@ -42,23 +44,28 @@ async def replay(args):
     settings = load_runtime_settings(ROOT / "configs/agent.yaml", "cloud-fast")
     assert settings.policy.max_model_calls == 8
     catalog = Catalog(args.snapshots_root / args.snapshot_id / "catalog.sqlite")
-    case = next(json.loads(line) for line in (ROOT / "evaluations/cases.jsonl").read_text().splitlines()
-                if json.loads(line)["case_id"] == "dev-07")
+    dev = {case["case_id"]: case for case in map(json.loads, (ROOT / "evaluations/cases.jsonl").read_text().splitlines())
+           if case["split"] == "dev"}
     try:
-        truth = ground_truth(case, catalog)
+        truths = {name: ground_truth(dev[name], catalog) for name in args.dev_cases}
     finally:
         catalog.close()
-    if truth["expected"] != "no_feasible_plan":
+    if truths.get("dev-07", {}).get("expected", "no_feasible_plan") != "no_feasible_plan":
         raise ValueError("dev-07 is feasible in this snapshot; use the frozen development snapshot")
+    if truths.get("dev-04", {}).get("expected", "plan") != "plan":
+        raise ValueError("dev-04 must have a feasible plan in the selected development snapshot")
     cases = [{"case_id": "issue-21-charger", "message": "I need a USB-C charger for my laptop and phone.",
-              "constraints": {"purchase_cap": "60.00", "currency": "USD"}}, case]
+              "constraints": {"purchase_cap": "60.00", "currency": "USD"}},
+             *[dev[name] for name in args.dev_cases]]
     report = {"label": args.label, "tested_at": datetime.now(timezone.utc).isoformat(),
               "profile": "cloud-fast", "snapshot_id": args.snapshot_id, "real_model": True,
               "policy": settings.policy.model_dump(), "model": settings.model.port_options(),
-              "model_name": settings.model.name, "dev07_ground_truth": truth,
+              "model_name": settings.model.name, "ground_truth": truths,
               "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
                                 for path in sorted((ROOT / "agent").glob("*.py")) +
-                                [ROOT / "configs/agent.yaml", ROOT / "inference/model_port.py"]}, "runs": []}
+                                [ROOT / "configs/agent.yaml", ROOT / "inference/model_port.py",
+                                 ROOT / "evaluations/run.py", ROOT / "evaluations/score.py",
+                                 ROOT / "scripts/replay_agent_finalization.py"]}, "runs": []}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     for rep in range(1, args.repeats + 1):
         for case in cases:
@@ -81,6 +88,23 @@ async def replay(args):
                          "model_calls": result.usage.model_calls, "tool_calls": result.usage.tool_calls,
                          "result": result.model_dump(mode="json"), "trace": trace,
                          "calls": model.calls, "wall_s": round(time.monotonic() - started, 3)}
+                if case["case_id"] in truths:
+                    if result.verified_plan is not None:
+                        outcome = {"kind": "plan", "items": [i.model_dump(mode="json") for i in result.verified_plan.items]}
+                    elif result.clarification is not None:
+                        outcome = {"kind": "ask_user", **result.clarification.model_dump(mode="json")}
+                    elif result.stop_reason in USER_FACING_ISSUES:
+                        outcome = {"kind": "abstain", "reason": result.stop_reason, "message": result.message}
+                    else:
+                        outcome = {"kind": "error", "error": result.stop_reason or result.status}
+                    entry["outcome"] = outcome
+                    observed_ids = ID_PATTERN.findall(json.dumps(model.calls[-1]["request"]["messages"])) if model.calls else []
+                    catalog = Catalog(args.snapshots_root / args.snapshot_id / "catalog.sqlite")
+                    try:
+                        entry["score"] = score_record({**entry, "config": "B3v", "context_ids": observed_ids},
+                                                       case, truths[case["case_id"]], catalog)
+                    finally:
+                        catalog.close()
                 report["runs"].append(entry)
                 args.output.write_text(json.dumps(report, ensure_ascii=False, indent=2) + "\n")
                 print(json.dumps({k: entry[k] for k in ("case_id", "rep", "model_calls", "tool_calls",
@@ -99,6 +123,7 @@ def main():
     transport.add_argument("--address-file", type=Path)
     parser.add_argument("--label", required=True)
     parser.add_argument("--repeats", type=int, default=1, choices=range(1, 11))
+    parser.add_argument("--dev-cases", nargs="+", choices=["dev-04", "dev-07"], default=["dev-07"])
     parser.add_argument("--output", required=True, type=Path)
     asyncio.run(replay(parser.parse_args()))
 

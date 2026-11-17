@@ -61,8 +61,9 @@ def record_result(state, tool_name, data, *, error=False, arguments=None):
     # 翻页候选的价格和规格全部未知时，下一页不带来可用于决策的新事实。
     unseen = any(digest not in seen for digest in facts)
     new = unseen and not error and page_is_informative(data)
-    # 参数纠正后第一次成功检索应有一次针对性补证据的机会；先前参数错误仍占总决策额度。
-    stalled_before = 0 if unseen and not error and previous.get("last_result_error") else previous.get("no_progress_calls", 0)
+    # 新的可恢复诊断（如先纠正品类，再纠正属性）也需要一次修正机会；它不是商品事实。
+    # 相同诊断反复出现仍累计无进展；所有错误尝试继续占总决策额度。
+    stalled_before = 0 if unseen and (error or previous.get("last_result_error")) else previous.get("no_progress_calls", 0)
     progress = {"seen_results": list(dict.fromkeys(seen + facts))[-256:],
                 "no_progress_calls": 0 if new else stalled_before + 1,
                 "last_result_error": error,
