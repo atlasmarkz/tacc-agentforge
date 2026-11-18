@@ -48,7 +48,9 @@ python -m pytest agent/tests tests -q -o faulthandler_timeout=40
 
 这些调用次数是离线编排回归，不是真实模型测量。页面 JavaScript 也通过 Node 语法检查，并核对了 `no_feasible_plan` 英文后备说明。
 
-本轮没有启动 TACC 作业或新增真实模型重放。`REVIEW.md`、`review-after.json` 等既有原始记录仍明确属于此前 Cloud 分支的实测，不能被当作此 main 版本的新实测或新的保留集结果。
+首次移植验证阶段只有上述离线测试。随后评审补齐了当前 main-based 代码的真实模型重放，见 [MAIN_REPLAY.md](MAIN_REPLAY.md)：三个请求各三次，充电器 1/1/1 次后追问，dev-07 为 3/3/3 次后报告无可验证方案，dev-04 为 5/5/5 次后提交方案，两个开发用例的独立评分均为 3/3。
+
+`REVIEW.md`、`review-after.json` 等旧记录仍属于此前 Cloud 分支的历史实测；新的主分支记录单独保存为 `main-real-replay.json`，不混用两套证据，也不声称有新的保留集结果。
 
 ## 后续合并操作
 

@@ -2,7 +2,7 @@
 
 日期：2026-11-17（Asia/Shanghai）。代码分支：`fix/cloud-agent-work`。
 
-移植说明：本文及 JSON 记录的是 Cloud 分支的历史实测。2026-11-18 移植到 `main` 的代码和本地验证见 [MAIN_PORT.md](MAIN_PORT.md)。重放历史 Cloud 配置需检出原 Cloud 修复版本；主分支默认使用 `tacc-fast`，不能将历史 Cloud 实测当成主分支的新实测。
+移植说明：本文及 JSON 记录的是 Cloud 分支的历史实测。2026-11-18 移植到 `main` 的代码和本地验证见 [MAIN_PORT.md](MAIN_PORT.md)，随后补齐的主分支真实模型重放见 [MAIN_REPLAY.md](MAIN_REPLAY.md)。重放历史 Cloud 配置需检出原 Cloud 修复版本；主分支默认使用 `tacc-fast`，不能将历史 Cloud 实测当成主分支的新实测。
 
 ## 1. 正确的修复前基线
 
