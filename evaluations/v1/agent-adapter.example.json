@@ -11,5 +11,5 @@
     "scope": "normalized synthetic fixture catalog, not the SerpApi KB or browser"
   },
   "validator_configs": ["B3", "A1"],
-  "cache_policy": "Cyclic config order; deploy/tacc/service/qwen-service/service.json disables prefix caching for this track. Record the actual serving config in the run manifest; report latency as diagnostic until cache state is independently verified."
+  "cache_policy": "Cyclic config order. The shared deploy/tacc/service/qwen-service/service.json is not modified; benchmark-specific cache settings must be recorded in the run manifest. Report latency as diagnostic until cache state is independently verified."
 }

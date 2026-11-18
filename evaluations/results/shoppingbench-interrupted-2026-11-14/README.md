@@ -7,3 +7,14 @@
 原始轨迹、日志、依赖和输入哈希已归档。恢复任务仅重试含空API响应的204题；不根据reward、预算得分或答案正确性挑选任务，完整响应但答错的题保留原判。恢复后结果与本批次分表报告，不覆盖此记录。
 
 本目录的 `report.json` 由官方评分函数计算；`status.json` 声明解释边界，`rollouts.jsonl.gz` 保留全部原始轨迹。
+
+## 文件说明
+
+| 文件 | 大小 | SHA256 | 用途 |
+| --- | ---: | --- | --- |
+| `rollouts.jsonl.gz` | 2.3 MB | `b1e1f4d7692f217812140fa69fe607efa0b27e168cdc1d44598484e469d7e685` | 归档的原始官方轨迹；评分/审计时解压后读取，不直接参与规则计算 |
+| `report.json` | — | — | 官方 `eval_voucher` 对 250 题的审计结果 |
+| `rollout.log.gz` | — | — | 官方 rollout 日志 |
+| `preflight.json` / `config.json` / `scoring-model.json` | — | — | 上游 commit、语料、模型和运行配置 |
+
+`rollouts.jsonl.gz` 是审计证据，不是另一个分数；恢复运行从解压后的轨迹读取，不能把本目录的数字和恢复后的数字混算。

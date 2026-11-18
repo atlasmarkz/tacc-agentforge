@@ -26,6 +26,17 @@ def file_hash(path):
     return h.hexdigest()
 
 
+def verify_corpus(path, expected_bytes=CORPUS_BYTES, expected_sha256=CORPUS_SHA256):
+    """Return (digest, blocker); the raw corpus hash is always checked."""
+    path = Path(path)
+    if not path.is_file() or path.stat().st_size != expected_bytes:
+        return None, 'missing_full_lfs_corpus'
+    digest = file_hash(path)
+    if digest != expected_sha256:
+        return digest, 'corpus_hash_mismatch'
+    return digest, None
+
+
 def index_digest(directory):
     """Same merged hash as deploy/benchmark/build_shoppingbench_index.py."""
     directory = Path(directory)
@@ -47,7 +58,7 @@ def verify_index(directory, manifest):
     return errors
 
 
-def preflight(repo, revision=UPSTREAM_COMMIT, check_corpus=False):
+def preflight(repo, revision=UPSTREAM_COMMIT, check_corpus=True):
     blockers, hashes = [], {}
     commit = subprocess.check_output(['git', '-C', str(repo), 'rev-parse', 'HEAD'], text=True).strip()
     if commit != revision:
@@ -71,12 +82,13 @@ def preflight(repo, revision=UPSTREAM_COMMIT, check_corpus=False):
         if count != 250 or len({t['query'] for t in tasks}) != count:
             blockers.append('voucher_roster_must_have_250_unique_tasks')
     corpus = repo / 'resources/documents.jsonl.gz'
-    if not corpus.is_file() or corpus.stat().st_size != CORPUS_BYTES:
-        blockers.append('missing_full_lfs_corpus')
-    elif check_corpus:
-        hashes['resources/documents.jsonl.gz'] = file_hash(corpus)
-        if hashes['resources/documents.jsonl.gz'] != CORPUS_SHA256:
-            blockers.append('corpus_hash_mismatch')
+    # The hash is always checked. A size match alone cannot tie results to the
+    # declared corpus, and `--check-corpus` is kept only as a CLI compatibility alias.
+    corpus_digest, corpus_blocker = verify_corpus(corpus)
+    if corpus_blocker:
+        blockers.append(corpus_blocker)
+    if corpus_digest:
+        hashes['resources/documents.jsonl.gz'] = corpus_digest
     if not (repo / 'indexes').is_dir() or not list((repo / 'indexes').glob('segments*')):
         blockers.append('missing_lucene_index')
     index_build = repo / 'index-build.json'
@@ -115,7 +127,8 @@ def main():
     p.add_argument('--revision', default=UPSTREAM_COMMIT)
     p.add_argument('--out', required=True, type=Path)
     p.add_argument('--model', default='qwen3.8-27b')
-    p.add_argument('--check-corpus', action='store_true')
+    p.add_argument('--check-corpus', action='store_true',
+                   help='deprecated compatibility flag; corpus SHA256 is always checked')
     p.add_argument('--resume-from', type=Path, help='preserve API-complete episodes, retry empty API episodes only')
     p.add_argument('--run', action='store_true', help='only inside a disposable isolated environment')
     a = p.parse_args()

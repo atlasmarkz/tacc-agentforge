@@ -1,6 +1,6 @@
 # Benchmark 调研与实施说明
 
-可直接运行的命令、指标表与排错见 [evaluations/README.md](../evaluations/README.md)。
+可直接运行的命令、指标表与排错见 [evaluations/v1/README.md](../evaluations/v1/README.md)。
 
 调研日期：2026-11-13。课程规模。**现成 benchmark 可复用；采用公开环境外部对照＋项目冻结任务主评测。** 模型实验状态与限制见文末；单元测试不作为模型分数。
 
@@ -79,7 +79,7 @@ python -m evaluations.v1.run --configs B0,B1,B2 --split dev --repeats 3 \
 
 脚本澄清仅在正确字段出现后返回固定答案；新增最终 `expected=clarify` 用例（最终约束缺 purchase_cap），由模型询问，adapter不做预算预检查。修订场景先独立评分初始方案，再要求保留未变需求。最终输出对最终约束核验。dev原始turns需显式 `--record-traces` 才保存；heldout记录会剥离 turns/model_trace/events/parsed_requirements 等训练衍生内容。
 
-完整正式运行：release后使用生产adapter，6配置×40题×3=720；用循环平衡配置顺序；`deploy/tacc/service/qwen-service/service.json` 已移除前缀缓存，manifest记录实际服务参数/依赖。同case三次重复作同一统计簇，paired bootstrap按case，不把120视为独立样本。B3/A1/A2用于迭代/validator比较，不用B2→B3单独解释loop因果。
+完整正式运行：release后使用生产adapter，6配置×40题×3=720；用循环平衡配置顺序；共享的 `deploy/tacc/service/qwen-service/service.json` 保持主分支配置；benchmark 如需关闭前缀缓存，使用独立 benchmark 服务参数或本地 `args.txt`，并在 manifest 记录实际服务参数、缓存状态和依赖。同case三次重复作同一统计簇，paired bootstrap按case，不把120视为独立样本。B3/A1/A2用于迭代/validator比较，不用B2→B3单独解释loop因果。
 
 中断后按预写roster补齐缺失失败，不丢弃部分repeat：
 

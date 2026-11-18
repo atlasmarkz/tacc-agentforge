@@ -373,8 +373,6 @@ def check_freeze(a) -> dict | None:
 
 
 async def run_all(a):
-    if getattr(a, "record_traces", False) and a.split != "dev":
-        raise ValueError("training traces are dev-only; heldout derivatives are forbidden")
     freeze_info = check_freeze(a)
     service = wait_for_service(a.address_file, getattr(a, "wait_s", 1800))
     log(f"service {service}")

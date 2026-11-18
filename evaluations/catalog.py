@@ -8,7 +8,7 @@ system's retrieval, tools or validator. For one case it classifies every offer o
 - violates:      some hard requirement is known and not satisfied
 - unverifiable:  cost or some required attribute is unknown (and the offer is not already ruled out)
 
-Budget basis (provisional evaluation rule, see evaluations/README-v0.md): in this snapshot tax is unknown for
+Budget basis (provisional evaluation rule, see evaluations/README.md): in this snapshot tax is unknown for
 every offer, so a strict "all fees known" rule would leave no case with a verifiable plan. Each case states
 its basis; "pre_tax" means total = price x quantity + shipping, and an offer with unknown shipping cannot be
 shown to be affordable.

@@ -83,3 +83,13 @@ def test_pending_job_can_be_stopped_without_starting_container(supervisor, monke
     supervisor.run()
     assert supervisor.state['status'] == 'stopped_by_request'
     assert released == ['123']
+
+
+def test_sbatch_parsable_identity_accepts_cluster_suffix():
+    from deploy.benchmark.recover_public_run import parse_sbatch_identity
+    assert parse_sbatch_identity('12345\n') == ('12345', None)
+    assert parse_sbatch_identity('12345;tacc') == ('12345', 'tacc')
+    with pytest.raises(ValueError, match='unexpected sbatch identity'):
+        parse_sbatch_identity('12345;cluster extra')
+    with pytest.raises(ValueError, match='unexpected sbatch identity'):
+        parse_sbatch_identity('not-a-job')

@@ -24,6 +24,16 @@ if str(_ROOT) not in sys.path:
 from evaluations.shoppingbench_recovery import api_complete  # noqa: E402
 
 
+def parse_sbatch_identity(output):
+    """Parse slurm's --parsable output: `JOBID` or `JOBID;CLUSTER`."""
+    raw = (output or "").strip()
+    job_id, _, cluster = raw.partition(";")
+    cluster = cluster.strip()
+    if not job_id.isdigit() or (cluster and not re.fullmatch(r"[A-Za-z0-9_.-]+", cluster)):
+        raise ValueError("unexpected sbatch identity: " + raw[:200])
+    return job_id, (cluster or None)
+
+
 class Supervisor:
     def __init__(self, args):
         self.a = args
@@ -72,12 +82,13 @@ class Supervisor:
         # Only the user's pre-staged service job is invoked; no user-home mounts enter Docker.
         work = self.a.remote_workdir
         self.remote(f'printf "%s\\n" "--deadline-s 3400 --port {self.a.model_port} --max-restarts 0" > {work}/args.txt')
-        job = self.remote(f'sbatch --parsable --nodelist={self.a.node} --time=01:00:00 {work}/configurations/run.slurm')
-        if not job.isdigit():
-            raise RuntimeError('unexpected sbatch identity: ' + job)
+        output = self.remote(f'sbatch --parsable --nodelist={self.a.node} --time=01:00:00 {work}/configurations/run.slurm')
+        job, cluster = parse_sbatch_identity(output)
         self.state['jobs'].append(job)
+        if cluster:
+            self.state.setdefault('job_clusters', {})[job] = cluster
         self.save('waiting_for_allocation', current_job=job)
-        self.event('allocation_submitted', job=job)
+        self.event('allocation_submitted', job=job, cluster=cluster)
         return job
 
     @staticmethod

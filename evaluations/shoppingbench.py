@@ -39,7 +39,7 @@ def audit(tasks, rollouts, evaluate):
         rollout = by_query.get(q)
         row = {'query': q, 'success': False, 'budget_match': False, 'present': rollout is not None,
                'finished': False, 'tool_calls': 0, 'prompt_tokens': None, 'completion_tokens': None,
-               'api_complete': api_complete(rollout) if rollout else False}
+               'api_complete': api_complete(rollout) if rollout else False, 'scoring_error': False}
         if rollout:
             try:
                 result = evaluate(rollout, task)
@@ -47,7 +47,8 @@ def audit(tasks, rollouts, evaluate):
                     raise ValueError('evaluator returned a non-object')
             except Exception as exc:
                 row['error'] = type(exc).__name__ + ': ' + str(exc)[:200]
-                row['api_complete'] = False
+                # A scorer exception is not an API failure; keep the rollout-derived value.
+                row['scoring_error'] = True
             else:
                 row.update(result)
                 row['success'] = result.get('rule', 0) >= 1 and result.get('budget', 0) >= 1
@@ -55,18 +56,18 @@ def audit(tasks, rollouts, evaluate):
         rows.append(row)
     n = len(rows)
     api_incomplete = sum(not r['api_complete'] for r in rows)
-    errors = any(r.get('error') for r in rows)
+    scoring_errors = sum(bool(r.get('scoring_error')) for r in rows)
     flags = []
     if api_incomplete:
         flags.append('interrupted/API-incomplete')
-    if errors:
+    if scoring_errors:
         flags.append('scoring-error')
     return {'track': 'ShoppingBench-official-harness-voucher', 'tasks': n, 'missing': n - len(by_query),
             'unidentified_rollouts': len(unidentified),
             'asr': sum(r['success'] for r in rows) / n if n else None,
             'budget_match_rate': sum(r['budget_match'] for r in rows) / n if n else None,
             'completion_rate': sum(r['finished'] for r in rows) / n if n else None,
-            'api_incomplete': api_incomplete,
+            'api_incomplete': api_incomplete, 'scoring_errors': scoring_errors,
             'quality_interpretation': ('/'.join(flags) + '; not a clean model comparison'
                                        if flags else 'API-complete'),
             'rows': rows}

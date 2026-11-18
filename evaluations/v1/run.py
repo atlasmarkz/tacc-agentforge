@@ -14,7 +14,7 @@ import subprocess
 import sys
 import time
 
-from evaluations.score import aggregate, paired_difference
+from .aggregate import aggregate, paired_difference
 from .oracle import score
 from .suite import BASE, digest, fingerprint, git_state
 
