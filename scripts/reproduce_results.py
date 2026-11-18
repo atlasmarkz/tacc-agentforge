@@ -1,0 +1,167 @@
+"""Recompute the reported results from the committed raw data, without TACC or a GPU.
+
+    python scripts/reproduce_results.py [--out DIR]
+
+1. Agent baseline (docs/experiments/baseline.md, Section 4): re-scores every recorded attempt in
+   evaluations/results/frozen-heldout/ and frozen-dev/ against the frozen catalog snapshot
+   (assets/knowledge/pilot-snapshot.zip) with the independent enumerator, and prints the task success
+   rate (TSR), budget violation rate (BVR) and paired differences per configuration.
+2. Serving experiments (inference/RESULTS.md): regenerates the report from inference/results/.
+3. MTP speculative decoding, the SFT pilot and the post-freeze issue #21 replays: recounted from raw outputs.
+
+Each part is compared with the committed copy and printed as MATCH or DIFFERS. Exit code 0 only if all match.
+This checks the scoring and aggregation; producing new raw records needs the model on TACC
+(see "Detailed Instructions" in README.md).
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import shutil
+import sys
+import tempfile
+import zipfile
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from evaluations.run import rescore  # noqa: E402
+from inference import report as inference_report  # noqa: E402
+
+SNAPSHOT_ZIP = ROOT / "assets/knowledge/pilot-snapshot.zip"
+SNAPSHOT_ID = "snapshot_5bcd00723fb0b7589cbe50c8"
+BASELINES = ("frozen-heldout", "frozen-dev")
+SERVING_FOLDERS = ("serving27b-*", "graphs-*")
+
+
+def frac(x: dict) -> str:
+    return f"{x['n']}/{x['m']}"
+
+
+def check_baseline(name: str, snapshot_db: Path, out: Path) -> bool:
+    src = ROOT / "evaluations/results" / name
+    dst = out / name
+    dst.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(src / "records.jsonl", dst / "records.jsonl")
+    report = rescore(dst, ROOT / "evaluations/cases.jsonl", snapshot_db)
+    committed = json.loads((src / "report.json").read_text(encoding="utf-8"))
+
+    print(f"\n== {name}: {report['cases']} cases x {report['repeats_complete']} repeats "
+          f"({report['records_total']} attempts)")
+    print(f"{'config':<7} {'TSR':>7}  {'per-case mean (95% CI)':<24} {'BVR':>6}  plans")
+    for config, s in report["summary"].items():
+        ci = s["tsr_by_case"]["ci95"]
+        print(f"{config:<7} {frac(s['tsr']):>7}  {s['tsr_by_case']['mean']:.2f} ({ci[0]:.2f}-{ci[1]:.2f})"
+              f"{'':<8} {frac(s['bvr']):>6}  {s['plans_delivered']}")
+    for p in report["paired"]:
+        print(f"  paired {p['from']} -> {p['to']}: {p['diff']:+.2f} (95% CI {p['ci95'][0]:+.2f} to {p['ci95'][1]:+.2f})")
+    print("  by expected outcome (plan / no feasible plan / ask for budget), runs stopped at the model-call limit:")
+    for config, s in report["summary"].items():
+        e = s["tsr_by_expected"]
+        print(f"  {config:<5} {frac(e['plan']):>6} / {frac(e['no_feasible_plan']):>6} / {frac(e['clarify']):>6}"
+              f"   call limit: {s['outcome_reasons'].get('error:model_call_limit', 0)}")
+
+    same = report["summary"] == committed["summary"] and report["paired"] == committed.get("paired")
+    print(f"{'MATCH' if same else 'DIFFERS'}: {name} vs evaluations/results/{name}/report.json")
+    return same
+
+
+def check_serving(out: Path) -> bool:
+    folders = sorted(p for pattern in SERVING_FOLDERS for p in (ROOT / "inference/results").glob(pattern))
+    target = out / "inference-RESULTS.md"
+    argv = sys.argv
+    try:
+        sys.argv = ["report", *map(str, folders), "--out", str(target),
+                    "--notes", str(ROOT / "inference/results/notes.md")]
+        inference_report.main()
+    finally:
+        sys.argv = argv
+    same = target.read_text(encoding="utf-8") == (ROOT / "inference/RESULTS.md").read_text(encoding="utf-8")
+    print(f"\n== serving experiments: {len(folders)} result folders")
+    print(f"{'MATCH' if same else 'DIFFERS'}: {target} vs inference/RESULTS.md")
+    return same
+
+
+def check_sft() -> bool:
+    """Recount the SFT first-step check (training/README.md section 4) from the raw model outputs."""
+    rows = json.loads((ROOT / "training/results/sft-serve-28671/check.json").read_text(encoding="utf-8"))["rows"]
+    counts: dict[str, list[int]] = {}
+    for r in rows:
+        exp = r["expected"]
+        ok = r.get("category") == exp["category"] if exp.get("category") else r.get("type") == exp["type"]
+        key = f"{r['model']}:{'category' if exp.get('category') else 'ask_first'}"
+        n, m = counts.get(key, [0, 0])
+        counts[key] = [n + ok, m + 1]
+    got = {k: f"{n}/{m}" for k, (n, m) in counts.items()}
+    documented = {"qwen3.8-27b:category": "2/8", "sft:category": "8/8",
+                  "qwen3.8-27b:ask_first": "1/2", "sft:ask_first": "0/2"}
+    print("\n== SFT pilot, first action on 10 dev prompts (base model vs LoRA adapter)")
+    print(f"  correct catalog category: base {got['qwen3.8-27b:category']}, adapter {got['sft:category']}")
+    print(f"  asks for the missing budget first: base {got['qwen3.8-27b:ask_first']}, adapter {got['sft:ask_first']}")
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: training/results/sft-serve-28671/check.json vs training/README.md")
+    return same
+
+
+def check_mtp() -> bool:
+    """Output tok/s of MTP speculative decoding with the patched vLLM (private-vLLM report, E5c)."""
+    data = json.loads((ROOT / "inference/results/private-spec-mtp-28403/results.json").read_text(encoding="utf-8"))
+    documented = {"baseline": [57.7, 37.6, 139.5, 63.9], "mtp-k1": [73.5, 44.2, 129.0, 67.0],
+                  "mtp-k3": [81.8, 47.9, 136.8, 69.8]}
+    stages = ["distinct-c1", "shared_prefix-c1", "distinct-c4", "shared_prefix-c4"]
+    print("\n== MTP speculative decoding with CUDA graphs (patched vLLM), output tok/s")
+    print(f"  {'variant':<9}" + "".join(f"{s:>18}" for s in stages))
+    got = {}
+    for r in data["results"]:
+        got[r["variant"]] = [round(r["streaming"][s]["output_tokens_per_s"], 1) for s in stages]
+        print(f"  {r['variant']:<9}" + "".join(f"{v:>18.1f}" for v in got[r["variant"]]))
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: inference/results/private-spec-mtp-28403 vs "
+          "docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md (E5c)")
+    return same
+
+
+def check_replay() -> bool:
+    """Model calls and end states of the post-freeze issue #21 replays (PR #29, MAIN_REPLAY.md)."""
+    data = json.loads((ROOT / "docs/experiments/2026-11-17-agent-finalization/main-real-replay.json")
+                      .read_text(encoding="utf-8"))
+    got: dict[str, list[str]] = {}
+    for r in data["runs"]:
+        end = r["stop_reason"] or r["status"]
+        got.setdefault(r["case_id"], []).append(f"{r['model_calls']} calls, {end}")
+    documented = {"issue-21-charger": ["1 calls, waiting_user"] * 3,
+                  "dev-07": ["3 calls, no_feasible_plan"] * 3,
+                  "dev-04": ["5 calls, completed"] * 3}
+    print("\n== Post-freeze issue #21 fix: real-model replays on main (3 repeats each)")
+    for case, runs in got.items():
+        print(f"  {case:<17} " + " | ".join(runs))
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: main-real-replay.json vs "
+          "docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md")
+    return same
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--out", type=Path, help="output directory (default: a new temporary directory)")
+    a = ap.parse_args()
+    out = (a.out or Path(tempfile.mkdtemp(prefix="agentforge-reproduce-"))).resolve()
+    out.mkdir(parents=True, exist_ok=True)
+
+    with zipfile.ZipFile(SNAPSHOT_ZIP) as z:
+        z.extract(f"{SNAPSHOT_ID}/catalog.sqlite", out / "snapshot")
+    snapshot_db = out / "snapshot" / SNAPSHOT_ID / "catalog.sqlite"
+
+    results = [check_baseline(name, snapshot_db, out) for name in BASELINES]
+    results.append(check_serving(out))
+    results.append(check_mtp())
+    results.append(check_sft())
+    results.append(check_replay())
+    print(f"\nOutputs in {out}")
+    print("ALL MATCH" if all(results) else "SOME RESULTS DIFFER")
+    return 0 if all(results) else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

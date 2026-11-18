@@ -598,3 +598,33 @@ def test_recording_validator_forwards_the_optional_policy_hooks():
     # B3 is the ablation: the stand-in has no policy and therefore no preflight question.
     assert RecordingValidator().preflight({}) is None
     assert RecordingValidator().decision_policy() is None
+
+
+@pytest.mark.parametrize("reason", ["no_feasible_plan", "evidence_insufficient", "requirements_unverified"])
+def test_harness_reports_reach_the_scorer_as_abstentions(reason, monkeypatch):
+    """真实 Runtime -> harness_call -> scorer，防止正常无解结论被映射成 error。"""
+    import asyncio
+    from agent import ModelReply
+    from agent.examples.mock_run import demo_tools
+    from evaluations import run
+
+    message = "No verifiable option in this catalog fits the budget."
+
+    class ReportingPort:
+        def __init__(self, *args, **kwargs):
+            pass
+
+        async def generate(self, request, context):
+            return ModelReply(content=json.dumps({"type": "report_incomplete", "reason": reason,
+                                                  "message": message}))
+
+    monkeypatch.setattr(run, "VllmModelPort", ReportingPort)
+    infeasible = {**CASE, "message": "Any earbuds under 10 USD?",
+                  "constraints": {"currency": "USD", "purchase_cap": "10.00"}}
+    result = asyncio.run(run.harness_call(None, demo_tools(), "snap-test", infeasible, "B3v", 0))
+    assert result["status"] == "incomplete" and result["stop_reason"] == reason
+    assert result["outcome"] == {"kind": "abstain", "reason": reason, "message": message}
+    record = {**result, "config": "B3v", "rep": 0}
+    assert score_record(record, infeasible, ground_truth(infeasible, CATALOG), CATALOG)["success"]
+    feasible_score = score_record(record, CASE, ground_truth(CASE, CATALOG), CATALOG)
+    assert not feasible_score["success"] and feasible_score["reason"] == "abstain_without_plan"
