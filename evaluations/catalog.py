@@ -48,7 +48,7 @@ class OfferVerdict:
 
 class Catalog:
     def __init__(self, db_path: Path):
-        self.db_path = Path(db_path)
+        self.db_path = Path(db_path).resolve()
         self.conn = sqlite3.connect(self.db_path.as_uri() + "?mode=ro", uri=True)
         self.conn.row_factory = sqlite3.Row
 
