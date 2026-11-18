@@ -8,6 +8,8 @@ defaults:
   agent:
     max_model_calls: 8             # 决策尝试总数；错误回复也占额度，解释调用单独计数。
     max_tool_calls: 8              # 已开始执行的工具调用总数。
+    finalize_reserve_model_calls: 2 # 最后两次只用于收尾及修复，不再查询工具。
+    max_no_progress_calls: 2       # 连续无新增事实时提前收尾。
     max_action_repairs: 2          # 连续无效动作最多修复两次，第三次拒绝后停止。
     max_plan_repairs: 2            # 业务校验失败后的方案修复上限。
     max_questions: 8               # 同一 run 跨 resume 的提问上限。
