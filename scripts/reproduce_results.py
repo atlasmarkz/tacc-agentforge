@@ -55,6 +55,11 @@ def check_baseline(name: str, snapshot_db: Path, out: Path) -> bool:
               f"{'':<8} {frac(s['bvr']):>6}  {s['plans_delivered']}")
     for p in report["paired"]:
         print(f"  paired {p['from']} -> {p['to']}: {p['diff']:+.2f} (95% CI {p['ci95'][0]:+.2f} to {p['ci95'][1]:+.2f})")
+    print("  by expected outcome (plan / no feasible plan / ask for budget), runs stopped at the model-call limit:")
+    for config, s in report["summary"].items():
+        e = s["tsr_by_expected"]
+        print(f"  {config:<5} {frac(e['plan']):>6} / {frac(e['no_feasible_plan']):>6} / {frac(e['clarify']):>6}"
+              f"   call limit: {s['outcome_reasons'].get('error:model_call_limit', 0)}")
 
     same = report["summary"] == committed["summary"] and report["paired"] == committed.get("paired")
     print(f"{'MATCH' if same else 'DIFFERS'}: {name} vs evaluations/results/{name}/report.json")
@@ -77,6 +82,45 @@ def check_serving(out: Path) -> bool:
     return same
 
 
+def check_sft() -> bool:
+    """Recount the SFT first-step check (training/README.md section 4) from the raw model outputs."""
+    rows = json.loads((ROOT / "training/results/sft-serve-28671/check.json").read_text(encoding="utf-8"))["rows"]
+    counts: dict[str, list[int]] = {}
+    for r in rows:
+        exp = r["expected"]
+        ok = r.get("category") == exp["category"] if exp.get("category") else r.get("type") == exp["type"]
+        key = f"{r['model']}:{'category' if exp.get('category') else 'ask_first'}"
+        n, m = counts.get(key, [0, 0])
+        counts[key] = [n + ok, m + 1]
+    got = {k: f"{n}/{m}" for k, (n, m) in counts.items()}
+    documented = {"qwen3.8-27b:category": "2/8", "sft:category": "8/8",
+                  "qwen3.8-27b:ask_first": "1/2", "sft:ask_first": "0/2"}
+    print("\n== SFT pilot, first action on 10 dev prompts (base model vs LoRA adapter)")
+    print(f"  correct catalog category: base {got['qwen3.8-27b:category']}, adapter {got['sft:category']}")
+    print(f"  asks for the missing budget first: base {got['qwen3.8-27b:ask_first']}, adapter {got['sft:ask_first']}")
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: training/results/sft-serve-28671/check.json vs training/README.md")
+    return same
+
+
+def check_mtp() -> bool:
+    """Output tok/s of MTP speculative decoding with the patched vLLM (private-vLLM report, E5c)."""
+    data = json.loads((ROOT / "inference/results/private-spec-mtp-28403/results.json").read_text(encoding="utf-8"))
+    documented = {"baseline": [57.7, 37.6, 139.5, 63.9], "mtp-k1": [73.5, 44.2, 129.0, 67.0],
+                  "mtp-k3": [81.8, 47.9, 136.8, 69.8]}
+    stages = ["distinct-c1", "shared_prefix-c1", "distinct-c4", "shared_prefix-c4"]
+    print("\n== MTP speculative decoding with CUDA graphs (patched vLLM), output tok/s")
+    print(f"  {'variant':<9}" + "".join(f"{s:>18}" for s in stages))
+    got = {}
+    for r in data["results"]:
+        got[r["variant"]] = [round(r["streaming"][s]["output_tokens_per_s"], 1) for s in stages]
+        print(f"  {r['variant']:<9}" + "".join(f"{v:>18.1f}" for v in got[r["variant"]]))
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: inference/results/private-spec-mtp-28403 vs "
+          "docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md (E5c)")
+    return same
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, help="output directory (default: a new temporary directory)")
@@ -90,6 +134,8 @@ def main() -> int:
 
     results = [check_baseline(name, snapshot_db, out) for name in BASELINES]
     results.append(check_serving(out))
+    results.append(check_mtp())
+    results.append(check_sft())
     print(f"\nOutputs in {out}")
     print("ALL MATCH" if all(results) else "SOME RESULTS DIFFER")
     return 0 if all(results) else 1
