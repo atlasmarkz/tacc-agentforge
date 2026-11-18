@@ -524,18 +524,21 @@ SKU 身份默认不阻止通过，`require_verified_identity=True` 可收紧。
 `max_model_calls` 仍是整个 run（包括 resume）的累计硬上限。新增策略默认无需修改外部 YAML：
 
 - `finalize_reserve_model_calls=2`：预留最后两次决策给提案及修复；收敛时动作 schema 和运行时共同禁止继续查工具。
-- `max_no_progress_calls=2`：连续两次未取得新信息，提前进入收敛。响应时间、报价年龄和候选集合句柄变化不算新商品事实；
+- `max_no_progress_calls=2`：连续两次未取得新信息，提前进入收敛。按候选、证据片段和报价分别记事实指纹；响应时间、报价年龄、候选集合句柄、游标、排序和排名变化不算新商品事实；
   搜索结果的候选价格或硬性规格全部未知时（冻结基线 dev-07 的翻页），下一页也不算进展，空结果仍算一次有效发现。
+  新的可恢复参数诊断及参数纠正后的首次成功检索从新的无进展序列开始，留一次针对性修正/补证据机会；相同诊断重复仍累计无进展，错误尝试仍占总调用额度。
+  预算筛选后仅有未知价格时，提示用相同要求核查一次 `include_unknown=false`，避免翻遍未知价格页。
 - `max_trace_entries=100`：检查点内保留有界的节点诊断，单条记录只存节点、控制状态、用量和 ID/代码/摘要级细节，
   不再重复保存整条 action、proposal、message 或工具结果（历史消息本身已在 `history` 里）。
 
 显式标记 `ToolSpec.read_only=True` 的工具，以及符合既有购物工具名称及参数契约的只读工具，可在同一执行段复用相同成功查询。
+缓存命中明确标注 `no_new_information` 与原调用的 `previous_operation_id`，不再消耗工具额度；模型决策仍计数。
 缓存不跨 resume/重启，避免复用服务进程内已经失效的 candidate-set 句柄；失败不缓存，分页 cursor 是查询参数的一部分。
 候选商品、证据 ID、带位置的文本片段与查询进展跨恢复保留，作为不可信来源数据交给模型；原始 `unknown` 状态不会被改写。
 模型应针对 unknown 读取必要的商品证据，不必为了结构化字段缺失而重复筛选，也不能仅凭总功率推断多口功率分配或设备兼容性。
 
 校验器暴露 `preflight()` 时，检索前会确定性检查预算，缺失项直接生成规范字段的问题。该检查在第一次模型调用前执行，
-本身不发起调用；但拦截发生时模型次数已经计入，因此占用了 `max_model_calls` 的一次额度。agent 按方法名而不是类型查找
+本身不发起模型调用，也不占用 `max_model_calls` 额度。agent 按方法名而不是类型查找
 `preflight()`/`decision_policy()`，评测里的 `RecordingValidator` 等包装器只要转发同名方法即可生效（预检问题与回答都是英文）。
 `decision_policy()` 的 `tax_counted` 根据请求覆盖后的 `budget_basis` 设置：`pre_tax` 为 `false`，已知税费也不计；`all_in` 为 `true`。
 新预算问题使用 `purchase_cap` 和 `currency`；旧检查点中的 `max_price_usd`/`budget_usd` 仅在金额、币种和现有预算无冲突时转换，并写入诊断。
@@ -543,13 +546,16 @@ SKU 身份默认不阻止通过，`require_verified_identity=True` 可收紧。
 无法继续利用回答时返回 `clarification_budget_exhausted`，不会建立必然失败的等待状态。
 该行为也适用于显式配置的极小调用预算。
 
-证据足够时仍由原校验器决定方案能否通过。证据不足时，收敛 schema 允许 `report_incomplete`，返回
-`evidence_insufficient` 或 `requirements_unverified` 及具体说明，避免强迫模型编造商品或证据 ID。
+证据足够时仍由原校验器决定方案能否通过。`report_incomplete` 在所有阶段可用，不必耗尽次数才能结束。
+完整检索证实目录中没有可验证方案时，可返回 `no_feasible_plan`，说明目录、预算范围及未知项；
+这表示没有可支持的目录方案，不表示现实中不存在商品，也不是预算校验器验证过的无解证明。
+部分分页、仅排除 unknown 的空结果或限定单个商品的搜索不能单独证明无解。
+证据不足以形成结论时返回 `evidence_insufficient` 或 `requirements_unverified` 及具体说明，避免强迫模型编造商品或证据 ID。
 `completed` 仍表示方案通过所配置的校验器；默认预算校验器不验证硬性商品规格。
 
-停止结果仅在模型弃答（`evidence_insufficient`、`requirements_unverified`）时带面向用户的 `message`，优先使用模型自己写的说明。
+停止结果仅在模型弃答（`evidence_insufficient`、`requirements_unverified`、`no_feasible_plan`）时带面向用户的 `message`，优先使用模型自己写的说明。
 其余停止原因（包括 `convergence_failed`、`clarification_budget_exhausted`）的 `message` 为空，由页面根据 `stop_reason` 展示文案；完成和等待回答时也为空。
-评测把两种模型弃答原因记为 `abstain` 结果，只有 `no_feasible_plan` 用例算通过，其余停止仍记为 `error`。
+评测把这三种模型弃答原因记为 `abstain` 结果，只有期望为 `no_feasible_plan` 的用例算通过，其余停止仍记为 `error`。
 
 ```python
 trace = await runtime.export_trace(run_id)

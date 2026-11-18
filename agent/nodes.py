@@ -127,11 +127,12 @@ class RunScope:
 
 
 STOP_MESSAGES = {
+    "no_feasible_plan": "No supported plan in the selected catalog meets these requirements.",
     "evidence_insufficient": "There is not enough evidence to support a plan.",
     "requirements_unverified": "The requirements could not be verified from the available evidence.",
 }
-# 这两个原因由模型提供面向用户的弃答说明；其余原因的 issue 文本只面向模型。
-USER_FACING_ISSUES = {"evidence_insufficient", "requirements_unverified"}
+# 模型的无解/证据不足说明面向用户；其余原因的 issue 文本只面向模型。
+USER_FACING_ISSUES = set(STOP_MESSAGES)
 
 
 def result_message(state):
@@ -328,11 +329,16 @@ class Nodes:
                                  "constraints": state["request"]["constraints"],
                                  "tool": tool.name, "arguments": arguments.model_dump(mode="json")})
         if reusable(tool) and cache_key in self.scope.tool_cache:
-            data = self.scope.tool_cache[cache_key]
+            cached = self.scope.tool_cache[cache_key]
+            data = cached["data"]
             return {**observation(state, {"status": "ok", "tool": tool.name, "cached": True,
+                                          "no_new_information": True,
+                                          "previous_operation_id": cached["operation_id"],
+                                          "guidance": "Identical successful query; use the earlier observation or shopping_context. Choose a different evidence read only if essential, otherwise finish.",
                                           "snapshot_id": self.scope.request.snapshot_id, "data": data}),
-                    "progress": record_result(state, tool.name, data),
-                    "_trace": {"cached": True, "tool": tool.name, "arguments": bounded(action.arguments)}}
+                    "progress": record_result(state, tool.name, data, arguments=arguments.model_dump(mode="json")),
+                    "_trace": {"cached": True, "tool": tool.name, "arguments": bounded(action.arguments),
+                               "previous_operation_id": cached["operation_id"]}}
         if state["usage"]["tool_calls"] >= self.policy.max_tool_calls:
             return stop(state, "tool_call_limit")
         usage = dict(state["usage"])
@@ -370,7 +376,7 @@ class Nodes:
         if len(encoded) > tool.max_result_bytes:
             return {**stop(state, "tool_result_too_large", status="failed"), "usage": usage}
         if reusable(tool):
-            self.scope.tool_cache[cache_key] = data
+            self.scope.tool_cache[cache_key] = {"data": data, "operation_id": operation_id}
         self.scope.emit("execute_tool", "tool_finished", tool=tool.name, status="ok", operation_id=operation_id,
                         result_summary=bounded(data))
         return {
@@ -379,7 +385,7 @@ class Nodes:
                 "snapshot_id": self.scope.request.snapshot_id, "data": data,
             }),
             "usage": usage,
-            "progress": record_result(state, tool.name, data),
+            "progress": record_result(state, tool.name, data, arguments=arguments.model_dump(mode="json")),
             "shopping_context": remember(state.get("shopping_context"), tool.name, action.arguments, data),
             "_trace": {"tool": tool.name, "arguments": bounded(action.arguments),
                        "operation_id": operation_id, "result_summary": bounded(data)},

@@ -1,0 +1,21 @@
+{
+  "source_commit": "dde58f3341061bbe979dd872660c6ecd01d4ccec",
+  "branch": "fix/agent-main-work",
+  "profile": "tacc-fast",
+  "source_sha256": {
+    "agent/progress.py": "6f21445d631f93b50262ef04176ab90bcad4eb05f5e2f5b9303f5b340af072e1",
+    "agent/nodes.py": "e6d42b5d08b765f75ac24edc21afa7a9968c317275c20685af5b5d6608020172",
+    "agent/contracts.py": "b27ced23f9b902e85c2076f00df9eb9d37b5bbec8f6b439021b3317cdf4e2c0a",
+    "agent/prompts.py": "eabb0c140f19df45e9babf497c99123659041c9edb1bcf34b3f16085e02363ad",
+    "configs/agent.yaml": "61b82414188b3f065cd41c7aa6d1f936595be5e5977149df22b9fb98e85476c4",
+    "knowledge/service.py": "f2ea45ae733b19b07921c179c2c3c2522ff005dc2ac9bdc7fd3d450deb98d26f",
+    "knowledge/agent_tools.py": "6d66a462317a5e0aae1433cd96d96632a8dfa164e1c2779bf08ff48c927ad4c1",
+    "knowledge/budget_source.py": "a080e097258e6d5130913d2f698fbffed7ec20f991acad0c57eebc91c4c0baef",
+    "inference/model_port.py": "a06e93aedf96f20ad2bf59ebca5d8cdf5dd794e456c3f57dd1029180803d7b4a",
+    "evaluations/run.py": "af900023129b1434e97d7ee36ced147ca255de07e670dc02e8cb2f35376bbda6",
+    "evaluations/score.py": "3033dbe0ff0563391c98f12c8ed171fe1502538af1782966d65f1a8bd99b3363",
+    "scripts/replay_agent_finalization.py": "26e6abc43098c74182396ea689adea8f18d4c4f926389b6c21c4d2f66a2406dc"
+  },
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "catalog_sha256": "c17f81c11339fdb521c3ca89749bb1b82567ed67c75714649e935da935389b36"
+}
