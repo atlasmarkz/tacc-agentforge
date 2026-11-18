@@ -7,6 +7,7 @@
    (assets/knowledge/pilot-snapshot.zip) with the independent enumerator, and prints the task success
    rate (TSR), budget violation rate (BVR) and paired differences per configuration.
 2. Serving experiments (inference/RESULTS.md): regenerates the report from inference/results/.
+3. MTP speculative decoding, the SFT pilot and the post-freeze issue #21 replays: recounted from raw outputs.
 
 Each part is compared with the committed copy and printed as MATCH or DIFFERS. Exit code 0 only if all match.
 This checks the scoring and aggregation; producing new raw records needs the model on TACC
@@ -121,6 +122,26 @@ def check_mtp() -> bool:
     return same
 
 
+def check_replay() -> bool:
+    """Model calls and end states of the post-freeze issue #21 replays (PR #29, MAIN_REPLAY.md)."""
+    data = json.loads((ROOT / "docs/experiments/2026-11-17-agent-finalization/main-real-replay.json")
+                      .read_text(encoding="utf-8"))
+    got: dict[str, list[str]] = {}
+    for r in data["runs"]:
+        end = r["stop_reason"] or r["status"]
+        got.setdefault(r["case_id"], []).append(f"{r['model_calls']} calls, {end}")
+    documented = {"issue-21-charger": ["1 calls, waiting_user"] * 3,
+                  "dev-07": ["3 calls, no_feasible_plan"] * 3,
+                  "dev-04": ["5 calls, completed"] * 3}
+    print("\n== Post-freeze issue #21 fix: real-model replays on main (3 repeats each)")
+    for case, runs in got.items():
+        print(f"  {case:<17} " + " | ".join(runs))
+    same = got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: main-real-replay.json vs "
+          "docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md")
+    return same
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--out", type=Path, help="output directory (default: a new temporary directory)")
@@ -136,6 +157,7 @@ def main() -> int:
     results.append(check_serving(out))
     results.append(check_mtp())
     results.append(check_sft())
+    results.append(check_replay())
     print(f"\nOutputs in {out}")
     print("ALL MATCH" if all(results) else "SOME RESULTS DIFFER")
     return 0 if all(results) else 1

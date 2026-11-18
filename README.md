@@ -51,10 +51,11 @@ All numbers come from runs on TACC. The raw data is committed, and `scripts/repr
 |---|---|---|
 | **C1** | On 32 held-out cases × 3 repeats, the full agent (B3v: multi-step tools + budget validator) succeeds in **42/96** attempts. The single-call baselines B0/B1/B2 do better overall: 54/96, 57/96, 57/96. | [baseline report §4](docs/experiments/baseline.md), `evaluations/results/frozen-heldout/` |
 | **C2** | The budget validator helps: B3 → B3v paired difference **+0.10 (95% CI +0.02 to +0.20)**. No configuration delivered an over-budget plan (BVR 0 in all five). | baseline report §4 |
-| **C3** | The multi-step agent wins on cases that need searching (plan cases: B3v 33/60 vs. at most 21/60 for single calls). It loses overall because **48/96 runs stop at the 8-call model limit**, including 22/24 runs on cases with no feasible plan (issue #21, unresolved). | baseline report §4, §6–7 |
+| **C3** | The multi-step agent wins on cases that need searching (plan cases: B3v 33/60 vs. at most 21/60 for single calls). It loses overall because **48/96 runs stop at the 8-call model limit**, including 22/24 runs on cases with no feasible plan (issue #21). | baseline report §4, §6–7 |
 | **C4** | Serving, one flag changed at a time: CUDA graphs give **+202% output throughput** over eager mode (67.4 → 203.9 tok/s, distinct prompts, concurrency 8). In eager mode, prefix caching cuts TTFT p50 by 71% on shared-prefix prompts. FlashInfer attention and the FP8 KV cache fail on this setup. | [inference/RESULTS.md](inference/RESULTS.md), `inference/results/` |
 | **C5** | MTP speculative decoding crashed during CUDA-graph capture on this hybrid model. A one-line vLLM patch fixes it; with CUDA graphs, MTP k=3 then gives **+42% single-request throughput** (57.7 → 81.8 tok/s), but little or no gain at 4 concurrent requests (−2% to +9%). Each cell is a single measurement. | [private-vLLM report, E5c](docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md), [patch](deploy/tacc/private-vllm/patches/E5c-warmup-spec-decode-metadata.patch), `inference/results/private-spec-mtp-28403/` |
 | **C6** | SFT pipeline pilot: a LoRA adapter trained on the INT4 checkpoint and served by vLLM picks the correct catalog category on the first step in **8/8** prompts, vs. 2/8 for the base model. **This is a pipeline check, not a quality result**: 10 prompts, dev cases only (partly seen in training), first action only. | [training/README.md](training/README.md) §3–5, `training/results/` |
+| **C7** | Post-freeze fix for issue #21 (PR #29, merged into `main` after the freeze): in targeted replays with the real model (3 requests × 3 repeats), dev-07 (no feasible plan) ends in 3 model calls with `no_feasible_plan` instead of 8 calls at the limit, and dev-04 still completes with a verified plan in 5 calls. **The held-out split was not rerun**, so there is no new overall TSR. | [finalization report](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md), `docs/experiments/2026-11-17-agent-finalization/main-real-replay.json` |
 
 ---
 
@@ -95,7 +96,7 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 .venv/bin/python -m pytest tests agent/tests -q
 ```
 
-**Expected:** `609 passed, 2 skipped`. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC).
+**Expected:** `622 passed, 2 skipped`. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC).
 
 ## Example 2: end-to-end request without a GPU (about 1 minute)
 
@@ -174,12 +175,13 @@ The results can be checked at two levels:
 .venv/bin/python scripts/reproduce_results.py
 ```
 
-The script does five checks:
+The script does six checks:
 
 - **C1–C3:** rescores all 480 held-out and 180 dev attempts in `evaluations/results/frozen-{heldout,dev}/records.jsonl` against the frozen snapshot.
 - **C4:** regenerates `inference/RESULTS.md` from `inference/results/`.
 - **C5:** recomputes the MTP throughput table from the raw benchmark output.
 - **C6:** recounts the SFT first-step check from the raw model outputs.
+- **C7:** tallies model calls and end states of the 9 post-freeze replays.
 
 Each result is compared with the committed copy and marked `MATCH` or `DIFFERS`.
 
@@ -212,6 +214,11 @@ MATCH: ...
 == SFT pilot, first action on 10 dev prompts (base model vs LoRA adapter)
   correct catalog category: base 2/8, adapter 8/8
   asks for the missing budget first: base 1/2, adapter 0/2
+MATCH: ...
+== Post-freeze issue #21 fix: real-model replays on main (3 repeats each)
+  issue-21-charger  1 calls, waiting_user | 1 calls, waiting_user | 1 calls, waiting_user
+  dev-07            3 calls, no_feasible_plan | 3 calls, no_feasible_plan | 3 calls, no_feasible_plan
+  dev-04            5 calls, completed | 5 calls, completed | 5 calls, completed
 MATCH: ...
 ALL MATCH
 ```
@@ -297,7 +304,11 @@ Each variant restarts vLLM, which takes 3.5–9 minutes, so one group fills most
    (cd deploy/tacc/private-vllm/qwen-private-experiments && tcloud submit)
    ```
 
-## Step 4: rerun the SFT pilot on TACC (C6)
+## Step 4: rerun the post-freeze replays on TACC (C7)
+
+The replay command is in [MAIN_REPLAY.md](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md) (`scripts/replay_agent_finalization.py`; use `.venv/bin/python` where it says `agent/.venv/bin/python`). It needs a running model service (Step 2) reachable through `--base-url` or `--address-file`, and runs dev-07, dev-04 and the original issue #21 charger request 3 times each on current `main`. The documented run used vLLM in eager mode, so compare call counts and end states, not latency.
+
+## Step 5: rerun the SFT pilot on TACC (C6)
 
 Follow [training/README.md](training/README.md) §6. The data step runs offline:
 
@@ -323,7 +334,7 @@ It prints 69 examples from 6 cases, which matches training/README §2. Training 
 | SFT | Pilot only (C6); no end-to-end evaluation of the adapter |
 | **Quantization** (`quantization/`, Task 8) | **Not implemented.** The code is a stub. All results use the course's pre-quantized AWQ INT4 model; no precision comparison was run. |
 | Fifth, unseen category; human ratings of explanations; retrieval Recall@5/MRR@5 | Not done. The 602-row relevance pool in `evaluations/relevance_pool.jsonl` is unlabeled. |
-| Fix for the model-call limit (issue #21) | Open. The frozen system includes this failure mode. |
+| Fix for the model-call limit (issue #21) | Fixed on `main` after the freeze (PR #29, C7) and checked in 9 targeted real-model replays. The frozen system (`cc6059d`) still has this failure mode, and the held-out split was not rerun with the fix. |
 
 ## Known limitations and expected variation
 
@@ -331,7 +342,7 @@ It prints 69 examples from 6 cases, which matches training/README §2. Training 
 - **A TACC rerun of the agent will not give identical counts.** All configurations use temperature 0, but vLLM batching and prefix-cache state are not bit-deterministic, so individual multi-step (B3/B3v) attempts can change. We expect, but have not measured across reruns, that held-out TSRs stay within the reported per-case 95% intervals; for example, the interval for B3v (42/96) is 0.28–0.60.
 - **Latency and throughput depend on the node.** GPU model and co-located jobs vary across TACC nodes; the logs suggest RTX 3090-class GPUs with about 23.7 GiB. Compare relative changes within one job, not absolute numbers across jobs. The serving report marks changes under 3% as "~same". C5 has one measurement per cell.
 - **Node 10-0-1-11 could not start vLLM** in our runs (private-vLLM report). The model-service job (`qwen-service`) excludes it, but the experiment and training jobs do not. If one of them dies at import with `NVMLError_InvalidArgument`, resubmit it, or add `exclude=10-0-1-11` to its `tuxiv.conf`.
-- **The model-call limit dominates agent failures** (C3, issue #21). The agent does not know how many calls it has left, and paginated searches that include unknown-price items keep it searching.
+- **The model-call limit dominates the frozen system's failures** (C3, issue #21). There, the agent does not know how many calls it has left, and paginated searches that include unknown-price items keep it searching. The fix on `main` (C7) is supported only by 9 targeted replays, not by a held-out rerun.
 - **Correctness is relative to the frozen snapshot**, not to the real world. All 251 offers have unknown tax, so budgets are compared before tax. Known data errors in the snapshot carry over into the ground truth ([evaluations/README.md](evaluations/README.md) §4).
 - **The validator checks money, not requirements.** It approved three B3v plans even though a required attribute was unknown (baseline report §6).
 - **TACC availability.** The service needs a free 2-GPU node, and a queued successor job leaves a gap of minutes or more. The runner waits and retries instead of failing.
