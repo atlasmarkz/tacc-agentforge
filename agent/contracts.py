@@ -99,7 +99,7 @@ class ReportIncomplete(Schema):
     """证据不足时显式弃答；收敛不能强迫模型编造商品或证据 ID。"""
 
     type: Literal["report_incomplete"]
-    reason: Literal["evidence_insufficient", "requirements_unverified"]
+    reason: Literal["evidence_insufficient", "requirements_unverified", "no_feasible_plan"]
     message: str = Field(min_length=1, max_length=500, pattern=r"\S")
 
 

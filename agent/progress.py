@@ -11,7 +11,8 @@ def fingerprint(value):
 
 def semantic_result(value):
     """忽略响应时间等元数据；翻页文本、报价和错误变化仍算新信息。"""
-    volatile = {"responded_at", "bytes", "price_age_seconds", "price_stale", "candidate_set_id", "filter_digest"}
+    volatile = {"responded_at", "bytes", "price_age_seconds", "price_stale", "candidate_set_id", "filter_digest",
+                "next_cursor", "truncated", "rank", "score"}
     if isinstance(value, dict):
         return {k: semantic_result(v) for k, v in value.items() if k not in volatile}
     if isinstance(value, list):
@@ -40,14 +41,32 @@ def page_is_informative(data):
     return any(known_satisfying(candidate) for candidate in candidates)
 
 
-def record_result(state, tool_name, data, *, error=False):
+def result_facts(tool_name, data, arguments):
+    """按事实而不是整页计进展：换句柄、顺序或重叠分页不会制造新信息。"""
+    if not isinstance(data, dict):
+        return [fingerprint({"tool": tool_name, "result": semantic_result(data)})]
+    for key in ("candidates", "evidence", "offers"):
+        items = data.get(key)
+        if isinstance(items, list) and items:
+            return [fingerprint({"kind": key, "fact": semantic_result(item)}) for item in items]
+    # 空搜索也是一次发现，但不同筛选的空结果不是同一事实。cursor/limit 只改变展示。
+    query = semantic_result({k: v for k, v in (arguments or {}).items() if k not in {"cursor", "limit", "k"}})
+    return [fingerprint({"tool": tool_name, "query": query, "result": semantic_result(data)})]
+
+
+def record_result(state, tool_name, data, *, error=False, arguments=None):
     previous = state.get("progress", {})
     seen = previous.get("seen_results", [])
-    digest = fingerprint({"tool": tool_name, "result": semantic_result(data)})
+    facts = result_facts(tool_name, data, arguments)
     # 翻页候选的价格和规格全部未知时，下一页不带来可用于决策的新事实。
-    new = digest not in seen and not error and page_is_informative(data)
-    progress = {"seen_results": (seen + [digest])[-32:],
-                "no_progress_calls": 0 if new else previous.get("no_progress_calls", 0) + 1,
+    unseen = any(digest not in seen for digest in facts)
+    new = unseen and not error and page_is_informative(data)
+    # 新的可恢复诊断（如先纠正品类，再纠正属性）也需要一次修正机会；它不是商品事实。
+    # 相同诊断反复出现仍累计无进展；所有错误尝试继续占总决策额度。
+    stalled_before = 0 if unseen and (error or previous.get("last_result_error")) else previous.get("no_progress_calls", 0)
+    progress = {"seen_results": list(dict.fromkeys(seen + facts))[-256:],
+                "no_progress_calls": 0 if new else stalled_before + 1,
+                "last_result_error": error,
                 "force_finalize": previous.get("force_finalize", False)}
     if "resume_evidence_budget" in previous:
         progress["resume_evidence_budget"] = previous["resume_evidence_budget"]
@@ -64,9 +83,8 @@ def decision_control(state, policy):
     if progress.get("resume_evidence_budget", 0):
         reserve = 1  # 回答后可用预留额度补一次证据，再提交；总调用计数仍不重置。
     finalize = remaining <= reserve or stalled or progress.get("force_finalize", False) or not tools_left
-    allowed = ["propose_plan"]
-    if finalize:
-        allowed.append("report_incomplete")
+    # 已证实目录内无可支持的方案时可以直接说明，不必先把探索额度耗尽。
+    allowed = ["propose_plan", "report_incomplete"]
     if not finalize:
         allowed.append("call_tool")
     # 本次提问后至少留两次，用于补证据及提案。计数跨恢复累计。

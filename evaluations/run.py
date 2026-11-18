@@ -272,7 +272,8 @@ async def harness_call(client, tools, snapshot_id, case, config, rep, temperatur
         rec["outcome"] = {"kind": "ask_user", "question": result.clarification.question,
                           "required_fields": list(result.clarification.required_fields)}
     elif result.stop_reason in USER_FACING_ISSUES:
-        # The model itself reported that it cannot answer: a valid outcome on infeasible cases, not an error.
+        # Shared with agent.nodes, including no_feasible_plan. The scorer still checks the
+        # case's ground truth: abstaining is a failure when a feasible plan was expected.
         rec["outcome"] = {"kind": "abstain", "reason": result.stop_reason, "message": result.message}
     else:
         rec["outcome"] = {"kind": "error", "error": result.stop_reason or result.status}
