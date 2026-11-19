@@ -43,7 +43,17 @@ def git_state():
     return {'commit': commit or None, 'dirty': bool(status), 'status': status.splitlines()[:100]}
 
 
+def price_base(index, split):
+    """Base price of the cheapest offer. Dev keeps 10 (its committed results stay valid); heldout uses 11 or 12
+    so that no heldout case repeats a dev case or another heldout case (PR #28 review: the content used to
+    depend only on index, category and kind, so heldout 0-9 copied dev cases). Feasibility is unchanged: at
+    base 12 a two-category basket of two units costs 70.00 of the 80.00 cap and the 20.00 ledger cap still
+    fits the all-in total 20.00."""
+    return 10 if split == 'dev' else 11 + (index // 4) % 2
+
+
 def make_case(index, category, kind, split='heldout'):
+    base = price_base(index, split)
     lang = 'zh' if index % 2 == 0 else 'en'
     key, val = ATTRS[category]
     cid = f'v1-{split}-{index:02d}'
@@ -56,7 +66,7 @@ def make_case(index, category, kind, split='heldout'):
         for n in range(3):
             oid = f'{cid}-{cat}-{n}'
             eid = f'ev-{oid}'
-            o = {'offer_id': oid, 'category': cat, 'currency': 'USD', 'price': str(10 + n * 5) + '.00',
+            o = {'offer_id': oid, 'category': cat, 'currency': 'USD', 'price': str(base + n * 5) + '.00',
                  'shipping': '2.00', 'shipping_group': 'merchant-A', 'tax': '1.00',
                  'attributes': {attr: value if n else None}, 'fact_evidence_id': eid}
             if kind == 'uncertainty':
@@ -78,14 +88,16 @@ def make_case(index, category, kind, split='heldout'):
     else:
         constraints = {'currency': 'USD', 'purchase_cap': '80.00'}
         if kind == 'single':
+            # Offer 1 is the cheapest that meets the requirement: base + 5, shipping 2.00, tax 1.00.
+            boundary = f'{base + 7}.00' if basis == 'pre_tax' else f'{base + 8}.00'
             if index % 4 == 0:
-                # One cent below the cheapest pre-tax total (10.00 + 2.00).
-                constraints['purchase_cap'] = '11.99'
+                # One cent below the cheapest pre-tax total (base + shipping 2.00).
+                constraints['purchase_cap'] = f'{base + 1}.99'
             elif index % 4 == 1:
-                # Exact boundary for offer 1: 15.00 + tax 1.00 + shipping 2.00.
-                constraints['purchase_cap'] = '17.00' if basis == 'pre_tax' else '18.00'
+                # Exact boundary for offer 1.
+                constraints['purchase_cap'] = boundary
             elif index % 4 == 2:
-                constraints['purchase_cap'] = '17.00' if basis == 'pre_tax' else '18.00'
+                constraints['purchase_cap'] = boundary
         if kind == 'ledger':
             constraints.update(periodic_budget='100.00', spent='50.00', reserve='20.00')
             if index % 2:
@@ -134,7 +146,8 @@ def build(out, fifth=False):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'cases.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows), encoding='utf-8')
     dump(out / 'catalogs.json', catalogs)
-    dump(out / 'manifest.json', {'version': 1, 'synthetic': True, 'status': 'complete' if fifth else 'awaiting_post_freeze_category',
+    # revision 2 (2026-11-19): heldout prices and caps use their own base, so no case repeats another.
+    dump(out / 'manifest.json', {'version': 1, 'revision': 2, 'synthetic': True, 'status': 'complete' if fifth else 'awaiting_post_freeze_category',
          'dev': 10, 'heldout': 40 if fifth else 32, 'pending': 0 if fifth else 8,
          'hashes': {name: digest(out / name) for name in ('cases.jsonl', 'catalogs.json')}})
 
