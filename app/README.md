@@ -23,7 +23,7 @@
 - 集群没有对外开放的 HTTP 入口,但网关能按 IP 连到计算节点的端口,本机 `ssh -L` 经网关可以直达(已实测)。所以浏览器到后端、后端到 harness 都能流式,不需要文件队列。
 - 浏览器只和本机后端通信。服务令牌、SSH 密钥、集群地址都留在后端;查询时不用 SerpApi,没有 API 密钥参与。
 - harness 服务启动后把自己的地址和一次性令牌写到 `USERDIR/tacc-agentforge-service/harness-url.txt`、`harness-token.txt`(权限 600)。后端经 SSH 读取这两个文件再建隧道;服务换作业后,下一个请求会重新读取。
-- harness 本身没有改动:服务直接使用 `AgentRuntime`、真实知识库工具、预算校验器(#18)和流式解释的证据解析器;运行策略来自 `configs/agent.yaml` 的 `tacc-fast`(关闭思考)。
+- harness 本身没有改动:服务直接使用 `AgentRuntime`、真实知识库工具、预算校验器(#18)和流式解释的证据解析器;运行策略来自 `configs/agent.yaml` 的 `tacc-demo`(关闭思考;16 次模型调用,一次请求可以推荐一组商品)。评测仍用 `tacc-fast`(8 次)。
 
 ## 请求 ID
 

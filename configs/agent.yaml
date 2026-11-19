@@ -59,6 +59,9 @@ profiles:
   tacc-fast:
     model: {enable_thinking: false}
     agent: {max_output_tokens: 512} # 作业 28561：关闭思考时约 30～200 token，512 足够。
+  tacc-demo:                     # 浏览器页面（app/harness_service.py 默认）：一次请求可以推荐一组商品（例如出行要买的几件），
+    model: {enable_thinking: false} # 每件商品都要搜索和核对，8 次调用不够；评测仍用 tacc-fast（8 次），C1–C7 不受影响。
+    agent: {max_output_tokens: 512, max_model_calls: 16, max_tool_calls: 16, deadline_seconds: 240}
   tacc-thinking:
     model: {enable_thinking: true}
     agent: {max_output_tokens: 2048} # 不能用 512，否则 reasoning 可能耗尽整个额度。
@@ -71,6 +74,9 @@ profiles:
       backend: sqlite
       path: ${AGENTFORGE_HOME}/checkpoints/agent.sqlite
       sqlite_storage_verified: true  # 云主机本地持久盘(ext4)，不是 NFS；open_checkpointer 仍会拒绝网络盘。
+  cloud-demo:                    # 云端页面（systemd agentforge-harness 使用）：一次请求可以推荐一组商品，调用上限同 tacc-demo。
+    extends: cloud-fast
+    agent: {max_model_calls: 16, max_tool_calls: 16, deadline_seconds: 240}
   mock:
     agent: {question_timeout_s: 1800, max_context_chars: 16000, max_history_messages: 12, max_output_tokens: 512}
     checkpoint: {backend: memory}

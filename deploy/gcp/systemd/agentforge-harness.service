@@ -8,7 +8,7 @@ PartOf=agentforge.target
 User=agentforge
 EnvironmentFile=/etc/agentforge/agentforge.env
 WorkingDirectory=/opt/agentforge/repo
-ExecStart=/opt/agentforge/venv/bin/python -m app.harness_service --cloud --profile cloud-fast --explain --port 8100
+ExecStart=/opt/agentforge/venv/bin/python -m app.harness_service --cloud --profile cloud-demo --explain --port 8100
 Restart=always
 RestartSec=5
 # SIGTERM stops accepting; running runs finish within their 120 s deadline, waiting runs stay on disk.
