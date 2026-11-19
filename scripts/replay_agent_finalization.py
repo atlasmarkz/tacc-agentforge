@@ -1,4 +1,4 @@
-"""Replay issue #21 and selected dev cases with real tools/validator and cloud-fast.
+"""Replay issue #21 and selected dev cases with real tools/validator and a fast profile.
 
 Run this same file in separate before/after source trees. Only the model transport
 is overridden; the eight-decision policy, sampling and output budget stay intact.
@@ -41,7 +41,7 @@ class RecordedModel:
 
 
 async def replay(args):
-    settings = load_runtime_settings(ROOT / "configs/agent.yaml", "cloud-fast")
+    settings = load_runtime_settings(ROOT / "configs/agent.yaml", args.profile)
     assert settings.policy.max_model_calls == 8
     catalog = Catalog(args.snapshots_root / args.snapshot_id / "catalog.sqlite")
     dev = {case["case_id"]: case for case in map(json.loads, (ROOT / "evaluations/cases.jsonl").read_text().splitlines())
@@ -58,7 +58,7 @@ async def replay(args):
               "constraints": {"purchase_cap": "60.00", "currency": "USD"}},
              *[dev[name] for name in args.dev_cases]]
     report = {"label": args.label, "tested_at": datetime.now(timezone.utc).isoformat(),
-              "profile": "cloud-fast", "snapshot_id": args.snapshot_id, "real_model": True,
+              "profile": settings.config.profile, "snapshot_id": args.snapshot_id, "real_model": True,
               "policy": settings.policy.model_dump(), "model": settings.model.port_options(),
               "model_name": settings.model.name, "ground_truth": truths,
               "source_sha256": {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
@@ -114,8 +114,9 @@ async def replay(args):
                 costs.close()
 
 
-def main():
+def parser():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--profile", default="tacc-fast", help="Agent profile (main: tacc-fast; Cloud branch: cloud-fast)")
     parser.add_argument("--snapshots-root", required=True, type=Path)
     parser.add_argument("--snapshot-id", default="snapshot_5bcd00723fb0b7589cbe50c8")
     transport = parser.add_mutually_exclusive_group(required=True)
@@ -125,7 +126,11 @@ def main():
     parser.add_argument("--repeats", type=int, default=1, choices=range(1, 11))
     parser.add_argument("--dev-cases", nargs="+", choices=["dev-04", "dev-07"], default=["dev-07"])
     parser.add_argument("--output", required=True, type=Path)
-    asyncio.run(replay(parser.parse_args()))
+    return parser
+
+
+def main():
+    asyncio.run(replay(parser().parse_args()))
 
 
 if __name__ == "__main__":

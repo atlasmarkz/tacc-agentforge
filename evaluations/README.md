@@ -1,5 +1,7 @@
 # 评测:用例、独立枚举器、评分与 baseline(Task 6)
 
+v1 benchmark 运行手册（独立 synthetic fixture 轨道）见 [v1/README.md](v1/README.md)。
+
 指标定义见 [docs/evaluation-metrics.md](../docs/evaluation-metrics.md)。本目录实现其中能够自动化的部分,并说明哪些部分还需要人工或其他模块完成。
 
 ## 1. 文件

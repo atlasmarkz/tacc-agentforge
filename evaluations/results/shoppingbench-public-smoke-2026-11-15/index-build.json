@@ -1,0 +1,12 @@
+{
+  "image": "sha256:069f1f2196706489a78d2991db13cb338f0c160649da44b0110a1ba718b128f8",
+  "corpus_bytes": 5112146514,
+  "corpus_sha256": "d108a6c7d3956b1389a6c77a2f220db9f8c7f925abfe286e2479f3def37975ce",
+  "input_files": [
+    "documents.jsonl"
+  ],
+  "index_files": 19,
+  "index_bytes": 3271147867,
+  "index_sha256": "2012a83fcbf08e301ce2981413bf2bcb10fb2371316d89d6971aa78fc4cfc080",
+  "log": "/private/tmp/shoppingbench-index-77v_xl7s/build.log"
+}

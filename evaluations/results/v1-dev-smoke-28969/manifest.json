@@ -1,0 +1,195 @@
+{
+  "track": "project-v1-synthetic-fixtures",
+  "timing_boundary": "adapter subprocess round-trip; excludes browser",
+  "dataset": {
+    "version": 1,
+    "synthetic": true,
+    "status": "awaiting_post_freeze_category",
+    "dev": 10,
+    "heldout": 32,
+    "pending": 8,
+    "hashes": {
+      "cases.jsonl": "ee22a161b6fa4785d304ed4406c95ef8e3d24bb6bf9de5c8b202b9ccafc751ba",
+      "catalogs.json": "4bb5be6d765cebbb685dfb7453da2bac45c29bce3b37c1f17221d375f38e757a"
+    }
+  },
+  "adapter": {
+    "identity": {
+      "model": "qwen3.8-27b",
+      "runtime": "agent.AgentRuntime",
+      "adapter": "evaluations.v1.agent_adapter:respond",
+      "validator": "budget.validator.AgentPlanValidator (integer cents; independent of evaluation oracle)",
+      "intent": "same model extracts requirements from user/history; extraction errors count as task failures",
+      "temperature": 0,
+      "thinking": false,
+      "max_output_tokens": 1024,
+      "scope": "normalized synthetic fixture catalog, not the SerpApi KB or browser"
+    },
+    "validator_configs": [
+      "B3",
+      "A1"
+    ],
+    "cache_policy": "Cyclic config order; current service cache settings must be recorded separately. Report latency as diagnostic until cache state is controlled."
+  },
+  "configs": [
+    "B0",
+    "B1",
+    "B2",
+    "B3",
+    "A1",
+    "A2"
+  ],
+  "repeats": 1,
+  "roster": [
+    [
+      "v1-dev-01",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B1",
+      0
+    ]
+  ],
+  "code": {
+    "agent/__init__.py": "2f95dd0fbc66afdb32b8b12e22a01c4577113d0527fcefe9d504ea3521bd0238",
+    "agent/answers.py": "d83d6c6ee385b91ea3fc33ed0cf2616300163335016674e46eb0db493572c478",
+    "agent/checkpoint_cleanup.py": "d7b2aca5009973fec7d08fd36e6bbd6c2c45af47581d143fa9c4e3c058acd5b4",
+    "agent/checkpoints.py": "6e23f446e86ba7f8b5115604962bf5709cbef05a468ef7ef0c9f31ca9b080b6e",
+    "agent/config.py": "d541ac22997e7f56bcb38a8d2a65ea9f78a1c83f4de73d6c37a290ea36f166c2",
+    "agent/contracts.py": "363f5ea72af44f17edbe2db8537806e8df4a6ef5fe97488dac9c4426ae5c24c5",
+    "agent/examples/__init__.py": "cfe7cec60a5b1cd6f964e2388ca2963951f665125e783e76ab60f0e329b01f97",
+    "agent/examples/local_run.py": "7c1551cab56a594bdb48a0229c6b199e5385b0579be0b6f45c529a1d63c237d9",
+    "agent/examples/mock_run.py": "cba56170841620642e67a2557225fb61ec2cf9271ae54c3c66510592a3531084",
+    "agent/examples/persistent_resume.py": "9d43aa8b69871f8ea9010d75fb222f284f7d05d99eac471e06958706c64ac7cf",
+    "agent/explanation.py": "05e8b44f6f3bf71bf4e5b4487b1059964397fea010cd331123cbbc48fd448127",
+    "agent/graph.py": "ffd93c20e73b6cf67c0e6f413807ff1d6fb6ee9e1617d5d447ed5d5999a0d214",
+    "agent/nodes.py": "a03355091bb8c8664a015d6e1801af7e1bf908b55889fe4839b549e3b5fde980",
+    "agent/policies.py": "d5341465bfa1562985642fa0767546782b33d7257e69df8fdac9fb3331ba57c5",
+    "agent/prompts.py": "21870e588d606cf58e2b9de45f0810c63780add32d0d2d75dd1383c714fa9a50",
+    "agent/runtime.py": "bf1862f98c042d0ed77177780d260334392825fc010a522c400a531703303569",
+    "agent/settings.py": "d62ce6df77a16f55cdb6dd0ad72fbfbd0e5f8c2e0cb7887d538e394a8bb989e1",
+    "agent/state.py": "9db645fd83b11041c84af15ff32e5d0c1db4cb1a332c534e4cad61ecd4e4eb45",
+    "agent/tools.py": "cf429e17e047896171838888a54698473806f013664840ac943390b84ba4b988",
+    "budget/__init__.py": "0bd9d73f784a60b03a526bf459b8fb4c13125ad0ecbb583fd1fefc3e7ae1fb35",
+    "budget/validator.py": "ed960bf56922a015f5f39f8785a56ebce6255412356473bcc9fd2b79b4fb54a6",
+    "evaluations/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluations/catalog.py": "bc680972d27e99758c82c5ee3e1f8a0dff82c3f4935324bca3992dd85d405f8b",
+    "evaluations/retrieval.py": "33cd9db47384b702d0204e4321345f43887bded5945c31df2dd845c4c9c7b87f",
+    "evaluations/review.py": "a2815290ea52287357bbda77ef1537a106ce0a52de42f188bdc0321696fc919d",
+    "evaluations/run.py": "287ca8290e0a4d5b060826cddc1ceb4301e30d130e68df782fb35c266884276c",
+    "evaluations/score.py": "162c94a6a8c16ce12cbb52b1b0fb178972bb42c42d2d94b10029df7507dd6fb0",
+    "evaluations/shoppingbench.py": "2b62aae793c0dc14ab8cb765f401458873546c2030d448096a55830d438b4937",
+    "evaluations/v1/__init__.py": "4aaec24bc8de2879d42dd5304ec2c79d28b0e73efbad1ec820d12e1f0c04582a",
+    "evaluations/v1/agent_adapter.py": "a0cb7c319e77732ceba110c75786d7da4cc5213bf0078c93bafe7809430b4fcc",
+    "evaluations/v1/model_adapter.py": "c1689e50849fc156cc300e9e3b46eb8b38ddf02119a79afb11e4219a4c656fe6",
+    "evaluations/v1/oracle.py": "8f027b4e812b402f3fd7564b82eb98ae090b86196f62b56947c686a4b0c7568e",
+    "evaluations/v1/run.py": "df76b3b2e0c355760fcbf32d12ba8ea20c097a8b53257f403e46dd57b441f0c4",
+    "evaluations/v1/suite.py": "3b2ec1e242f81b95d4c859e477858506e03bc88996e0d45daa499dae75f08851",
+    "inference/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inference/benchmark.py": "fa8a7c4a8c44b1cde982ce27f0f4cf214a2b14352576ae538819dd4e8221fe8c",
+    "inference/client.py": "0c0659fd795372f1dd8f24bcfe774fc8ac7c8f92fb69c74d70d511f3b942e677",
+    "inference/experiments.py": "b81ee3be3bcc40d8fc7d42e5b74f0136bb8dd9ee27503e61aac317542716e74c",
+    "inference/harness_policy.py": "e8dca30ae455e9d04034222dc01b082887f1715380a494b5ee66f3fe2ee12863",
+    "inference/model_port.py": "a06e93aedf96f20ad2bf59ebca5d8cdf5dd794e456c3f57dd1029180803d7b4a",
+    "inference/report.py": "4518fe4432b9a616fa301fef9e1a945077bb39faea66bb88484b784eef121d95",
+    "knowledge/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "knowledge/acquisition.py": "dca65256a694b1a862d95d8a9214a2fd8bd3cda799c11d23775a2e0b7e68ea06",
+    "knowledge/agent_tools.py": "6d66a462317a5e0aae1433cd96d96632a8dfa164e1c2779bf08ff48c927ad4c1",
+    "knowledge/benchmark.py": "09212224d472b1398f60cb4eeaf93b28afe94e79fbf1d939a771a2069b162e6c",
+    "knowledge/bootstrap.py": "a0e22bdd108f7b1999f4ddd85dadacbe6d3e82b7438292c7bfc815ea17c0da4e",
+    "knowledge/cli.py": "dbb7d0faa84bbbaac9a4e9332cc3f214b983c750f47f9d6b87c0502fafee0a0c",
+    "knowledge/credentials.py": "576ac50f4c0f66fb864e4fbf69ba459b07138a5c5c2f422c7e9db5cbc9a28bad",
+    "knowledge/evaluation.py": "3a8a5d5ac49aeb210b1b48af39ac155ddd4c475a61e148e7f4bf45db13018087",
+    "knowledge/examples/__init__.py": "6653ca57ee2fcc975130b9d9a4e26bf87868bd583479e61d57d6a51f11fdc6ca",
+    "knowledge/examples/agent_demo.py": "b54d7be1d4aaae07023ad7c6f55b1ecfa71b4a97bfa25e9f2251971e3c894f47",
+    "knowledge/explanation.py": "3dbfa8120bb1497bc8b792a557e74bf38944d9677a7a0d777e69df2d00a35e91",
+    "knowledge/schema.sql": "2b2285bdbf6ded4c60a56880e17f8e430151b93c117c79a5449707a1cb77db8b",
+    "knowledge/serpapi.py": "548dbe3de88d40fe391603d434b4d181c44e03bf31461bb42a15dd8228aa5d49",
+    "knowledge/service.py": "f2ea45ae733b19b07921c179c2c3c2522ff005dc2ac9bdc7fd3d450deb98d26f",
+    "knowledge/settings.py": "f836cbdecd4779b849581ba749adcc982850bed632e6ac09cede020105f81c93",
+    "knowledge/store.py": "4751f6d78054c9e35e43322d01c4de9ad20fdbcbfb7166544af5fbcf5bac5a8a"
+  },
+  "adapter_sha256": "6d2411c24904b66314060095597ca6b8889cbea8e752f9b3d9c07eb0eb10929a"
+}

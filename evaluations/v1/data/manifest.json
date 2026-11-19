@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "revision": 2,
+  "synthetic": true,
+  "status": "awaiting_post_freeze_category",
+  "dev": 10,
+  "heldout": 32,
+  "pending": 8,
+  "hashes": {
+    "cases.jsonl": "d451e724a53f9533e83b3458fa764d85760bb8c35249542584a872767611cdec",
+    "catalogs.json": "1442a4c0a16a753b0893ef7eb07ddcc2fb31a7d0ed155c74a2fe5a620898b640"
+  }
+}

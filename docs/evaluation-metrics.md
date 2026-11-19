@@ -1,5 +1,7 @@
 # 全链路评测指标与 baseline 设计
 
+新版实施及版本差异见 [benchmark-design.md](benchmark-design.md)。v1与旧42例分轨，真实完整系统评测仍需生产adapter及人工标注。
+
 日期：2026-10-26。本文是实验设计，不包含已测量的 baseline 分数。
 两页 proposal 保留主指标，完整定义、分母和采集方法放在这里。
 

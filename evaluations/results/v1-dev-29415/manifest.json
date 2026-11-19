@@ -1,0 +1,510 @@
+{
+  "track": "project-v1-synthetic-fixtures",
+  "timing_boundary": "adapter subprocess round-trip; excludes browser",
+  "dataset": {
+    "version": 1,
+    "synthetic": true,
+    "status": "awaiting_post_freeze_category",
+    "dev": 10,
+    "heldout": 32,
+    "pending": 8,
+    "hashes": {
+      "cases.jsonl": "cf137191182d54d2843d151048a3bdc75d0e909091cfa43632aad547cf8384c3",
+      "catalogs.json": "4bb5be6d765cebbb685dfb7453da2bac45c29bce3b37c1f17221d375f38e757a"
+    }
+  },
+  "adapter": {
+    "identity": {
+      "model": "qwen3.8-27b",
+      "runtime": "agent.AgentRuntime",
+      "adapter": "evaluations.v1.agent_adapter:respond",
+      "validator": "budget.validator.AgentPlanValidator (integer cents; independent of evaluation oracle)",
+      "intent": "same model extracts requirements from user/history; extraction errors count as task failures",
+      "temperature": 0,
+      "thinking": false,
+      "max_output_tokens": 1024,
+      "scope": "normalized synthetic fixture catalog, not the SerpApi KB or browser"
+    },
+    "validator_configs": [
+      "B3",
+      "A1"
+    ],
+    "cache_policy": "Cyclic config order; deploy/tacc/service/qwen-service/service.json disables prefix caching for this track. Record the actual serving config in the run manifest; report latency as diagnostic until cache state is independently verified."
+  },
+  "configs": [
+    "B0",
+    "B1",
+    "B2",
+    "B3",
+    "A1",
+    "A2"
+  ],
+  "repeats": 1,
+  "split": "dev",
+  "only": "",
+  "timeout": 120.0,
+  "record_traces": false,
+  "model_env": {
+    "BENCHMARK_BASE_URL": "http://127.0.0.1:18967/v1",
+    "BENCHMARK_ADDRESS_FILE": null,
+    "BENCHMARK_MODEL": null
+  },
+  "service_info": {
+    "job_id": "29415",
+    "node": "10-0-1-10",
+    "address": "http://10.0.1.10:18966/v1",
+    "config": {
+      "served_name": "qwen3.8-27b",
+      "tensor_parallel_size": 2,
+      "startup_timeout_s": 1200,
+      "env": {
+        "NCCL_P2P_DISABLE": "1",
+        "NCCL_IB_DISABLE": "1"
+      },
+      "args": [
+        "--safetensors-load-strategy",
+        "prefetch",
+        "--language-model-only",
+        "--dtype",
+        "bfloat16",
+        "--gpu-memory-utilization",
+        "0.85",
+        "--max-model-len",
+        "16384",
+        "--max-num-seqs",
+        "8",
+        "--max-num-batched-tokens",
+        "4096",
+        "--reasoning-parser",
+        "qwen3",
+        "--disable-custom-all-reduce"
+      ]
+    },
+    "started_at": "2026-11-17T09:05:53",
+    "ready_after_s": 342.5,
+    "restarts": 0
+  },
+  "python": "3.12.14 (main, Aug 25 2026, 13:50:33) [Clang 22.1.3 ]",
+  "pip_freeze": [
+    "annotated-types==0.8.0",
+    "anyio==4.16.0",
+    "certifi==2026.10.23",
+    "charset-normalizer==3.5.2",
+    "distro==1.9.0",
+    "h11==0.16.0",
+    "httpcore==1.0.9",
+    "httpcore2==2.16.0",
+    "httpx==0.28.1",
+    "httpx2==2.16.0",
+    "idna==3.20",
+    "iniconfig==2.3.1",
+    "jsonpatch==1.39",
+    "jsonpointer==3.7",
+    "langchain-core==1.7.3",
+    "langchain-protocol==0.0.20",
+    "langgraph==1.2.19",
+    "langgraph-checkpoint==4.3.1",
+    "langgraph-prebuilt==1.1.1",
+    "langgraph-sdk==0.4.11",
+    "langsmith==0.14.17",
+    "orjson==3.13.0",
+    "ormsgpack==1.13.0",
+    "packaging==26.3",
+    "pluggy==1.7.0",
+    "pydantic==2.14.2",
+    "pydantic_core==2.50.2",
+    "Pygments==2.21.0",
+    "pytest==9.2.0",
+    "PyYAML==6.0.3",
+    "requests==2.34.2",
+    "requests-toolbelt==1.0.0",
+    "sniffio==1.3.1",
+    "tenacity==9.2.1",
+    "truststore==0.10.5",
+    "typing-inspection==0.4.4",
+    "typing_extensions==4.16.0",
+    "urllib3==2.8.0",
+    "uuid_utils==0.19.0",
+    "websockets==17.4",
+    "xxhash==4.0.2",
+    "zstandard==0.25.0"
+  ],
+  "resumes": [],
+  "roster": [
+    [
+      "v1-dev-00",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-00",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-00",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-00",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-00",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-00",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-01",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-02",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-03",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-04",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-05",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-06",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-07",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "B2",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-08",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "B3",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "A1",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "A2",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "B0",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "B1",
+      0
+    ],
+    [
+      "v1-dev-09",
+      "B2",
+      0
+    ]
+  ],
+  "code": {
+    "agent/__init__.py": "2f95dd0fbc66afdb32b8b12e22a01c4577113d0527fcefe9d504ea3521bd0238",
+    "agent/answers.py": "d83d6c6ee385b91ea3fc33ed0cf2616300163335016674e46eb0db493572c478",
+    "agent/checkpoint_cleanup.py": "d7b2aca5009973fec7d08fd36e6bbd6c2c45af47581d143fa9c4e3c058acd5b4",
+    "agent/checkpoints.py": "6e23f446e86ba7f8b5115604962bf5709cbef05a468ef7ef0c9f31ca9b080b6e",
+    "agent/config.py": "d541ac22997e7f56bcb38a8d2a65ea9f78a1c83f4de73d6c37a290ea36f166c2",
+    "agent/contracts.py": "363f5ea72af44f17edbe2db8537806e8df4a6ef5fe97488dac9c4426ae5c24c5",
+    "agent/examples/__init__.py": "cfe7cec60a5b1cd6f964e2388ca2963951f665125e783e76ab60f0e329b01f97",
+    "agent/examples/local_run.py": "7c1551cab56a594bdb48a0229c6b199e5385b0579be0b6f45c529a1d63c237d9",
+    "agent/examples/mock_run.py": "cba56170841620642e67a2557225fb61ec2cf9271ae54c3c66510592a3531084",
+    "agent/examples/persistent_resume.py": "9d43aa8b69871f8ea9010d75fb222f284f7d05d99eac471e06958706c64ac7cf",
+    "agent/explanation.py": "05e8b44f6f3bf71bf4e5b4487b1059964397fea010cd331123cbbc48fd448127",
+    "agent/graph.py": "ffd93c20e73b6cf67c0e6f413807ff1d6fb6ee9e1617d5d447ed5d5999a0d214",
+    "agent/nodes.py": "a03355091bb8c8664a015d6e1801af7e1bf908b55889fe4839b549e3b5fde980",
+    "agent/policies.py": "d5341465bfa1562985642fa0767546782b33d7257e69df8fdac9fb3331ba57c5",
+    "agent/prompts.py": "21870e588d606cf58e2b9de45f0810c63780add32d0d2d75dd1383c714fa9a50",
+    "agent/runtime.py": "bf1862f98c042d0ed77177780d260334392825fc010a522c400a531703303569",
+    "agent/settings.py": "d62ce6df77a16f55cdb6dd0ad72fbfbd0e5f8c2e0cb7887d538e394a8bb989e1",
+    "agent/state.py": "9db645fd83b11041c84af15ff32e5d0c1db4cb1a332c534e4cad61ecd4e4eb45",
+    "agent/tests/persistence_worker.py": "a703a5d437bfbed9854aab2357c62abdef06b8ad456d70ca4bc351a8589936c8",
+    "agent/tests/test_explanation.py": "eb27b12c46a24d96515dc0bebcfa36f345163633ea3cb875e3530588a4188409",
+    "agent/tests/test_local_run.py": "fdab3419262d099b78fcb659f17922dfcf922570c107804daae340fb45d15729",
+    "agent/tests/test_persistence.py": "53118c5cefc101ad6b672fe86caf189100fa68f1e54f107acb78ae82eecfdce6",
+    "agent/tests/test_resume.py": "4c4e2f6434059ea020a7eee8c226f78d993a84f280e359329a995736d9a5fa9a",
+    "agent/tests/test_runtime.py": "6983b961628e5afb5645e88026be2683532f628d5868f053255eed205df9e4d2",
+    "agent/tests/test_settings.py": "4804f39ee47afadcd35007f34deb3186fc32bb41f2c914530b01f502e9b29310",
+    "agent/tools.py": "cf429e17e047896171838888a54698473806f013664840ac943390b84ba4b988",
+    "budget/__init__.py": "0bd9d73f784a60b03a526bf459b8fb4c13125ad0ecbb583fd1fefc3e7ae1fb35",
+    "budget/validator.py": "6b00e71d483a2c2550563660559c7a49b996461f8a20e6938d1f18dba04d0f13",
+    "configs/agent.yaml": "5f9a5998bd32bac7e722c9630657b8517d46a95760f28226116a07d35dc265a4",
+    "configs/quantization.yaml": "c4f0549982f10da93f8f2b7c347035667c667e31df1bbed82068d645d2bd48ef",
+    "configs/serving.yaml": "19541d460a6ff95cc8ae86bf22d707327636bab367d7b24ba1fbcb9508784a40",
+    "configs/sft.yaml": "f5db5ea0c21945c2049ba9cab36d229f20a15eababf24bbf944bf2a523cb57e7",
+    "evaluations/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evaluations/bench.py": "4421ab0edb44dbc6b49e4db8564b6f5490458642a95b0c086636823c80283ceb",
+    "evaluations/catalog.py": "e037733780a1525a854b24d8fef77737a1b32ceb00119654d0ff50a8116ff36a",
+    "evaluations/retrieval.py": "33cd9db47384b702d0204e4321345f43887bded5945c31df2dd845c4c9c7b87f",
+    "evaluations/review.py": "c3ed61c186b37998ac8f84ab8e53c5b0261e4311a83ff8703557179b92c3c40f",
+    "evaluations/run.py": "287ca8290e0a4d5b060826cddc1ceb4301e30d130e68df782fb35c266884276c",
+    "evaluations/score.py": "342c8d9bd69a247fe0fa3f554bf712ca9f87db43ee9e5b9a33a27fc9de1bfca4",
+    "evaluations/shoppingbench.py": "b7e3f0c87b23beb14aaef667e9f44f5ea22f872b5c13f1fa06c2d042f12cc70b",
+    "evaluations/shoppingbench_recovery.py": "77b74fa6484f6960c84ded1fb13b28f70d285866fbbf1192ece823c5326fe7f6",
+    "evaluations/shoppingbench_run.py": "5681b038adbefff4b7fe309bbaa68d9a312ab71896b3a7d5a419d950158d686a",
+    "evaluations/v1/__init__.py": "4aaec24bc8de2879d42dd5304ec2c79d28b0e73efbad1ec820d12e1f0c04582a",
+    "evaluations/v1/agent_adapter.py": "cef7285e7a428c7bac093e9a3a29b2593f53fae5c087da06078102338007bcb2",
+    "evaluations/v1/model_adapter.py": "839bc429e70322528537ad7d6a349b1e23917c56dd52847c650c1c46dd19ce00",
+    "evaluations/v1/oracle.py": "0f5ec230d0b6f1d8dd592a1856e5724f1eacbb82cfec5f141b022e3888a7628b",
+    "evaluations/v1/report.py": "4e6a0f440634c1026f6d14476bffaea11f2df455df3a617f2ce2c22d37c7807e",
+    "evaluations/v1/run.py": "39a05a7924c843ed0fe6d44e47e8438371b8379cd36be7ed252d90c767371f4b",
+    "evaluations/v1/suite.py": "3db3499ac6577cfa108137a03164adcc25241530d15addd072471f1a7abda2d8",
+    "inference/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "inference/benchmark.py": "fa8a7c4a8c44b1cde982ce27f0f4cf214a2b14352576ae538819dd4e8221fe8c",
+    "inference/client.py": "0c0659fd795372f1dd8f24bcfe774fc8ac7c8f92fb69c74d70d511f3b942e677",
+    "inference/experiments.py": "b81ee3be3bcc40d8fc7d42e5b74f0136bb8dd9ee27503e61aac317542716e74c",
+    "inference/harness_policy.py": "e8dca30ae455e9d04034222dc01b082887f1715380a494b5ee66f3fe2ee12863",
+    "inference/model_port.py": "a06e93aedf96f20ad2bf59ebca5d8cdf5dd794e456c3f57dd1029180803d7b4a",
+    "inference/report.py": "4518fe4432b9a616fa301fef9e1a945077bb39faea66bb88484b784eef121d95",
+    "knowledge/__main__.py": "935a1c1166b0c1ea35a82256345000bf2c73ded718d77773bc27a71ecce28f7d",
+    "knowledge/acquisition.py": "dca65256a694b1a862d95d8a9214a2fd8bd3cda799c11d23775a2e0b7e68ea06",
+    "knowledge/agent_tools.py": "6d66a462317a5e0aae1433cd96d96632a8dfa164e1c2779bf08ff48c927ad4c1",
+    "knowledge/benchmark.py": "09212224d472b1398f60cb4eeaf93b28afe94e79fbf1d939a771a2069b162e6c",
+    "knowledge/bootstrap.py": "a0e22bdd108f7b1999f4ddd85dadacbe6d3e82b7438292c7bfc815ea17c0da4e",
+    "knowledge/cli.py": "dbb7d0faa84bbbaac9a4e9332cc3f214b983c750f47f9d6b87c0502fafee0a0c",
+    "knowledge/credentials.py": "576ac50f4c0f66fb864e4fbf69ba459b07138a5c5c2f422c7e9db5cbc9a28bad",
+    "knowledge/evaluation.py": "3a8a5d5ac49aeb210b1b48af39ac155ddd4c475a61e148e7f4bf45db13018087",
+    "knowledge/examples/__init__.py": "6653ca57ee2fcc975130b9d9a4e26bf87868bd583479e61d57d6a51f11fdc6ca",
+    "knowledge/examples/agent_demo.py": "b54d7be1d4aaae07023ad7c6f55b1ecfa71b4a97bfa25e9f2251971e3c894f47",
+    "knowledge/explanation.py": "3dbfa8120bb1497bc8b792a557e74bf38944d9677a7a0d777e69df2d00a35e91",
+    "knowledge/schema.sql": "2b2285bdbf6ded4c60a56880e17f8e430151b93c117c79a5449707a1cb77db8b",
+    "knowledge/serpapi.py": "548dbe3de88d40fe391603d434b4d181c44e03bf31461bb42a15dd8228aa5d49",
+    "knowledge/service.py": "f2ea45ae733b19b07921c179c2c3c2522ff005dc2ac9bdc7fd3d450deb98d26f",
+    "knowledge/settings.py": "f836cbdecd4779b849581ba749adcc982850bed632e6ac09cede020105f81c93",
+    "knowledge/store.py": "4751f6d78054c9e35e43322d01c4de9ad20fdbcbfb7166544af5fbcf5bac5a8a"
+  },
+  "adapter_sha256": "47c9d94ad182afbfbfbaac069f982f3a05f5a72e779570e944b866214992fa71"
+}
