@@ -48,17 +48,17 @@ No model weights, adapters or credentials are in the repository. The base model 
 
 ## Main Results
 
-All numbers come from runs on TACC. The raw data is committed, and `scripts/reproduce_results.py` recomputes each one (see [Step 1](#step-1-recompute-every-reported-number-under-1-minute)).
+All numbers come from runs on TACC. The raw data is committed, and `scripts/reproduce_results.py` recomputes each one (see [Step 1](#step-1-recompute-every-reported-number-under-1-minute)). The *Project report* column gives the section, table or figure of the group's project report that reports each result.
 
-| ID | Result | Evidence in this repo |
-|---|---|---|
-| **C1** | On 32 held-out cases × 3 repeats, the full agent (B3v: multi-step tools + budget validator) succeeds in **42/96** attempts. The single-call baselines B0/B1/B2 do better overall: 54/96, 57/96, 57/96. | [baseline report §4](docs/experiments/baseline.md), `evaluations/results/frozen-heldout/` |
-| **C2** | The budget validator helps: B3 → B3v paired difference **+0.10 (95% CI +0.02 to +0.20)**. No configuration delivered an over-budget plan (BVR 0 in all five). | baseline report §4 |
-| **C3** | The multi-step agent wins on cases that need searching (plan cases: B3v 33/60 vs. at most 21/60 for single calls). It loses overall because **48/96 runs stop at the 8-call model limit**, including 22/24 runs on cases with no feasible plan (issue #21). | baseline report §4, §6–7 |
-| **C4** | Serving, one flag changed at a time: CUDA graphs give **+202% output throughput** over eager mode (67.4 → 203.9 tok/s, distinct prompts, concurrency 8). In eager mode, prefix caching cuts TTFT p50 by 71% on shared-prefix prompts. FlashInfer attention and the FP8 KV cache fail on this setup. | [inference/RESULTS.md](inference/RESULTS.md), `inference/results/` |
-| **C5** | MTP speculative decoding crashed during CUDA-graph capture on this hybrid model. A one-line vLLM patch fixes it; with CUDA graphs, MTP k=3 then gives **+42% single-request throughput** (57.7 → 81.8 tok/s), but little or no gain at 4 concurrent requests (−2% to +9%). Each cell is a single measurement. | [private-vLLM report, E5c](docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md), [patch](deploy/tacc/private-vllm/patches/E5c-warmup-spec-decode-metadata.patch), `inference/results/private-spec-mtp-28403/` |
-| **C6** | SFT pipeline pilot: a LoRA adapter trained on the INT4 checkpoint and served by vLLM picks the correct catalog category on the first step in **8/8** prompts, vs. 2/8 for the base model. **This is a pipeline check, not a quality result**: 10 prompts, dev cases only (partly seen in training), first action only. | [training/README.md](training/README.md) §3–5, `training/results/` |
-| **C7** | Post-freeze fix for issue #21 (PR #29, merged into `main` after the freeze): in targeted replays with the real model (3 requests × 3 repeats), dev-07 (no feasible plan) ends in 3 model calls with `no_feasible_plan` instead of 8 calls at the limit, and dev-04 still completes with a verified plan in 5 calls. **The held-out split was not rerun**, so there is no new overall TSR. | [finalization report](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md), `docs/experiments/2026-11-17-agent-finalization/main-real-replay.json` |
+| ID | Result | Project report | Evidence in this repo |
+|---|---|---|---|
+| **C1** | On 32 held-out cases × 3 repeats, the full agent (B3v: multi-step tools + budget validator) succeeds in **42/96** attempts. The single-call baselines B0/B1/B2 do better overall: 54/96, 57/96, 57/96. | §TBD | [baseline report §4](docs/experiments/baseline.md), `evaluations/results/frozen-heldout/` |
+| **C2** | The budget validator helps: B3 → B3v paired difference **+0.10 (95% CI +0.02 to +0.20)**. No configuration delivered an over-budget plan (BVR 0 in all five). | §TBD | baseline report §4 |
+| **C3** | The multi-step agent wins on cases that need searching (plan cases: B3v 33/60 vs. at most 21/60 for single calls). It loses overall because **48/96 runs stop at the 8-call model limit**, including 22/24 runs on cases with no feasible plan (issue #21). | §TBD | baseline report §4, §6–7 |
+| **C4** | Serving, one flag changed at a time: CUDA graphs give **+202% output throughput** over eager mode (67.4 → 203.9 tok/s, distinct prompts, concurrency 8). In eager mode, prefix caching cuts TTFT p50 by 71% on shared-prefix prompts. FlashInfer attention and the FP8 KV cache fail on this setup. | §TBD | [inference/RESULTS.md](inference/RESULTS.md), `inference/results/` |
+| **C5** | MTP speculative decoding crashed during CUDA-graph capture on this hybrid model. A one-line vLLM patch fixes it; with CUDA graphs, MTP k=3 then gives **+42% single-request throughput** (57.7 → 81.8 tok/s), but little or no gain at 4 concurrent requests (−2% to +9%). Each cell is a single measurement. | §TBD | [private-vLLM report, E5c](docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md), [patch](deploy/tacc/private-vllm/patches/E5c-warmup-spec-decode-metadata.patch), `inference/results/private-spec-mtp-28403/` |
+| **C6** | SFT pipeline pilot: a LoRA adapter trained on the INT4 checkpoint and served by vLLM picks the correct catalog category on the first step in **8/8** prompts, vs. 2/8 for the base model. **This is a pipeline check, not a quality result**: 10 prompts, dev cases only (partly seen in training), first action only. | §TBD | [training/README.md](training/README.md) §3–5, `training/results/` |
+| **C7** | Post-freeze fix for issue #21 (PR #29, merged into `main` after the freeze): in targeted replays with the real model (3 requests × 3 repeats), dev-07 (no feasible plan) ends in 3 model calls with `no_feasible_plan` instead of 8 calls at the limit, and dev-04 still completes with a verified plan in 5 calls. **The held-out split was not rerun**, so there is no new overall TSR. | §TBD | [finalization report](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md), `docs/experiments/2026-11-17-agent-finalization/main-real-replay.json` |
 
 **v1 benchmark (additional, not part of C1–C3):** a synthetic-fixture track with 10 dev + 32 heldout cases, its own independent oracle and six configurations. Its runbook is [evaluations/v1/README.md](evaluations/v1/README.md). The reported dev numbers use 10 cases and one repeat; they are not a formal heldout result and do not replace the frozen baseline above.
 
@@ -183,8 +183,8 @@ After 5–8.5 minutes, once the job has published `harness-url.txt` on the clust
 
 The results can be checked at two levels:
 
-1. **Recompute every reported number from the committed raw data** (under 1 minute, no GPU). Each recorded model output is rescored independently against the frozen snapshot, and each report is regenerated.
-2. **Rerun the experiments on TACC** to produce new raw data. This needs a TACC account and GPU time. A short rerun (Step 2a) takes under an hour.
+1. **Recompute every reported number from the committed raw data** (Step 1, under 1 minute, no GPU). Each recorded model output is rescored independently against the frozen snapshot, and each report is regenerated. This is the reproduction of C1–C7, and stage 6 of [Example 0](#example-0-one-command-check-about-4-minutes) runs it.
+2. **Optional: rerun experiments on TACC** to produce new raw data (Steps 2–5). This needs a TACC account and GPU time. The quickest real-model check is Step 2a (under an hour); the others take one to several hours each. On 2026-11-19 we followed Steps 2a and 4 from a fresh clone; the results are given in those steps.
 
 ## Test cases, data and configurations
 
@@ -291,21 +291,29 @@ This checks the direction of C1 and C3 on fresh model outputs: the dev split, B0
 ```bash
 cd deploy/tacc/service/agent-e2e
 echo eval_baseline.py > script.txt
-echo '--split dev --configs B0,B3v --repeats 1 --out dev-quick --resume' > args.txt
+echo '--split dev --configs B0,B3v --repeats 1' > args.txt
 bash stage.sh && tcloud submit
 ```
 
-The runner waits until the service is ready (5–8.5 minutes) and then needs a few minutes. **What we expect** (an expectation from our frozen dev results, not a measured guarantee): B0 near 7/10 and B3v near 4–5/10, with B3v runs stopping at the call limit. Frozen dev over 3 repeats: B0 21/30, B3v 14/30 with 13 call-limit stops. With 10 attempts per configuration, a difference of one or two cases is within noise.
+The runner waits until the service is ready (5–8.5 minutes) and then needs about 5 minutes. Its Slurm log (`$TACC_USERDIR/slurm_log/agent-e2e-<job id>.log`) ends with one summary line per configuration, and the results are in `$TACC_USERDIR/tacc-agentforge-service/eval-<job id>/`. **Expected:** B0 near 7/10 and B3v near 4–6/10, with some B3v runs stopping at the model-call limit, and BVR 0 for both. With 10 attempts per configuration, a difference of one or two cases is within noise; frozen dev over 3 repeats gave B0 21/30 and B3v 14/30 with 13 call-limit stops.
+
+Our check from a fresh clone on 2026-11-19 (service job 29905, runner 29897) ended with:
+
+```text
+B0: TSR 7/10 by case {'mean': 0.7, 'ci95': [0.4, 1.0], 'cases': 10} BVR {'n': 0, 'm': 4, 'rate': 0.0} reasons {'ok': 7, 'unnecessary_clarification': 2, 'violates_requirement': 1}
+B3v: TSR 6/10 by case {'mean': 0.6, 'ci95': [0.3, 0.9], 'cases': 10} BVR {'n': 0, 'm': 5, 'rate': 0.0} reasons {'ok': 6, 'error:model_call_limit': 3, 'unverifiable_claim': 1}
+```
 
 ### Step 2b: full held-out rerun
 
 ```bash
-echo '--split heldout --unseal-heldout --configs B0,B1,B2,B3,B3v --repeats 3 --out heldout-rerun --resume' > args.txt
+# use an absolute path under your USERDIR, so that resubmitting the job never touches the records
+echo '--split heldout --unseal-heldout --configs B0,B1,B2,B3,B3v --repeats 3 --out /mnt/home/<TACC username>/USERDIR/heldout-rerun --resume' > args.txt
 bash stage.sh && tcloud submit
 ```
 
 - **Resources:** both of the account's job slots (the service and the runner) and 480 attempts. Attempt durations add up to about 1.4 hours. Our run spanned about 2.5 hours across several 1-hour jobs, including a one-hour gap when no node was free (services 28999/29011/29016; runner 29006/29014/29015/29017).
-- **When a runner job reaches its time limit, submit it again with the same arguments.** `--resume` skips recorded attempts. Attempts lost to service gaps are retried automatically and logged to `infra.jsonl`; they do not count as system failures.
+- **When a runner job reaches its time limit, submit it again with the same arguments** (`bash stage.sh && tcloud submit` with the same `args.txt`). `--resume` skips recorded attempts. Attempts lost to service gaps are retried automatically and logged to `infra.jsonl`; they do not count as system failures.
 - **Score:** the runner writes `records.jsonl`, `scores.jsonl` and `report.json`. Compare `report.json` → `summary` with Step 1. Afterwards, empty `deploy/tacc/service/qwen-service/args.txt` so the next service run does not inherit it.
 
 More detail: [evaluations/README.md](evaluations/README.md) §7–8.
@@ -322,9 +330,15 @@ bash stage.sh graphs 2 && tcloud submit          # CUDA-graph baseline + variant
 .venv/bin/python -m inference.report inference/results/serving27b-* inference/results/graphs-* --out inference/RESULTS.md
 ```
 
-Each variant restarts vLLM, which takes 3.5–9 minutes, so one group fills most of a 1-hour job. If a job ends early, run the missing variants with `stage.sh <group> 2 <variant> ...`. Workload: 8 prompts × 2 repeats per stage at concurrency 1/4/8, plus `vllm bench serve` (512 input / 128 output tokens, 32 prompts).
+The two groups share the `vllm-experiments` job directory: **submit the second one only after the first job shows `RUNNING` in `squeue`**, because a job reads its group when it starts. Each variant restarts vLLM, which takes 3.5–9 minutes, so one group fills most of a 1-hour job. If a job ends early, run the missing variants with `stage.sh <group> 2 <variant> ...`. Workload: 8 prompts × 2 repeats per stage at concurrency 1/4/8, plus `vllm bench serve` (512 input / 128 output tokens, 32 prompts).
 
-**C5** needs the course's private-vLLM package. It is not in this repository because it contains the course's `vllm-v0.26.0.tar.gz`. Follow [deploy/tacc/private-vllm/README.md](deploy/tacc/private-vllm/README.md) §1–3:
+**C5** needs the course's private-vLLM source, `vllm-v0.26.0.tar.gz`. It is not in this repository, but every course account can copy it from the cluster (SHA-256 `c1ded7e5…`):
+
+```bash
+scp -P 30041 <TACC username>@gw.turing.ust.hk:/mnt/home/public/course-envs/CSIT6000V/project-private-vllm/student-release/vllm-v0.26.0.tar.gz deploy/tacc/private-vllm/
+```
+
+Then follow [deploy/tacc/private-vllm/README.md](deploy/tacc/private-vllm/README.md) §1–3:
 
 1. Run `prepare-source.sh`.
 2. Apply the one-line change in [the E5c patch](deploy/tacc/private-vllm/patches/E5c-warmup-spec-decode-metadata.patch) to `vllm-src/vllm/v1/worker/gpu_model_runner.py` **by hand**. The patch file has no line numbers, so `patch` cannot apply it.
@@ -337,7 +351,9 @@ Each variant restarts vLLM, which takes 3.5–9 minutes, so one group fills most
 
 ## Step 4: rerun the post-freeze replays on TACC (C7)
 
-The replay command is in [MAIN_REPLAY.md](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md) (`scripts/replay_agent_finalization.py`; use `.venv/bin/python` where it says `agent/.venv/bin/python`). It needs a running model service (Step 2) reachable through `--base-url` or `--address-file`, and runs dev-07, dev-04 and the original issue #21 charger request 3 times each on current `main`. The documented run used vLLM in eager mode, so compare call counts and end states, not latency.
+The replay command is in [MAIN_REPLAY.md](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md) (`scripts/replay_agent_finalization.py`; use `.venv/bin/python` where it says `agent/.venv/bin/python`). It needs a running model service (Step 2) reachable through `--base-url` or `--address-file`, and runs dev-07, dev-04 and the original issue #21 charger request 3 times each on current `main`. The documented run used vLLM in eager mode, so compare call counts and end states, not latency. To reach the service from your machine, forward a local port to the address in `$TACC_USERDIR/tacc-agentforge-service/service-url.txt`, for example `ssh -N -L 18084:<node IP>:8000 <TACC username>@gw.turing.ust.hk -p 30041`, and pass `--base-url http://127.0.0.1:18084/v1`.
+
+Our check from a fresh clone on 2026-11-19 (service job 29905, CUDA graphs) gave the same call counts and end states in all 9 runs: issue-21-charger 1 call, `waiting_user`; dev-07 3 calls, `no_feasible_plan`; dev-04 5 calls, `completed`.
 
 ## Step 5: rerun the SFT pilot on TACC (C6)
 
@@ -385,7 +401,7 @@ A new run needs a model endpoint (`BENCHMARK_BASE_URL` or `BENCHMARK_ADDRESS_FIL
 - **Step 1 is exact.** Rescoring and report generation are deterministic (the bootstrap is seeded), so the script must print `ALL MATCH`.
 - **A TACC rerun of the agent will not give identical counts.** All configurations use temperature 0, but vLLM batching and prefix-cache state are not bit-deterministic, so individual multi-step (B3/B3v) attempts can change. We expect, but have not measured across reruns, that held-out TSRs stay within the reported per-case 95% intervals; for example, the interval for B3v (42/96) is 0.28–0.60.
 - **Latency and throughput depend on the node.** GPU model and co-located jobs vary across TACC nodes; the logs suggest RTX 3090-class GPUs with about 23.7 GiB. Compare relative changes within one job, not absolute numbers across jobs. The serving report marks changes under 3% as "~same". C5 has one measurement per cell.
-- **Node 10-0-1-11 could not start vLLM** in our runs (private-vLLM report). The model-service job (`qwen-service`) excludes it, but the experiment and training jobs do not. If one of them dies at import with `NVMLError_InvalidArgument`, resubmit it, or add `exclude=10-0-1-11` to its `tuxiv.conf`.
+- **TACC node quirks are handled in the job scripts.** All GPU jobs exclude 10-0-1-10 and 10-0-1-11, whose GPUs are held by processes outside Slurm. On the other `-11` nodes Slurm assigns GPU IDs 2,3 while the job sees 0,1; the job scripts renumber them (log line `CUDA_VISIBLE_DEVICES 2 3 is outside the 2 visible GPUs; using 0,1`). Before this fix, which the 2026-11-19 check added to the serving-experiment, SFT-serving and private-vLLM jobs, every variant there failed with `NVMLError_InvalidArgument`. If a job log says `GPUs already in use by processes outside this job`, another node has the same problem: submit again, and Slurm usually picks another node.
 - **The model-call limit dominates the frozen system's failures** (C3, issue #21). There, the agent does not know how many calls it has left, and paginated searches that include unknown-price items keep it searching. The fix on `main` (C7) is supported only by 9 targeted replays, not by a held-out rerun.
 - **Correctness is relative to the frozen snapshot**, not to the real world. All 251 offers have unknown tax, so budgets are compared before tax. Known data errors in the snapshot carry over into the ground truth ([evaluations/README.md](evaluations/README.md) §4).
 - **The validator checks money, not requirements.** It approved three B3v plans even though a required attribute was unknown (baseline report §6).
