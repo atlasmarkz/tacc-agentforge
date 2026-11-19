@@ -1,12 +1,13 @@
 {
   "version": 1,
+  "revision": 2,
   "synthetic": true,
   "status": "awaiting_post_freeze_category",
   "dev": 10,
   "heldout": 32,
   "pending": 8,
   "hashes": {
-    "cases.jsonl": "cf137191182d54d2843d151048a3bdc75d0e909091cfa43632aad547cf8384c3",
-    "catalogs.json": "4bb5be6d765cebbb685dfb7453da2bac45c29bce3b37c1f17221d375f38e757a"
+    "cases.jsonl": "d451e724a53f9533e83b3458fa764d85760bb8c35249542584a872767611cdec",
+    "catalogs.json": "1442a4c0a16a753b0893ef7eb07ddcc2fb31a7d0ed155c74a2fe5a620898b640"
   }
 }

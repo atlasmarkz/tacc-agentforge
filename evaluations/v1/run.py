@@ -71,6 +71,11 @@ def run_episode(adapter, case, catalog, cfg, timeout):
             rec['invalid_actions'] = 1
         responses.append(rec)
         out = rec.get('outcome', {})
+        # An error outcome ends the episode as an adapter error even without an error or stop_reason field.
+        # Before, the scripted-turn check below failed on it and recorded an invalid action, which counted the
+        # adapter's own failure in the invalid-action metric (PR #28 review).
+        if isinstance(out, dict) and out.get('kind') == 'error' and not rec.get('stop_reason'):
+            rec['stop_reason'] = 'adapter_error'
         if rec.get('error') or rec.get('stop_reason') or not script:
             break
         turn = script[0]

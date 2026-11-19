@@ -49,8 +49,11 @@ class AssessmentTool:
 
 
 class MeasuredPort:
-    def __init__(self, inner):
-        self.inner, self.calls = inner, []
+    """Records every model call in `calls` (the caller's list), before the call is sent, so a run that fails
+    part-way still accounts for the calls it made (PR #28 review)."""
+
+    def __init__(self, inner, calls=None):
+        self.inner, self.calls = inner, calls if calls is not None else []
 
     async def generate(self, request, context):
         start = time.monotonic()
@@ -107,7 +110,7 @@ def same_item_set(actual, expected):
             sorted((key(i) for i in expected), key=repr))
 
 
-async def run_agent(client, payload, requirements):
+async def run_agent(client, payload, requirements, calls=None):
     config = payload['config']
     checker = CatalogValidator(payload['catalog'], requirements, payload['constraints'], payload['budget_basis'])
     assessment = AssessmentTool(checker)
@@ -138,7 +141,7 @@ async def run_agent(client, payload, requirements):
     registry = ToolRegistry([] if one_pass or not use_assessment else [ToolSpec('assess_catalog',
         'Assess the finite catalog under the extracted requirements and known budget. Does not select products.',
         AssessmentArguments, AssessmentResult, assessment)])
-    port = MeasuredPort(VllmModelPort(client, temperature=0, enable_thinking=False, on_delta=lambda *_: None))
+    port = MeasuredPort(VllmModelPort(client, temperature=0, enable_thinking=False, on_delta=lambda *_: None), calls)
     runtime = AgentRuntime(AgentDependencies(port, registry, validator), RunPolicy(
         max_model_calls=3 if one_pass else 8, max_tool_calls=0 if one_pass or not use_assessment else 8,
         max_plan_repairs=0 if one_pass else 2, max_context_chars=60000, max_output_tokens=1024,
@@ -191,8 +194,8 @@ def respond(payload, client=None):
     record = {}
     try:
         requirements = extract_intent(client, payload, calls)
-        record, agent_calls = asyncio.run(run_agent(client, payload, requirements))
-        calls.extend(agent_calls)
+        # The agent's calls go straight into `calls`, so they are counted even if the run raises.
+        record, _ = asyncio.run(run_agent(client, payload, requirements, calls))
         record['parsed_requirements'] = requirements
         if 'unchecked_proposal' in record:
             common, _ = context_for({**payload, 'config': payload['config']})
