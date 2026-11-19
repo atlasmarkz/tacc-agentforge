@@ -10,7 +10,8 @@ address with mode 600, so only this account can read it):
   POST /runs                           {run_id, conversation_id, message, constraints, explain?} -> SSE events
   POST /runs/<run_id>/resume           {question_id, answer} -> SSE events (answer to a pending question)
   POST /runs/<run_id>/cancel           stop a running run
-  POST /lookup                         {offer_ids, evidence_ids} -> offer facts and evidence (source links)
+  POST /lookup                         {offer_ids, evidence_ids} -> offer facts and evidence (source links), plus
+                                       a product photo per variant and the shop link per offer for the page
 SSE: `event: agent` carries one AgentEvent (its `result` is set on the final or waiting event), `event: error`
 a {code, message} the UI can show, `event: end` closes the stream, and `: ping` comments keep the tunnel busy.
 A client that disconnects cancels its run.
@@ -30,6 +31,7 @@ import json
 import os
 import secrets
 import socket
+import sqlite3
 import sys
 import tempfile
 import time
@@ -126,6 +128,7 @@ class HarnessService:
         self.waiting: dict[str, float] = {}
         self.started = time.time()
         self.counts = {"runs": 0, "resumes": 0, "errors": 0}
+        self.photos: dict[str, str | None] = {}              # variant_id -> product photo URL (or None)
 
     def close(self) -> None:
         self.tools.get("search_products").executor.close()
@@ -283,12 +286,78 @@ class HarnessService:
             evidence, unknown_evidence = _all_pages(
                 lambda ids, cur: self.kb.resolve_evidence(self.snapshot_id, ids, cur),
                 evidence_ids, "evidence", "next_cursor") if evidence_ids else ([], [])
+            photos, shops = self.presentation({o["variant_id"] for o in offers}, {o["offer_id"] for o in offers})
             return {"snapshot_id": self.snapshot_id, "offers": offers, "evidence": evidence,
-                    "unknown_offer_ids": sorted(set(unknown_offers)), "unknown_evidence_ids": sorted(set(unknown_evidence))}
+                    "unknown_offer_ids": sorted(set(unknown_offers)), "unknown_evidence_ids": sorted(set(unknown_evidence)),
+                    "photos": photos, "shops": shops}
         try:
             return await asyncio.to_thread(work)
         except Exception as exc:
             raise HttpError(400, getattr(exc, "code", "lookup_failed"), str(exc)[:300]) from None
+
+    def presentation(self, variant_ids, offer_ids):
+        """For the page only (nothing here reaches the agent or the validator): a product photo per variant and the
+        merchant name and link per offer. The photo is the Google Shopping thumbnail in the archived raw result that
+        one of the variant's own evidence records points at; a missing or unreadable record just means no photo."""
+        folder = Path(self.kb.snapshots_root) / self.snapshot_id
+        try:
+            con = sqlite3.connect(f"file:{(folder / 'catalog.sqlite').as_posix()}?mode=ro", uri=True)
+        except sqlite3.Error:
+            return {}, {}
+        try:
+            shops = {}
+            if offer_ids:
+                marks = ",".join("?" * len(offer_ids))
+                for offer_id, merchant, url in con.execute(
+                        f"SELECT offer_id, merchant, url FROM offers WHERE offer_id IN ({marks})", sorted(offer_ids)):
+                    shops[offer_id] = {"merchant": merchant, "url": url if _web_url(url) else None}
+            todo = sorted(v for v in variant_ids if v not in self.photos)
+            if todo:
+                marks = ",".join("?" * len(todo))
+                rows = con.execute(
+                    "SELECT e.variant_id, r.archive_path, e.json_pointer FROM evidence e JOIN raw_records r USING(raw_id) "
+                    f"WHERE e.json_pointer IS NOT NULL AND e.variant_id IN ({marks}) ORDER BY e.variant_id, e.id", todo).fetchall()
+                docs = {}
+                for variant_id, archive, pointer in rows:
+                    if self.photos.get(variant_id):
+                        continue
+                    path = (folder / archive).resolve()
+                    if folder.resolve() not in path.parents:
+                        continue
+                    if archive not in docs:
+                        try:
+                            docs[archive] = json.loads(path.read_text(encoding="utf-8"))
+                        except (OSError, ValueError):
+                            docs[archive] = None
+                    self.photos[variant_id] = _thumbnail(docs[archive], pointer)
+                for variant_id in todo:
+                    self.photos.setdefault(variant_id, None)
+        except sqlite3.Error:
+            return {}, {}
+        finally:
+            con.close()
+        return {v: self.photos.get(v) for v in variant_ids}, shops
+
+
+def _web_url(value) -> bool:
+    return isinstance(value, str) and value.startswith(("https://", "http://")) and len(value) <= 2048
+
+
+def _thumbnail(doc, pointer: str):
+    """The nearest `thumbnail` at or above a JSON pointer (the pointer may name a field inside the result item)."""
+    parts = pointer.split("/")[1:] if isinstance(pointer, str) and pointer.startswith("/") else []
+    nodes, node = [doc], doc
+    for part in parts:
+        part = part.replace("~1", "/").replace("~0", "~")
+        try:
+            node = node[int(part)] if isinstance(node, list) else node[part]
+        except (KeyError, IndexError, ValueError, TypeError):
+            break
+        nodes.append(node)
+    for node in reversed(nodes[1:]):
+        if isinstance(node, dict) and _web_url(node.get("thumbnail")):
+            return node["thumbnail"]
+    return None
 
 
 # ---- setup -----------------------------------------------------------------------------------------------
@@ -358,7 +427,7 @@ def run_demo(a) -> int:
     snapshot_id, _, kb, _ = prepare_kb(a.config, userdir, userdir)
     service = HarnessService(model=ScriptedPort(), kb=kb, snapshot_id=snapshot_id,
                              policy=RunPolicy(max_context_chars=36000), token=a.token,
-                             info={"job_id": "demo", "node": "local"}, explain_default=True)
+                             info={"job_id": "demo", "node": "local", "model": "scripted demo model"}, explain_default=True)
     log(f"demo harness on http://127.0.0.1:{a.port} (token {a.token}); scripted model, not a real one")
     try:
         asyncio.run(serve(service, "127.0.0.1", a.port))
@@ -400,7 +469,8 @@ def main() -> int:
     token = secrets.token_urlsafe(32)
     ip = node_ip()
     info = {"job_id": os.environ.get("SLURM_JOB_ID"), "node": socket.gethostname(),
-            "profile": a.profile, "model_address_file": os.path.expandvars(settings.model.address_file), "explain_default": a.explain}
+            "profile": a.profile, "model_address_file": os.path.expandvars(settings.model.address_file), "explain_default": a.explain,
+            "model": settings.model.name}
     service = HarnessService(model=real_model(settings.model), kb=kb, snapshot_id=snapshot_id,
                              policy=settings.policy, token=token, info=info, explain_default=a.explain)
     address_file, token_file = base / "harness-url.txt", base / "harness-token.txt"

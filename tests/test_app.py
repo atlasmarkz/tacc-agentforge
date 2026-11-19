@@ -245,3 +245,33 @@ def test_service_tracks_runs_that_wait_for_an_answer():
         await service.stream(Writer(), "r2", events())                       # a failed resume: still waiting
         assert set(service.waiting) == {"r2"} and service.pending().endswith(": r2")
     asyncio.run(scenario())
+
+
+def test_lookup_adds_a_product_photo_and_the_shop_link_for_the_page(tmp_path):
+    """The page shows the Google Shopping thumbnail that a variant's own evidence points at, and the offer's shop."""
+    import sqlite3
+    import types
+    from app.harness_service import HarnessService
+    folder = tmp_path / "snapshots" / "snap"
+    (folder / "raw").mkdir(parents=True)
+    (folder / "raw" / "r1.json").write_text(json.dumps({"shopping_results": [
+        {"title": "A", "thumbnail": "https://img.example/a.webp", "extensions": ["x"]},
+        {"title": "B", "thumbnail": "javascript:alert(1)"}]}), encoding="utf-8")
+    con = sqlite3.connect(folder / "catalog.sqlite")
+    con.executescript("""
+        CREATE TABLE raw_records (raw_id TEXT, archive_path TEXT);
+        CREATE TABLE evidence (id INTEGER PRIMARY KEY, variant_id TEXT, raw_id TEXT, json_pointer TEXT);
+        CREATE TABLE offers (offer_id TEXT, merchant TEXT, url TEXT);
+        INSERT INTO raw_records VALUES ('r1', 'raw/r1.json'), ('r2', '../outside.json');
+        INSERT INTO evidence (variant_id, raw_id, json_pointer) VALUES
+            ('v-a', 'r1', '/shopping_results/0/extensions/0'), ('v-b', 'r1', '/shopping_results/1'),
+            ('v-c', 'r2', '/x'), ('v-d', 'r1', '/missing/5');
+        INSERT INTO offers VALUES ('o-a', 'Walmart', 'https://walmart.example/a'), ('o-b', 'Shop', 'ftp://bad');
+    """)
+    con.commit()
+    con.close()
+    service = types.SimpleNamespace(kb=types.SimpleNamespace(snapshots_root=tmp_path / "snapshots"), snapshot_id="snap", photos={})
+    photos, shops = HarnessService.presentation(service, {"v-a", "v-b", "v-c", "v-d", "v-none"}, {"o-a", "o-b"})
+    # Found from a pointer inside the result item; non-web URLs, paths outside the snapshot and bad pointers give none.
+    assert photos == {"v-a": "https://img.example/a.webp", "v-b": None, "v-c": None, "v-d": None, "v-none": None}
+    assert shops == {"o-a": {"merchant": "Walmart", "url": "https://walmart.example/a"}, "o-b": {"merchant": "Shop", "url": None}}
