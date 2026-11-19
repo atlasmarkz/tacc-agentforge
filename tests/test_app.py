@@ -275,3 +275,19 @@ def test_lookup_adds_a_product_photo_and_the_shop_link_for_the_page(tmp_path):
     # Found from a pointer inside the result item; non-web URLs, paths outside the snapshot and bad pointers give none.
     assert photos == {"v-a": "https://img.example/a.webp", "v-b": None, "v-c": None, "v-d": None, "v-none": None}
     assert shops == {"o-a": {"merchant": "Walmart", "url": "https://walmart.example/a"}, "o-b": {"merchant": "Shop", "url": None}}
+
+
+def test_health_lists_the_categories_the_catalog_can_serve():
+    """The page offers these as the first options when the model asks what to buy."""
+    import types
+    from app.harness_service import HarnessService
+    service = types.SimpleNamespace(kb=types.SimpleNamespace(), snapshot_id="s", _categories=None)
+    pages = [{"categories": ["backpacks", "chargers"], "next_cursor": "c1"}, {"categories": ["earbuds", 5], "next_cursor": None}]
+    service.kb.describe_filters = lambda snapshot_id, category, cursor: pages.pop(0)
+    assert HarnessService.catalog_categories(service) == ["backpacks", "chargers", "earbuds"]
+    assert service._categories and HarnessService.catalog_categories(service) == ["backpacks", "chargers", "earbuds"]   # read once
+
+    def broken(*a):
+        raise RuntimeError("no snapshot")
+    failing = types.SimpleNamespace(kb=types.SimpleNamespace(describe_filters=broken), snapshot_id="s", _categories=None)
+    assert HarnessService.catalog_categories(failing) == [] and failing._categories is None                           # retried later

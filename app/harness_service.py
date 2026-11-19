@@ -130,6 +130,7 @@ class HarnessService:
         self.started = time.time()
         self.counts = {"runs": 0, "resumes": 0, "errors": 0}
         self.photos: dict[str, str | None] = {}              # variant_id -> product photo URL (or None)
+        self._categories: list[str] | None = None            # the snapshot's category names (it never changes)
 
     def close(self) -> None:
         self.tools.get("search_products").executor.close()
@@ -186,8 +187,24 @@ class HarnessService:
             model_address = Path(address_file).read_text(encoding="utf-8").strip() or None
         return {"status": "ok", "snapshot_id": self.snapshot_id, "uptime_s": round(time.time() - self.started, 1),
                 "model_address": model_address, "active_runs": len(self.cancels),
-                "waiting_runs": len(self.waiting), "counts": self.counts,
+                "waiting_runs": len(self.waiting), "counts": self.counts, "categories": self.catalog_categories(),
                 **{k: v for k, v in self.info.items() if k != "model_address_file"}}
+
+    def catalog_categories(self) -> list[str]:
+        """What the catalog can actually serve (for the page's question form); read once, empty if it cannot be read."""
+        if self._categories is None:
+            names, cursor = [], None
+            try:
+                while True:
+                    page = self.kb.describe_filters(self.snapshot_id, None, cursor)
+                    names += [c for c in page.get("categories", []) if isinstance(c, str)]
+                    cursor = page.get("next_cursor")
+                    if not cursor or len(names) > 100:
+                        break
+            except Exception:                                   # health must not fail because of this; try again next time
+                return []
+            self._categories = names
+        return self._categories
 
     # ---- runs ----------------------------------------------------------------------------------------------
 
