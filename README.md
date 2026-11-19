@@ -13,7 +13,7 @@
 TACC AgentForge is the course project for **Advanced AI Computing and Systems (CSIT6000V)**. A user describes what they need and how much they can spend. The agent searches a source-linked product catalog, compares offers, checks the plan against the budget with exact decimal arithmetic, and explains its recommendation with citations. The model is the course-provided **Qwen3.8-27B AWQ INT4** checkpoint, served by vLLM on two GPUs on the TACC cluster.
 
 <p align="center">
-  <img src="docs/images/browser-demo.gif" width="900" alt="The shopping agent searches for earbuds, validates the price against a $100 budget, and returns a recommendation with its source.">
+  <img src="docs/images/browser-demo.gif" width="900" alt="Live run with the real model on TACC (about 3x speed): the page searches the catalog for earbuds, checks the price against a $100 budget, and shows the pick with its photo, the explanation, a receipt and the sources.">
 </p>
 
 *Recorded on TACC with the real model: the agent recommends earbuds at **$22.99 before tax** and shows the **$77.01** left in the budget. Idle waits are shortened.*
