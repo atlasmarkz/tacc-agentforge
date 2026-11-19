@@ -165,6 +165,11 @@ ol.logl .bad { color: var(--bad); }
 .qchips { display: flex; flex-wrap: wrap; gap: 8px; }
 .qchip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 7px 14px; font-size: 14px; transition: background .15s, border-color .15s, color .15s; }
 .qchip:hover { border-color: var(--line-2); background: #fff; }
+.qsets { display: flex; flex-direction: column; gap: 8px; }
+.qcap { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.qchip.cat { background: var(--ok-bg); border-color: #CFE0D4; color: var(--ok); font-weight: 500; }
+.qchip.cat:hover { background: #DCEBE0; }
+.qchip.cat[aria-pressed="true"] { background: var(--ok); border-color: var(--ok); color: #fff; }
 .qchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .f { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
 .input { border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 10px 12px; outline: 0; font-weight: 400; }
@@ -396,6 +401,7 @@ const I18N = {
     sUnderstand: "Understanding your request", sSearch: "Searching the catalog", sCompare: "Comparing offers",
     sCheck: "Checking the budget", sExplain: "Writing the explanation", log: "Activity log",
     typeOwn: "Or type your own", yes: "Yes", no: "No", noPref: "No preference",
+    capCatalog: "In our catalog", capOther: "Other ideas (may not be in the catalog)",
     noBudget: "no budget yet", askTitle: "One quick question", continue: "Continue",
     budgetQ: "How much would you like to spend? We only recommend offers that fit this budget.",
     whyTitle: "Why this pick", payTitle: "What you'll pay", sourcesTitle: "Sources", refineTitle: "Want to adjust?",
@@ -445,6 +451,7 @@ const I18N = {
     working: "正在帮你找…", waiting: "等你回答", done: (s) => `找好了，用时 ${s} 秒`, failed: "已停止",
     sUnderstand: "理解你的需求", sSearch: "搜索商品目录", sCompare: "比较报价", sCheck: "核对预算", sExplain: "撰写推荐理由", log: "详细记录",
     typeOwn: "也可以自己输入", yes: "是", no: "否", noPref: "没有特别要求",
+    capCatalog: "目录里有的商品", capOther: "其他想法（目录里不一定有）",
     noBudget: "还没给预算", askTitle: "先确认一下", continue: "继续",
     budgetQ: "你打算花多少钱？我们只推荐在这个预算内的商品。",
     whyTitle: "为什么推荐它", payTitle: "费用明细", sourcesTitle: "参考来源", refineTitle: "还想调整？",
@@ -607,8 +614,22 @@ function examplesFrom(q) {
   }
   return out.slice(0, 8);
 }
+// What the catalog can serve, as chips (the harness reports its snapshot's categories in /health).
+const CAT_LABELS = { earbuds: ["Wireless earbuds", "无线耳机"], chargers: ["USB-C chargers", "充电器"], keyboards: ["Keyboards", "键盘"],
+                     backpacks: ["Backpacks", "双肩包"], smartwatches: ["Smartwatches", "智能手表"], monitors: ["Monitors", "显示器"], mice: ["Mice", "鼠标"] };
+function catalogChips() {
+  const cats = (state.health && state.health.harness && state.health.harness.categories) || [];
+  return cats.map((slug) => {
+    const l = (CAT_LABELS[slug] || [humanize(slug), humanize(slug)])[LANG === "zh" ? 1 : 0];
+    return { slug, l, v: LANG === "zh" && CAT_LABELS[slug] ? `${l} (${slug})` : l };       // the model sees the catalog's own name
+  });
+}
+const sameThing = (example, cat) => {
+  const e = example.toLowerCase(), words = [cat.slug, cat.slug.replace(/s$/, ""), cat.l.toLowerCase()];
+  return words.some((w) => e.includes(w) || (e.length >= 2 && w.includes(e)));
+};
 function suggestionPlan(question, fields) {
-  const T = L(), ex = examplesFrom(question), plan = {};
+  const T = L(), ex = examplesFrom(question), plan = {}, cats = catalogChips();
   const yesNo = (f) => /simultan|together|both|same_time|at_once|waterproof|required$|urgent|gift|include/i.test(f);
   const listy = (f) => /item|categor|product|thing|needs?$|needed|type/i.test(f);
   const pref = (f) => /prefer|requirement|feature|brand|note|detail|wish/i.test(f);
@@ -616,31 +637,43 @@ function suggestionPlan(question, fields) {
   let used = false;
   for (const f of fields) {
     if (AMOUNT_FIELDS.has(f) || f === "currency" || f === "budget_basis") continue;
-    if (yesNo(f)) plan[f] = { opts: [T.yes, T.no], multi: false };
-    else if (ex.length && !used && (listy(f) || !fields.some(listy))) { plan[f] = { opts: ex, multi: listy(f) }; used = true; }
-    else if (qty(f)) plan[f] = { opts: ["1", "2", "3"], multi: false };
-    else if (pref(f)) plan[f] = { opts: [T.noPref], multi: false };
+    if (yesNo(f)) plan[f] = { rows: [{ opts: [T.yes, T.no] }], multi: false };
+    else if (listy(f) && !used && (cats.length || ex.length)) {
+      // First what the catalog has, then the model's own ideas that are not already covered by it.
+      const rest = ex.filter((e) => !cats.some((c) => sameThing(e, c)));
+      plan[f] = { multi: true, rows: [...(cats.length ? [{ cap: T.capCatalog, opts: cats, cls: "cat" }] : []),
+                                      ...(rest.length ? [{ cap: cats.length ? T.capOther : "", opts: rest }] : [])] };
+      used = true;
+    }
+    else if (ex.length && !used && !fields.some(listy)) { plan[f] = { rows: [{ opts: ex }], multi: false }; used = true; }
+    else if (qty(f)) plan[f] = { rows: [{ opts: ["1", "2", "3"] }], multi: false };
+    else if (pref(f)) plan[f] = { rows: [{ opts: [T.noPref] }], multi: false };
   }
   return plan;
 }
 const tokens = (v) => v.split(/\s*[,，、]\s*/).map((x) => x.trim()).filter(Boolean);
 function chipsFor(s, input) {
-  const row = el("div", { class: "qchips", role: "group" });
+  const wrap = el("div", { class: "qsets" });
   const sync = () => {
     const have = s.multi ? tokens(input.value) : [input.value.trim()];
-    row.querySelectorAll(".qchip").forEach((b) => b.setAttribute("aria-pressed", String(have.includes(b.dataset.v))));
+    wrap.querySelectorAll(".qchip").forEach((b) => b.setAttribute("aria-pressed", String(have.includes(b.dataset.v))));
   };
-  for (const o of s.opts) {
-    const b = el("button", { class: "qchip", type: "button", "data-v": o, "aria-pressed": "false" }, o);
-    b.onclick = () => {
-      if (s.multi) { const t = tokens(input.value), i = t.indexOf(o); if (i >= 0) t.splice(i, 1); else t.push(o); input.value = t.join(", "); }
-      else input.value = input.value.trim() === o ? "" : o;
-      sync(); input.focus();
-    };
-    row.append(b);
+  for (const r of s.rows) {
+    const row = el("div", { class: "qchips", role: "group" });
+    for (const opt of r.opts) {
+      const o = typeof opt === "string" ? { l: opt, v: opt } : opt;
+      const b = el("button", { class: "qchip" + (r.cls ? " " + r.cls : ""), type: "button", "data-v": o.v, "aria-pressed": "false" }, o.l);
+      b.onclick = () => {
+        if (s.multi) { const t = tokens(input.value), i = t.indexOf(o.v); if (i >= 0) t.splice(i, 1); else t.push(o.v); input.value = t.join(", "); }
+        else input.value = input.value.trim() === o.v ? "" : o.v;
+        sync(); input.focus();
+      };
+      row.append(b);
+    }
+    wrap.append(...(r.cap ? [el("div", { class: "qcap" }, r.cap)] : []), row);
   }
   input.addEventListener("input", sync); sync();
-  return row;
+  return wrap;
 }
 const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 const favicon = (u) => { const h = hostOf(u); return h ? "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(h) + "&sz=64" : null; };
