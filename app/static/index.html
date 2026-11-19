@@ -4,331 +4,352 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shop Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --page: #eef1f5; --card: #ffffff; --ink: #18202e; --muted: #5f6b7d; --line: #e1e5ec; --soft: #f6f8fb;
-    --head: #10213f; --head-2: #1a3360; --head-ink: #ffffff;
-    --cta: #ff7a1a; --cta-hover: #f06a08; --cta-ink: #ffffff;
-    --price: #d12f2f; --ok: #13804b; --ok-bg: #e6f5ec; --warn: #a25b00; --warn-bg: #fff3e0;
-    --bad: #c0262d; --bad-bg: #fdecec; --link: #1f5fbf; --chip: #ffffff; --focus: #ffb27a;
-    --shadow: 0 1px 2px rgba(16, 33, 63, .06), 0 4px 16px rgba(16, 33, 63, .06);
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --page: #0e131b; --card: #171d27; --ink: #e8ecf2; --muted: #9aa5b5; --line: #273041; --soft: #1d2430;
-      --head: #0a1426; --head-2: #13213d; --head-ink: #f3f6fb;
-      --cta: #ff8a33; --cta-hover: #ff9a50; --cta-ink: #1a0f05;
-      --price: #ff6b6b; --ok: #4cd18a; --ok-bg: #12301f; --warn: #f0b35a; --warn-bg: #33250f;
-      --bad: #ff8080; --bad-bg: #3a1618; --link: #7fb0ff; --chip: #1d2430; --focus: #ff9a50;
-      --shadow: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 16px rgba(0, 0, 0, .25);
-    }
-  }
-  * { box-sizing: border-box; }
-  html, body { margin: 0; }
-  body { background: var(--page); color: var(--ink);
-         font: 15px/1.5 "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-  button, input, select, textarea { font: inherit; color: inherit; }
-  :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
-  .hidden { display: none !important; }
+/* Warm paper, product photos first, one accent colour, plain-language progress. Fonts fall back to system fonts
+   when Google Fonts is unreachable. */
+:root {
+  --paper: #F6F2EC; --paper-2: #EFE9E0; --card: #FFFDFA; --ink: #1D1B18; --ink-2: #4F4A43; --muted: #8A847B;
+  --line: #E4DCCF; --line-2: #D5C9B8; --accent: #C2502A; --accent-2: #A84322; --ok: #2E6B4E; --ok-bg: #E6F0E9;
+  --warn: #8A5A12; --warn-bg: #FBF1E2; --bad: #A33A2B; --bad-bg: #F9E8E4; --soft: #F3ECE2;
+  --shadow: 0 1px 0 rgba(29,27,24,.04), 0 10px 28px -14px rgba(29,27,24,.22);
+  --sans: "Onest", "Noto Sans SC", system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  --serif: "Instrument Serif", "Noto Serif SC", Georgia, serif;
+  --r: 18px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--paper); color: var(--ink); font: 16px/1.55 var(--sans); -webkit-font-smoothing: antialiased; }
+button, input, textarea, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+a { color: inherit; }
+img { display: block; max-width: 100%; }
+.hidden { display: none !important; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 8px; }
 
-  /* ---------- header with the search bar ---------- */
-  .topbar { background: linear-gradient(180deg, var(--head), var(--head-2)); color: var(--head-ink); }
-  .topbar-inner { max-width: 1160px; margin: 0 auto; padding: 14px 16px; display: grid; gap: 12px;
-                  grid-template-columns: auto 1fr auto; align-items: center; }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 19px; letter-spacing: .2px; white-space: nowrap; }
-  .brand-mark { width: 34px; height: 34px; border-radius: 9px; background: var(--cta); display: grid; place-items: center; }
-  .brand small { display: block; font-weight: 500; font-size: 11px; opacity: .75; letter-spacing: .4px; text-transform: uppercase; }
-  .search { display: flex; background: var(--card); border-radius: 10px; overflow: hidden; min-height: 46px;
-            box-shadow: 0 0 0 2px transparent; transition: box-shadow .15s; }
-  .search:focus-within { box-shadow: 0 0 0 3px var(--focus); }
-  .search input, .search select { border: 0; background: transparent; color: var(--ink); padding: 0 14px; outline: none; }
-  .search .q { flex: 1; min-width: 0; }
-  .search .budget { width: 120px; border-left: 1px solid var(--line); }
-  .search .cur { width: 76px; border-left: 1px solid var(--line); background: var(--soft); }
-  .search button { border: 0; background: var(--cta); color: var(--cta-ink); font-weight: 700; padding: 0 22px; cursor: pointer; }
-  .search button:hover { background: var(--cta-hover); }
-  .search button:disabled { opacity: .6; cursor: progress; }
-  .conn { font-size: 12px; display: flex; align-items: center; gap: 7px; white-space: nowrap; opacity: .92; }
-  .dot { width: 9px; height: 9px; border-radius: 50%; background: #8a94a6; box-shadow: 0 0 0 3px rgba(255,255,255,.08); }
-  .dot.ok { background: #35d07f; } .dot.bad { background: #ff5a5f; }
-  .subbar { background: var(--head-2); border-top: 1px solid rgba(255,255,255,.08); }
-  .subbar-inner { max-width: 1160px; margin: 0 auto; padding: 8px 16px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .subbar span { color: var(--head-ink); opacity: .7; font-size: 13px; margin-right: 4px; }
-  .pill { border: 1px solid rgba(255,255,255,.22); background: rgba(255,255,255,.06); color: var(--head-ink);
-          border-radius: 999px; padding: 4px 12px; font-size: 13px; cursor: pointer; }
-  .pill:hover { background: rgba(255,255,255,.16); }
-  .opt { margin-left: auto; color: var(--head-ink); font-size: 13px; display: flex; align-items: center; gap: 6px; opacity: .85; }
+/* header */
+header.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 28px; background: rgba(246,242,236,.88); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
+header.top.scrolled { border-bottom-color: var(--line); }
+.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -.01em; background: none; border: 0; padding: 0; }
+.brand svg { width: 30px; height: 30px; }
+.top-right { display: flex; align-items: center; gap: 10px; }
+.health { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); padding: 0 6px; }
+.dot { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #CFC5B6; }
+.dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(46,107,78,.15); }
+.dot.bad { background: var(--bad); }
+.modelchip { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px 5px 6px; }
+.modelchip .mk { width: 20px; height: 20px; border-radius: 6px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.modelchip b { font-weight: 600; color: var(--ink); }
+.powered { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; margin-top: 14px; }
+.powered b { color: var(--ink-2); font-weight: 600; }
+.ghost { background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
+.ghost:hover { background: var(--card); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--card); }
+.seg button { border: 0; background: transparent; border-radius: 999px; padding: 5px 11px; font-size: 13px; color: var(--muted); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--paper); }
 
-  /* ---------- layout ---------- */
-  .wrap { max-width: 1160px; margin: 0 auto; padding: 18px 16px 64px; display: grid; gap: 18px;
-          grid-template-columns: minmax(0, 1fr) 320px; align-items: start; }
-  .main { display: grid; gap: 18px; min-width: 0; }
-  .side { display: grid; gap: 18px; position: sticky; top: 16px; }
-  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); padding: 18px; }
-  .card h2 { font-size: 16px; margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
-  .muted { color: var(--muted); }
-  .small { font-size: 13px; }
+.layout { display: flex; align-items: flex-start; }
+.content { flex: 1; min-width: 0; }
+main { padding: 0 28px 90px; }
 
-  /* ---------- welcome ---------- */
-  .hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: 18px; align-items: center; }
-  .hero h1 { font-size: 26px; line-height: 1.25; margin: 0 0 8px; }
-  .hero p { margin: 0 0 14px; color: var(--muted); }
-  .tiles { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .tiles .tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
-  .tile { border: 1px solid var(--line); background: var(--soft); border-radius: 10px; padding: 12px; cursor: pointer; text-align: left; }
-  .tile:hover { border-color: var(--cta); }
-  .tile b { display: block; font-size: 14px; }
-  .tile span { font-size: 12px; color: var(--muted); }
-  .how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 4px; }
-  .how div { font-size: 13px; color: var(--muted); }
-  .how b { display: block; color: var(--ink); font-size: 13px; }
+/* history sidebar */
+.side { width: 272px; flex: none; position: sticky; top: 59px; height: calc(100vh - 59px); overflow-y: auto; overflow-x: hidden; border-right: 1px solid var(--line);
+  padding: 18px 14px 24px; display: flex; flex-direction: column; gap: 4px; }
+.side .newbtn { display: flex; align-items: center; gap: 8px; width: 100%; border: 1px solid var(--line); background: var(--card); border-radius: 12px; padding: 10px 12px; font-size: 14px; font-weight: 500; margin-bottom: 14px; }
+.side .newbtn:hover { border-color: var(--line-2); }
+.side .newbtn svg { width: 16px; height: 16px; }
+.side h5 { margin: 14px 8px 6px; font-size: 12px; font-weight: 500; color: var(--muted); }
+.hitem { display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; width: 100%; text-align: left; background: transparent; border: 0; border-radius: 12px; padding: 7px 8px; }
+.hitem:hover { background: var(--paper-2); }
+.hitem.on { background: var(--card); box-shadow: inset 0 0 0 1px var(--line); }
+.hitem .hp { width: 36px; height: 36px; border-radius: 9px; background: #fff; border: 1px solid #EFE8DD; display: grid; place-items: center; overflow: hidden; }
+.hitem .hp img { width: 86%; height: 86%; object-fit: contain; }
+.hitem .hp svg { width: 18px; height: 18px; color: #CFC5B6; }
+.hitem > span:last-child { min-width: 0; }
+.hitem .ht { font-size: 14px; line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hitem .hm { font-size: 12px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hitem .hm .okc { color: var(--ok); }
+.side .empty { font-size: 13px; color: var(--muted); padding: 6px 8px; }
+.side .clear { margin-top: auto; background: none; border: 0; color: var(--muted); font-size: 12px; text-align: left; padding: 14px 8px 0; }
+.side .clear:hover { color: var(--ink-2); }
 
-  /* ---------- progress ---------- */
-  .stepper { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin: 4px 0 12px; }
-  .st { text-align: center; font-size: 12px; color: var(--muted); }
-  .st .bar { height: 5px; border-radius: 3px; background: var(--line); margin-bottom: 6px; overflow: hidden; }
-  .st.done .bar { background: var(--ok); }
-  .st.active .bar { background: linear-gradient(90deg, var(--cta), var(--focus), var(--cta)); background-size: 200% 100%; animation: flow 1.2s linear infinite; }
-  .st.done, .st.active { color: var(--ink); }
-  .st.fail .bar { background: var(--bad); }
-  @keyframes flow { from { background-position: 0 0; } to { background-position: -200% 0; } }
-  @media (prefers-reduced-motion: reduce) { .st.active .bar { animation: none; background: var(--cta); } }
-  details.log summary { cursor: pointer; font-size: 13px; color: var(--muted); }
-  ol.steps { list-style: none; margin: 8px 0 0; padding: 0; font-size: 13px; max-height: 220px; overflow: auto; }
-  ol.steps li { padding: 3px 0; display: flex; gap: 10px; }
-  ol.steps .t { color: var(--muted); font-variant-numeric: tabular-nums; min-width: 48px; }
-  ol.steps .bad { color: var(--bad); }
-  .runline { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; align-items: center; }
-  .linkbtn { border: 0; background: none; color: var(--link); cursor: pointer; padding: 0; font-size: 13px; }
+/* home */
+.home { max-width: 780px; margin: 0 auto; min-height: calc(100vh - 150px); display: flex; flex-direction: column; justify-content: center; padding-top: 24px; }
+.home h1 { font-family: var(--serif); font-weight: 400; font-size: 76px; line-height: 1.0; letter-spacing: -.015em; margin: 0 0 16px; }
+html[lang="zh"] .home h1 { font-weight: 600; font-size: 58px; letter-spacing: 0; line-height: 1.15; }
+.home .lead { color: var(--ink-2); font-size: 19px; max-width: 600px; margin: 0 0 30px; }
 
-  /* ---------- notices ---------- */
-  .notice { border-radius: 10px; padding: 12px 14px; font-size: 14px; display: flex; gap: 10px; align-items: flex-start; }
-  .notice.err { background: var(--bad-bg); color: var(--bad); }
-  .notice.warn { background: var(--warn-bg); color: var(--warn); }
-  .notice.ok { background: var(--ok-bg); color: var(--ok); }
-  .notice button { margin-left: auto; border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 8px; padding: 3px 10px; cursor: pointer; }
+.composer { background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 18px 18px 14px; transition: border-color .2s; }
+.composer:focus-within { border-color: #CDBFAC; }
+.composer textarea { width: 100%; border: 0; outline: 0; resize: none; background: transparent; font-size: 19px; line-height: 1.5; min-height: 60px; max-height: 220px; padding: 2px 4px; }
+.composer textarea::placeholder { color: #A9A297; }
+.composer .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 10px; }
+.composer .opts { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.pill { display: inline-flex; align-items: center; gap: 6px; background: var(--soft); border-radius: 999px; padding: 6px 12px; font-size: 14px; color: var(--ink-2); }
+.pill input { width: 72px; border: 0; background: transparent; outline: 0; font-variant-numeric: tabular-nums; }
+.pill select { border: 0; background: transparent; outline: 0; padding: 0; }
+.toggle { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--ink-2); cursor: pointer; user-select: none; }
+.toggle input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.toggle .sw { width: 34px; height: 20px; border-radius: 999px; background: #D9CFC2; position: relative; transition: background .2s; flex: none; }
+.toggle .sw::after { content: ""; position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: transform .2s; box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+.toggle input:checked + .sw { background: var(--ok); }
+.toggle input:checked + .sw::after { transform: translateX(14px); }
+.toggle input:focus-visible + .sw { outline: 2px solid var(--accent); outline-offset: 2px; }
+.send { width: 46px; height: 46px; border-radius: 50%; border: 0; background: var(--accent); color: #fff; display: grid; place-items: center; transition: background .15s, transform .15s; flex: none; }
+.send:hover { background: var(--accent-2); }
+.send:active { transform: scale(.96); }
+.send:disabled { background: #D9CFC2; cursor: default; }
+.send svg { width: 20px; height: 20px; }
 
-  /* ---------- question ---------- */
-  .ask { border-left: 4px solid var(--cta); }
-  .ask .qtext { font-size: 16px; font-weight: 600; margin: 0 0 12px; }
-  .fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; }
-  label.f { font-size: 12px; font-weight: 600; color: var(--muted); display: grid; gap: 4px; }
-  .input { border: 1px solid var(--line); background: var(--soft); border-radius: 8px; padding: 9px 11px; width: 100%; }
-  .btn { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 8px 18px; cursor: pointer; font-weight: 600; }
-  .btn.primary { background: var(--cta); border-color: var(--cta); color: var(--cta-ink); }
-  .btn.primary:hover { background: var(--cta-hover); }
-  .btn:disabled { opacity: .55; cursor: not-allowed; }
-  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 14px; }
+.examples { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 18px; }
+.ex { display: flex; align-items: center; gap: 12px; text-align: left; background: transparent; border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; color: var(--ink-2); font-size: 15px; transition: background .15s, border-color .15s, color .15s; }
+.examples .ex:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.ex:hover { background: var(--card); border-color: var(--line-2); color: var(--ink); }
+.ex .ico { width: 38px; height: 38px; border-radius: 11px; background: var(--card); border: 1px solid var(--line); display: grid; place-items: center; flex: none; }
+.ex .ico svg { width: 20px; height: 20px; stroke: var(--ink-2); }
+.fine { color: var(--muted); font-size: 13px; margin-top: 24px; }
 
-  /* ---------- product ---------- */
-  .product { display: grid; grid-template-columns: 148px minmax(0, 1fr); gap: 18px; }
-  .thumb { width: 148px; height: 148px; border-radius: 12px; display: grid; place-items: center;
-           background: radial-gradient(circle at 30% 25%, #ffe2c9, #ffc499 55%, #ffad73); color: #7a3b0b; }
-  @media (prefers-color-scheme: dark) { .thumb { background: radial-gradient(circle at 30% 25%, #4a3424, #3a281b 55%, #2e1f15); color: #ffb27a; } }
-  .badges { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 6px; }
-  .badge { font-size: 11px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; border-radius: 4px; padding: 2px 7px; }
-  .badge.pick { background: var(--cta); color: var(--cta-ink); }
-  .badge.ok { background: var(--ok-bg); color: var(--ok); }
-  .badge.warn { background: var(--warn-bg); color: var(--warn); }
-  .ptitle { font-size: 18px; font-weight: 600; line-height: 1.35; margin: 0 0 6px; }
-  .seller { font-size: 13px; color: var(--muted); margin-bottom: 8px; }
-  .price { color: var(--price); font-weight: 700; display: flex; align-items: flex-start; gap: 1px; line-height: 1; margin: 6px 0 8px; }
-  .price .sym { font-size: 15px; margin-top: 4px; }
-  .price .whole { font-size: 34px; }
-  .price .cents { font-size: 15px; margin-top: 4px; }
-  .facts { display: flex; gap: 14px; flex-wrap: wrap; font-size: 13px; }
-  .fact { display: flex; gap: 5px; align-items: center; }
-  .fact.ok { color: var(--ok); } .fact.warn { color: var(--warn); }
-  .qty { font-size: 13px; color: var(--muted); margin-top: 6px; }
-  .more-items .product + .product { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+/* conversation */
+.thread { max-width: 900px; margin: 0 auto; padding-top: 30px; }
+.you { display: flex; justify-content: flex-end; margin-bottom: 24px; }
+.you p { margin: 0; background: var(--paper-2); border-radius: 20px 20px 4px 20px; padding: 13px 18px; max-width: 78%; font-size: 17px; white-space: pre-line; }
+.you .meta { display: block; font-size: 13px; color: var(--muted); margin-top: 4px; }
 
-  .why { margin-top: 16px; background: var(--soft); border: 1px solid var(--line); border-radius: 10px; padding: 14px; }
-  .why h3 { margin: 0 0 6px; font-size: 14px; }
-  .why .text { white-space: pre-wrap; }
-  .why .note { font-size: 12px; color: var(--muted); margin-top: 8px; display: flex; gap: 6px; align-items: center; }
-  .caret::after { content: "▍"; color: var(--cta); animation: blink 1s steps(1) infinite; }
-  @keyframes blink { 50% { opacity: 0; } }
+details.trace { margin: 0 0 22px; }
+details.trace > summary { list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: 10px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 16px; background: var(--card); font-size: 14px; color: var(--ink-2); }
+details.trace > summary::-webkit-details-marker { display: none; }
+details.trace[open] > summary { border-color: transparent; background: transparent; padding-left: 0; }
+details.trace > summary .chev { color: var(--muted); transition: transform .2s; }
+details.trace[open] > summary .chev { transform: rotate(180deg); }
+.pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: pulse 1.2s ease-in-out infinite; flex: none; }
+.trace.done .pulse { background: var(--ok); animation: none; }
+.trace.fail .pulse { background: var(--bad); animation: none; }
+@keyframes pulse { 0%,100% { opacity: .35; transform: scale(.8); } 50% { opacity: 1; transform: scale(1); } }
+.stopbtn { margin-left: 6px; border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 2px 10px; font-size: 12px; color: var(--ink-2); }
 
-  .ev { padding: 12px 0; border-top: 1px solid var(--line); font-size: 13px; }
-  .ev:first-of-type { border-top: 0; padding-top: 0; }
-  .ev .src { font-weight: 600; }
-  .ev a { color: var(--link); text-decoration: none; word-break: break-all; }
-  .ev a:hover { text-decoration: underline; }
-  .ev .excerpt { color: var(--muted); margin-top: 4px; }
+.steps { list-style: none; margin: 14px 0 0 5px; padding: 0; border-left: 1px solid var(--line); }
+.step { position: relative; padding: 0 0 16px 24px; }
+.step::before { content: ""; position: absolute; left: -6px; top: 6px; width: 11px; height: 11px; border-radius: 50%; background: var(--paper); border: 1.5px solid #CFC5B6; }
+.step.active::before { border-color: var(--accent); background: var(--accent); box-shadow: 0 0 0 4px rgba(194,80,42,.15); }
+.step.done::before { border-color: var(--ok); background: var(--ok); }
+.step.fail::before { border-color: var(--bad); background: var(--bad); }
+.step h3 { margin: 0; font-size: 15px; font-weight: 600; }
+.step:not(.done):not(.active):not(.fail) h3 { color: var(--muted); font-weight: 500; }
+.step .d { color: var(--ink-2); font-size: 14px; margin-top: 3px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 7px; }
+.q { font-size: 13px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink-2); animation: pop .3s ease both; }
+.q.bad { color: var(--bad); border-color: #EBC9C1; }
+@keyframes pop { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+details.log { margin: 2px 0 0 29px; font-size: 13px; color: var(--muted); }
+details.log summary { cursor: pointer; }
+ol.logl { list-style: none; padding: 6px 0 0; margin: 0; max-height: 260px; overflow: auto; }
+ol.logl li { display: flex; gap: 10px; padding: 2px 0; }
+ol.logl .t { font-variant-numeric: tabular-nums; min-width: 44px; color: #A9A297; }
+ol.logl .bad { color: var(--bad); }
 
-  /* ---------- summary ---------- */
-  .summary table { width: 100%; border-collapse: collapse; font-size: 14px; }
-  .summary td { padding: 5px 0; }
-  .summary td:last-child { text-align: right; font-variant-numeric: tabular-nums; }
-  .summary tr.total td { border-top: 1px solid var(--line); padding-top: 10px; font-weight: 700; font-size: 16px; }
-  .summary tr.total td:last-child { color: var(--price); }
-  .meter { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; margin: 12px 0 6px; }
-  .meter i { display: block; height: 100%; background: var(--ok); border-radius: 4px; }
-  .meter.tight i { background: var(--warn); }
-  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 10px; }
-  .chip { border: 1px solid var(--line); background: var(--chip); border-radius: 999px; padding: 5px 12px; font-size: 13px; cursor: pointer; }
-  .chip:hover, .chip.on { border-color: var(--cta); color: var(--cta); }
-  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
-  .stats b { display: block; font-size: 18px; }
-  .stats span { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+.notice { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 14px; padding: 12px 16px; margin: 10px 0; font-size: 15px; }
+.notice.warn { background: var(--warn-bg); color: var(--warn); }
+.notice.err { background: var(--bad-bg); color: var(--bad); }
+.notice button { border: 1px solid currentColor; background: transparent; color: inherit; border-radius: 999px; padding: 4px 12px; font-size: 13px; }
 
-  footer { max-width: 1160px; margin: 0 auto; padding: 0 16px 28px; font-size: 12px; color: var(--muted); }
+/* question */
+.ask { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px 22px; margin: 0 0 24px; animation: rise .4s ease both; }
+.ask h2 { font-size: 18px; margin: 0 0 6px; }
+.ask .qtext { margin: 0 0 16px; color: var(--ink-2); font-size: 16px; }
+.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; margin-bottom: 16px; }
+.f { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
+.input { border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 10px 12px; outline: 0; font-weight: 400; }
+.input:focus { border-color: var(--line-2); background: #fff; }
+.primary { background: var(--ink); color: var(--paper); border: 0; border-radius: 999px; padding: 10px 22px; font-weight: 500; }
+.primary:disabled { opacity: .35; cursor: default; }
+@keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
-  /* ---------- small screens ---------- */
-  @media (max-width: 920px) {
-    .wrap { grid-template-columns: minmax(0, 1fr); }
-    .side { position: static; }
-    .hero { grid-template-columns: 1fr; }
-  }
-  @media (max-width: 640px) {
-    .topbar-inner { grid-template-columns: 1fr auto; }
-    .search { grid-column: 1 / -1; flex-wrap: wrap; }
-    .search .q { flex: 1 1 100%; min-height: 44px; border-bottom: 1px solid var(--line); }
-    .search .budget { flex: 1; border-left: 0; min-height: 44px; }
-    .search button { min-height: 44px; }
-    .product { grid-template-columns: 1fr; }
-    .thumb { width: 100%; height: 120px; }
-    .stepper .st span { display: none; }
-    .how { grid-template-columns: 1fr; }
-    .opt { margin-left: 0; }
-  }
+.skel { border-radius: 22px; height: 230px; background: linear-gradient(90deg, var(--paper-2), #F5EFE6, var(--paper-2)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+/* result */
+.result { animation: rise .45s ease both; }
+.lead-line { font-size: 21px; line-height: 1.5; margin: 0 0 20px; }
+.lead-line b { font-weight: 600; }
+.hero { display: grid; grid-template-columns: 260px 1fr; gap: 26px; background: var(--card); border: 1px solid var(--line); border-radius: 24px; box-shadow: var(--shadow); padding: 20px; margin-bottom: 14px; }
+.pic { background: #fff; border-radius: 16px; display: grid; place-items: center; aspect-ratio: 1; border: 1px solid #EFE8DD; position: relative; overflow: hidden; }
+.pic img { width: 84%; height: 84%; object-fit: contain; animation: pop .4s ease both; }
+.pic svg { width: 64px; height: 64px; color: #CFC5B6; }
+.tag { position: absolute; z-index: 1; top: 10px; left: 10px; background: var(--ink); color: var(--paper); font-size: 12px; border-radius: 999px; padding: 3px 10px; }
+.hero h2 { font-size: 23px; line-height: 1.3; margin: 4px 0 8px; letter-spacing: -.01em; }
+.seller { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--ink-2); }
+.seller img { width: 16px; height: 16px; border-radius: 50%; }
+.seen { font-size: 13px; color: var(--muted); }
+.price { display: flex; align-items: baseline; gap: 12px; margin: 12px 0 12px; flex-wrap: wrap; }
+.price .now { font-size: 36px; font-weight: 600; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.okbadge { display: inline-flex; align-items: center; gap: 5px; background: var(--ok-bg); color: var(--ok); font-size: 13px; font-weight: 500; border-radius: 999px; padding: 3px 10px; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 18px; }
+.fact { font-size: 13px; background: var(--soft); border-radius: 8px; padding: 4px 9px; color: var(--ink-2); }
+.fact.good { background: var(--ok-bg); color: var(--ok); }
+.fact.warn { background: var(--warn-bg); color: var(--warn); }
+.actions { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn-accent { display: inline-flex; align-items: center; gap: 6px; background: var(--accent); color: #fff; text-decoration: none; border-radius: 999px; padding: 10px 18px; font-weight: 500; }
+.btn-accent:hover { background: var(--accent-2); }
+.btn-line { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 16px; text-decoration: none; }
+.btn-line:hover { background: var(--paper); }
+.mini { display: grid; grid-template-columns: 76px 1fr auto; gap: 14px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px 10px 10px; margin-bottom: 10px; }
+.mini .pic { border-radius: 12px; }
+.mini h2 { font-size: 15px; margin: 0; font-weight: 500; }
+.mini .now { font-weight: 600; font-variant-numeric: tabular-nums; }
+
+.cols { display: grid; grid-template-columns: 1fr 310px; gap: 16px; margin-top: 6px; align-items: start; }
+.panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
+.panel h3 { margin: 0 0 12px; font-size: 16px; }
+.whytext { color: var(--ink-2); }
+.whytext p { margin: 0 0 10px; }
+.whytext ul { margin: 0 0 10px; padding: 0; list-style: none; }
+.whytext li { position: relative; padding-left: 18px; margin-bottom: 7px; }
+.whytext li::before { content: ""; position: absolute; left: 2px; top: 10px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.whytext b { color: var(--ink); font-weight: 600; }
+.whytext .feats { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 2px 0 14px; }
+.whytext .feat { background: var(--ok-bg); color: var(--ok); border-radius: 10px; padding: 6px 12px; font-size: 14px; font-weight: 500; }
+.whytext .mnote { font-size: 14px; color: var(--muted); background: var(--paper); border-radius: 10px; padding: 8px 12px; }
+.whytext .cite { font-size: 11px; background: var(--soft); border-radius: 6px; padding: 0 5px; margin-left: 3px; color: var(--ink-2); text-decoration: none; vertical-align: 2px; }
+.whytext.caret::after { content: "▍"; color: var(--accent); animation: pulse 1s steps(2) infinite; }
+.whynote { font-size: 13px; color: var(--muted); margin-top: 12px; display: flex; gap: 6px; align-items: flex-start; }
+.receipt { font-variant-numeric: tabular-nums; font-size: 15px; }
+.receipt .ln { display: flex; justify-content: space-between; padding: 6px 0; color: var(--ink-2); }
+.receipt .ln.dim span:last-child { color: var(--muted); }
+.receipt .tot { border-top: 1px dashed #CFC4B4; margin-top: 6px; padding-top: 10px; color: var(--ink); font-weight: 600; font-size: 17px; }
+.bar { height: 8px; background: var(--paper-2); border-radius: 999px; overflow: hidden; margin: 14px 0 6px; }
+.bar i { display: block; height: 100%; background: var(--ok); border-radius: 999px; width: 0; transition: width .9s cubic-bezier(.2,.8,.2,1); }
+.bar.tight i { background: var(--accent); }
+.left { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); }
+.left b { color: var(--ok); font-weight: 600; }
+
+h4.sec { font-size: 16px; margin: 32px 0 12px; }
+.sources { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.src { display: flex; gap: 12px; align-items: flex-start; text-decoration: none; background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; height: 100%; transition: border-color .15s; }
+a.src:hover { border-color: var(--line-2); }
+.src .num { font-size: 12px; color: var(--muted); width: 14px; flex: none; padding-top: 3px; }
+.src img { width: 20px; height: 20px; border-radius: 50%; margin-top: 1px; flex: none; }
+.src .st { font-size: 14px; line-height: 1.35; font-weight: 500; }
+.src .sd { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.src .sx { font-size: 13px; color: var(--ink-2); margin-top: 6px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+
+.failcard { background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 24px; display: grid; grid-template-columns: 48px 1fr; gap: 16px; }
+.failcard .ic { width: 48px; height: 48px; border-radius: 14px; background: var(--warn-bg); color: var(--warn); display: grid; place-items: center; font-size: 22px; }
+.failcard h2 { margin: 0 0 6px; font-size: 19px; }
+.failcard p { margin: 0 0 14px; color: var(--ink-2); }
+
+.follow { margin-top: 34px; }
+.follow .chips { margin: 0 0 12px; }
+.fchip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 7px 14px; font-size: 14px; }
+.fchip:hover { border-color: var(--line-2); }
+#revForm textarea { min-height: 30px; font-size: 17px; }
+#revForm .row { margin-top: 4px; }
+.stats { display: flex; gap: 20px; font-size: 13px; color: var(--muted); margin-top: 14px; }
+.stats b { color: var(--ink-2); font-weight: 600; font-variant-numeric: tabular-nums; }
+footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 28px 28px; }
+@media (max-width: 1000px) { .side { display: none; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 </style>
 </head>
 <body>
-<header class="topbar">
-  <div class="topbar-inner">
-    <div class="brand">
-      <div class="brand-mark" aria-hidden="true">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg>
-      </div>
-      <div>Shop Advisor<small>Budget-checked picks</small></div>
-    </div>
-    <form class="search" id="searchForm" autocomplete="off">
-      <input class="q" id="msg" aria-label="What are you shopping for?" placeholder="What are you shopping for? e.g. wireless earbuds for my commute">
-      <input class="budget" id="cap" inputmode="decimal" aria-label="Budget (optional)" placeholder="Max budget">
-      <select class="cur" id="cur" aria-label="Currency"><option>USD</option></select>
-      <button id="send" type="submit">Ask</button>
-    </form>
-    <div class="conn" id="health"><span class="dot"></span><span>Connecting…</span></div>
-  </div>
-  <div class="subbar">
-    <div class="subbar-inner">
-      <span>Popular:</span>
-      <button class="pill" data-q="Wireless earbuds for my daily commute" data-b="100">Earbuds</button>
-      <button class="pill" data-q="A USB-C charger for my laptop and phone" data-b="60">Chargers</button>
-      <button class="pill" data-q="A mechanical keyboard for programming" data-b="120">Keyboards</button>
-      <button class="pill" data-q="A backpack for commuting to work" data-b="80">Backpacks</button>
-      <button class="pill" data-q="A smartwatch with GPS for running" data-b="200">Smartwatches</button>
-      <button class="pill" data-q="A 27-inch monitor for working from home" data-b="250">Monitors</button>
-      <button class="pill" data-q="A wireless mouse for my laptop" data-b="40">Mice</button>
-      <label class="opt"><input type="checkbox" id="explain" checked> Explain the pick</label>
-    </div>
+<header class="top" id="top">
+  <button class="brand" id="brand" type="button" aria-label="Shop Advisor">
+    <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="8" fill="#1D1B18"/><path d="M8 11h12l-1.2 8.2a2 2 0 0 1-2 1.8h-5.6a2 2 0 0 1-2-1.8L8 11Z" stroke="#F6F2EC" stroke-width="1.6"/><path d="M11 11V9.5a3 3 0 0 1 6 0V11" stroke="#F6F2EC" stroke-width="1.6"/><path d="m11.6 15.6 1.7 1.7 3.2-3.4" stroke="#C2502A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span>Shop Advisor</span>
+  </button>
+  <div class="top-right">
+    <span class="modelchip hidden" id="modelChip"></span>
+    <span class="health" id="health"><span class="dot"></span><span data-i="checking"></span></span>
+    <button class="ghost hidden" id="newChat" type="button" data-i="newChat"></button>
+    <div class="seg" role="group" aria-label="Language"><button type="button" data-lang="zh">中</button><button type="button" data-lang="en">EN</button></div>
   </div>
 </header>
 
-<div class="wrap">
-  <main class="main">
-    <section class="card" id="welcome">
-      <div class="hero">
-        <div>
-          <h1>Tell us what you need.<br>We'll find a pick that fits your budget.</h1>
-          <p>Every recommendation comes from a fixed product catalog, cites its sources, and is checked against your budget with exact arithmetic before you see it.</p>
-          <div class="how">
-            <div><b>1. Ask</b>Describe the item. Add a budget, or we'll ask for one.</div>
-            <div><b>2. We compare</b>Search the catalog and read the offers.</div>
-            <div><b>3. You get one pick</b>With the total, what's left, and sources.</div>
-          </div>
+<div class="layout">
+<aside class="side" id="side" aria-label="History">
+  <button class="newbtn" id="sideNew" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg><span data-i="newChat"></span></button>
+  <div id="history"></div>
+  <button class="clear hidden" id="clearHistory" type="button" data-i="clearHistory"></button>
+</aside>
+<div class="content">
+<main>
+  <section class="home" id="home">
+    <h1 data-i="homeTitle"></h1>
+    <p class="lead" data-i="homeLead"></p>
+    <form class="composer" id="searchForm" autocomplete="off">
+      <textarea id="msg" rows="2" aria-label="Request"></textarea>
+      <div class="row">
+        <div class="opts">
+          <label class="pill"><span data-i="budget"></span><select id="cur" aria-label="Currency"><option>USD</option></select><input id="cap" inputmode="decimal" placeholder="100" aria-label="Budget"></label>
+          <label class="toggle"><input type="checkbox" id="explain" checked><span class="sw"></span><span data-i="explainToggle"></span></label>
         </div>
-        <div class="tiles">
-          <button class="tile" data-q="Noise-cancelling wireless earbuds for travel" data-b="100"><b>Earbuds</b><span>Commute, travel, workouts</span></button>
-          <button class="tile" data-q="A fast USB-C charger for a laptop and a phone" data-b="60"><b>Chargers</b><span>USB-C, multi-port</span></button>
-          <button class="tile" data-q="A quiet mechanical keyboard for programming" data-b="120"><b>Keyboards</b><span>Mechanical, compact</span></button>
-          <button class="tile" data-q="A water-resistant backpack for a 15-inch laptop" data-b="80"><b>Backpacks</b><span>Laptop, commuting</span></button>
-          <button class="tile" data-q="A fitness smartwatch with heart rate and GPS" data-b="200"><b>Smartwatches</b><span>Fitness, GPS, battery</span></button>
-          <button class="tile" data-q="A 27-inch 1440p monitor for work and light gaming" data-b="250"><b>Monitors</b><span>Desk, portable</span></button>
-          <button class="tile" data-q="A quiet wireless mouse for office work" data-b="40"><b>Mice</b><span>Wireless, gaming, ergonomic</span></button>
-        </div>
+        <button class="send" id="send" type="submit" disabled aria-label="Ask"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       </div>
-    </section>
-
+    </form>
+    <div class="powered hidden" id="powered"></div>
     <div id="topNotice"></div>
+    <div class="examples" id="examples"></div>
+    <p class="fine" data-i="fine"></p>
+  </section>
 
-    <section class="card hidden" id="progress" aria-live="polite">
-      <div class="runline">
-        <h2 style="margin:0" id="progTitle">Working on it</h2>
-        <div class="small muted"><span id="runId"></span> <button class="linkbtn hidden" id="cancel" type="button">Stop</button></div>
-      </div>
-      <div class="stepper" id="stepper">
-        <div class="st" data-k="understand"><div class="bar"></div><span>Understand</span></div>
-        <div class="st" data-k="search"><div class="bar"></div><span>Search</span></div>
-        <div class="st" data-k="compare"><div class="bar"></div><span>Compare offers</span></div>
-        <div class="st" data-k="check"><div class="bar"></div><span>Budget check</span></div>
-        <div class="st" data-k="explain"><div class="bar"></div><span>Explain</span></div>
-      </div>
-      <details class="log"><summary>Activity log</summary><ol class="steps" id="steps"></ol></details>
-      <div id="streamError"></div>
-    </section>
+  <section class="thread hidden" id="thread" aria-live="polite">
+    <div class="you"><p id="bubble"></p></div>
 
-    <section class="card ask hidden" id="question">
-      <h2>One quick question</h2>
+    <details class="trace" id="trace" open>
+      <summary><span class="pulse"></span><span id="progTitle"></span><span class="seen" id="runId"></span><button class="stopbtn hidden" id="cancel" type="button" data-i="stop"></button><span class="chev">▾</span></summary>
+      <ol class="steps" id="stepper">
+        <li class="step" data-k="understand"><h3 data-i="sUnderstand"></h3><div class="d" id="dUnderstand"></div></li>
+        <li class="step" data-k="search"><h3 data-i="sSearch"></h3><div class="chips" id="dSearch"></div></li>
+        <li class="step" data-k="compare"><h3 data-i="sCompare"></h3><div class="chips" id="dCompare"></div></li>
+        <li class="step" data-k="check"><h3 data-i="sCheck"></h3><div class="d" id="dCheck"></div></li>
+        <li class="step" data-k="explain"><h3 data-i="sExplain"></h3><div class="d" id="dExplain"></div></li>
+      </ol>
+      <details class="log"><summary data-i="log"></summary><ol class="logl" id="steps"></ol></details>
+    </details>
+
+    <section class="ask hidden" id="question">
+      <h2 data-i="askTitle"></h2>
       <p class="qtext" id="qText"></p>
       <div id="qNotice"></div>
       <form id="qForm" autocomplete="off">
         <div class="fields" id="qFields"></div>
-        <div class="row"><button class="btn primary" id="qSend" type="submit">Continue</button></div>
+        <button class="primary" id="qSend" type="submit" data-i="continue"></button>
       </form>
     </section>
 
-    <section class="card hidden" id="result">
+    <div id="streamError"></div>
+    <div class="skel hidden" id="skel"></div>
+
+    <section class="result hidden" id="result">
       <div id="resultStatus"></div>
+      <p class="lead-line hidden" id="lead"></p>
       <div id="products"></div>
-      <div class="why hidden" id="why">
-        <h3>Why this pick</h3>
-        <div class="text" id="whyText"></div>
-        <div class="note" id="whyNote"></div>
+      <div class="cols" id="cols">
+        <section class="panel hidden" id="why"><h3 data-i="whyTitle"></h3><div class="whytext" id="whyText"></div><div class="whynote" id="whyNote"></div></section>
+        <section class="panel receipt hidden" id="summary"><h3 data-i="payTitle"></h3><div id="sumTable"></div><div class="bar" id="meter"><i></i></div><div class="left" id="meterText"></div></section>
       </div>
+      <section class="hidden" id="sourcesCard"><h4 class="sec" id="sourcesAnchor" data-i="sourcesTitle"></h4><ol class="sources" id="sources"></ol></section>
     </section>
 
-    <section class="card hidden" id="sourcesCard">
-      <h2>Sources</h2>
-      <div id="sources"></div>
-    </section>
-  </main>
-
-  <aside class="side">
-    <section class="card summary hidden" id="summary">
-      <h2>Order summary</h2>
-      <table id="sumTable"></table>
-      <div class="meter" id="meter"><i></i></div>
-      <div class="small muted" id="meterText"></div>
-    </section>
-
-    <section class="card hidden" id="refine">
-      <h2>Refine results</h2>
-      <div class="chips" id="refineChips">
-        <button class="chip" type="button">Cheaper</button>
-        <button class="chip" type="button">Better reviews</button>
-        <button class="chip" type="button">Free shipping</button>
-        <button class="chip" type="button">Different brand</button>
-      </div>
-      <form id="revForm" autocomplete="off">
-        <label class="f">What should change?<input class="input" id="revMsg" placeholder="e.g. needs noise cancelling"></label>
-        <label class="f" style="margin-top:10px">New budget (optional)<input class="input" id="revCap" inputmode="decimal" placeholder="e.g. 50"></label>
-        <div class="row"><button class="btn primary" id="revSend" type="submit">Update pick</button></div>
+    <section class="follow hidden" id="refine">
+      <h4 class="sec" style="margin-top:0" data-i="refineTitle"></h4>
+      <div class="chips" id="refineChips"></div>
+      <form class="composer" id="revForm" autocomplete="off">
+        <textarea id="revMsg" rows="1" aria-label="Change"></textarea>
+        <div class="row">
+          <label class="pill"><span data-i="newBudget"></span> $ <input id="revCap" inputmode="decimal" placeholder="50" aria-label="New budget"></label>
+          <button class="send" id="revSend" type="submit" aria-label="Update"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12h13M13 6l6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
       </form>
+      <div class="stats hidden" id="stats"></div>
     </section>
-
-    <section class="card hidden" id="usage">
-      <h2>This run</h2>
-      <div class="stats" id="stats"></div>
-    </section>
-
-    <section class="card small muted" id="about">
-      Prices come from a frozen catalog snapshot and may have changed since they were observed. Totals exclude tax when tax is unknown.
-    </section>
-  </aside>
+  </section>
+</main>
+<footer data-i="footer"></footer>
 </div>
-<footer>Shop Advisor · course project demo · prices and availability are not live</footer>
+</div>
 
 <script>
 "use strict";
@@ -341,143 +362,317 @@ const session = (() => {
   } catch (e) { return crypto.randomUUID(); }
 })();
 
-const FIELD_LABELS = { purchase_cap: "Budget", currency: "Currency", periodic_budget: "Budget for the period",
-                       spending: "Already spent this period", reserve: "Amount to keep aside", budget_basis: "Tax" };
+// ---- text (English / Chinese). Model-written text (questions, explanations) is shown as it comes. --------------
+const I18N = {
+  en: {
+    checking: "Connecting…", newChat: "New question", stop: "Stop", homeTitle: "What are you shopping for?",
+    homeLead: "Describe it in your own words. We search the catalog, compare offers and work out the total against your budget.",
+    placeholder: "e.g. wireless earbuds for my daily commute", budget: "Budget", explainToggle: "Explain the pick",
+    fine: "Prices come from a catalog snapshot and may have changed since they were seen. Check the shop page before you buy.",
+    footer: "Shop Advisor · AI shopping agent course project · TACC",
+    examples: [["earbuds", "Wireless earbuds for my daily commute", "100"], ["charger", "A USB-C charger for my laptop and phone", "60"],
+               ["keyboard", "A mechanical keyboard for programming", "120"], ["backpack", "A backpack for commuting", "80"],
+               ["watch", "A smartwatch with GPS for running", "200"], ["monitor", "A 27-inch monitor for working from home", "250"],
+               ["mouse", "A wireless mouse for my laptop", "40"]],
+    working: "Looking for you…", waiting: "Waiting for your answer", done: (s) => `Done in ${s} s`, failed: "Stopped",
+    sUnderstand: "Understanding your request", sSearch: "Searching the catalog", sCompare: "Comparing offers",
+    sCheck: "Checking the budget", sExplain: "Writing the explanation", log: "Activity log",
+    noBudget: "no budget yet", askTitle: "One quick question", continue: "Continue",
+    budgetQ: "How much would you like to spend? We only recommend offers that fit this budget.",
+    whyTitle: "Why this pick", payTitle: "What you'll pay", sourcesTitle: "Sources", refineTitle: "Want to adjust?",
+    newBudget: "New budget", revPlaceholder: "Say what should change, e.g. needs noise cancelling",
+    chips: ["A bit cheaper", "Better reviews", "Free shipping", "A different brand"],
+    pick: "Our pick", within: "Within budget", qty: (n) => `Quantity ${n}`, view: (m) => `View at ${m}`, viewShop: "View offer", seeSources: "Sources",
+    seenOn: (d) => `price seen ${d}`, loading: "Loading offer details…",
+    shipFree: "Free shipping", ship: (v) => `Shipping ${v}`, shipUnknown: "Shipping unknown", tax: (v) => `Tax ${v}`, taxNo: "Tax not included", stale: "Price may have changed",
+    items: "Items", shipping: "Shipping", taxL: "Tax", notIncl: "not included", free: "Free", total: "Total", totalPre: "Total before tax",
+    budgetOf: (v) => `Your budget ${v}`, leftOf: (v) => ["left ", v],
+    checked: "Checked: every number and source above comes from the budget-checked plan and its evidence.",
+    fallbackNote: "Summary written from the budget-checked plan (the model's draft quoted figures we could not verify).",
+    draft: "Writing… numbers and sources are checked when it finishes.",
+    lead: (what, from, total, pre, ship, left) => `We picked <b>${what}</b>${from}. It comes to <b>${total}</b>${pre}${ship}, leaving <b>${left}</b> of your budget.`,
+    from: (s) => ` from ${s}`, pre: " before tax", withShip: (v) => `, including ${v} shipping`, freeShip: " with free shipping",
+    thisOffer: "this offer", source: "Source", noLink: "No link", stats: ["Model calls", "Catalog lookups", "Compute"],
+    tryAgain: "Try again", newQ: "Ask something else", answerRejected: "We couldn't use that answer: ",
+    fill: (f) => `Please fill in: ${f}`, number: (f) => `${f} should be a number, like 100.`, needMsg: "Tell us what you're shopping for first.",
+    capNum: "Enter the budget as a number, like 100 or 99.50.", sayChange: "Say what should change.", revNum: "Enter the new budget as a number.",
+    stopReq: "Stop requested", started: "Started", resumed: "Got your answer, continuing", thinking: "Thinking about the next step",
+    pickedOffer: "Picked an offer", needsInfo: "Needs more information", badOutput: (c) => `Invalid model output, retrying (${c})`,
+    toolFailed: (t, c) => `${t} failed (${c})`, badTool: (c) => `Invalid tool request (${c})`, passed: "Budget check passed",
+    notPassed: (s) => `Budget check failed (${s}), looking again`, writing: "Writing the explanation",
+    explainOk: "Explanation checked", explainFallback: "Draft did not pass the checks; using a plain summary", answerBad: (c) => `That answer could not be used (${c})`,
+    waitingLog: "Waiting for your answer", reading: (n) => `Read ${n} offer${n === 1 ? "" : "s"}`, lookups: (n) => `${n} lookup${n === 1 ? "" : "s"}`,
+    passedD: "The plan passed the exact budget check", rejectedD: (n) => `${n} plan${n === 1 ? "" : "s"} sent back by the budget check`,
+    online: (j) => j ? `Online · job ${j}` : "Online", offline: "Service offline", backendOff: "Backend offline", statusOf: (s) => s,
+    poweredBy: "Answers by", poweredWhere: (node) => node === "local" ? "· offline demo" : "· served on TACC GPUs",
+    clearHistory: "Clear history", today: "Today", earlier: "Earlier", noHistory: "Your past questions will appear here.",
+    histStopped: "No pick", histLeft: (v) => `${v} left`,
+    fields: { purchase_cap: "Budget", currency: "Currency", periodic_budget: "Budget for the period", spending: "Already spent this period", reserve: "Amount to keep aside", budget_basis: "Tax" },
+    basis: { pre_tax: "Before tax", all_in: "Including tax" },
+  },
+  zh: {
+    checking: "连接中…", newChat: "新的问题", stop: "停止", homeTitle: "今天想买点什么？",
+    homeLead: "用你自己的话说就行。我们会搜索商品目录、比较报价，并按你的预算把总价算清楚。",
+    placeholder: "比如：通勤用的无线耳机", budget: "预算", explainToggle: "写推荐理由",
+    fine: "价格来自商品目录快照，可能已经变化；下单前请在商家页面确认。",
+    footer: "Shop Advisor · AI 购物顾问课程项目 · TACC",
+    examples: [["earbuds", "Wireless earbuds for my daily commute", "100", "通勤用的无线耳机"], ["charger", "A USB-C charger for my laptop and phone", "60", "能同时给笔记本和手机充电的 USB-C 充电器"],
+               ["keyboard", "A mechanical keyboard for programming", "120", "适合写代码的机械键盘"], ["backpack", "A backpack for commuting", "80", "通勤用的双肩包"],
+               ["watch", "A smartwatch with GPS for running", "200", "跑步用的带 GPS 智能手表"], ["monitor", "A 27-inch monitor for working from home", "250", "居家办公用的 27 寸显示器"],
+               ["mouse", "A wireless mouse for my laptop", "40", "配笔记本用的无线鼠标"]],
+    working: "正在帮你找…", waiting: "等你回答", done: (s) => `找好了，用时 ${s} 秒`, failed: "已停止",
+    sUnderstand: "理解你的需求", sSearch: "搜索商品目录", sCompare: "比较报价", sCheck: "核对预算", sExplain: "撰写推荐理由", log: "详细记录",
+    noBudget: "还没给预算", askTitle: "先确认一下", continue: "继续",
+    budgetQ: "你打算花多少钱？我们只推荐在这个预算内的商品。",
+    whyTitle: "为什么推荐它", payTitle: "费用明细", sourcesTitle: "参考来源", refineTitle: "还想调整？",
+    newBudget: "新预算", revPlaceholder: "说说要改什么，比如：要降噪的",
+    chips: ["再便宜一点", "评价更好的", "包邮的", "换个品牌"],
+    pick: "首选", within: "在预算内", qty: (n) => `数量 ${n}`, view: (m) => `去 ${m} 看看`, viewShop: "查看商品", seeSources: "看来源",
+    seenOn: (d) => `价格读取于 ${d}`, loading: "正在读取商品信息…",
+    shipFree: "包邮", ship: (v) => `运费 ${v}`, shipUnknown: "运费未知", tax: (v) => `税 ${v}`, taxNo: "不含税", stale: "价格可能已变化",
+    items: "商品", shipping: "运费", taxL: "税费", notIncl: "未计入", free: "免费", total: "合计", totalPre: "合计（不含税）",
+    budgetOf: (v) => `你的预算 ${v}`, leftOf: (v) => ["还剩 ", v],
+    checked: "已核对：上面的每个数字和来源都来自通过预算校验的方案及其证据。",
+    fallbackNote: "这段总结根据通过校验的方案生成（模型草稿里有无法核实的数字）。",
+    draft: "正在撰写…完成后会核对其中的数字和来源。",
+    lead: (what, from, total, pre, ship, left) => `推荐 <b>${what}</b>${from}。合计 <b>${total}</b>${pre}${ship}，预算还剩 <b>${left}</b>。`,
+    from: (s) => `（${s}）`, pre: "（不含税）", withShip: (v) => `，含运费 ${v}`, freeShip: "，包邮",
+    thisOffer: "这款商品", source: "来源", noLink: "无链接", stats: ["模型调用", "目录查询", "计算用时"],
+    tryAgain: "重试", newQ: "换个问题", answerRejected: "这个回答没法用：",
+    fill: (f) => `请填写：${f}`, number: (f) => `${f}请填数字，比如 100。`, needMsg: "先说说你想买什么。",
+    capNum: "预算请填数字，比如 100 或 99.50。", sayChange: "说说要改什么。", revNum: "新预算请填数字。",
+    stopReq: "已请求停止", started: "开始", resumed: "收到回答，继续", thinking: "思考下一步",
+    pickedOffer: "选好了一款", needsInfo: "需要更多信息", badOutput: (c) => `模型输出无效，重试（${c}）`,
+    toolFailed: (t, c) => `${t}失败（${c}）`, badTool: (c) => `工具请求无效（${c}）`, passed: "预算核对通过",
+    notPassed: (s) => `预算核对未通过（${s}），重新挑选`, writing: "撰写推荐理由",
+    explainOk: "推荐理由已核对", explainFallback: "草稿没通过核对，改用简明总结", answerBad: (c) => `这个回答没法用（${c}）`,
+    waitingLog: "等你回答", reading: (n) => `读了 ${n} 条报价`, lookups: (n) => `${n} 次查询`,
+    passedD: "方案通过了精确的预算核对", rejectedD: (n) => `${n} 个方案被预算核对退回`,
+    online: (j) => j ? `在线 · 作业 ${j}` : "在线", offline: "服务离线", backendOff: "后端离线", statusOf: (s) => s,
+    poweredBy: "回答模型", poweredWhere: (node) => node === "local" ? "· 离线演示" : "· 运行在 TACC GPU 上",
+    clearHistory: "清空历史", today: "今天", earlier: "更早", noHistory: "你问过的问题会显示在这里。",
+    histStopped: "未给出推荐", histLeft: (v) => `剩 ${v}`,
+    fields: { purchase_cap: "预算", currency: "币种", periodic_budget: "本期预算", spending: "本期已花", reserve: "需要留出的金额", budget_basis: "税费" },
+    basis: { pre_tax: "不含税", all_in: "含税" },
+  },
+};
+const TOOLS = {
+  en: { search_products: "Searching the catalog", retrieve_evidence: "Looking up reviews and details", get_offer_facts: "Reading offer details",
+        resolve_evidence: "Opening sources", describe_filters: "Checking available filters" },
+  zh: { search_products: "搜索目录", retrieve_evidence: "查找评价和详情", get_offer_facts: "读取报价详情", resolve_evidence: "打开来源", describe_filters: "查看可用筛选条件" },
+};
+const STATUS = {
+  en: { completed: "Here's our pick", incomplete: "We couldn't finish this one", failed: "Something went wrong", cancelled: "Stopped", waiting_user: "Waiting for your answer" },
+  zh: { completed: "这是我们的推荐", incomplete: "这次没能给出推荐", failed: "出错了", cancelled: "已停止", waiting_user: "等你回答" },
+};
+const STOP = {
+  en: {
+    validation_unavailable: "The budget check is unavailable right now.", question_expired: "The question expired. Please ask again.",
+    deadline_exceeded: "This took too long and was stopped.", model_unavailable: "The model service is not available right now. Please try again in a few minutes.",
+    max_model_calls: "We ran out of attempts before finding a good pick.",
+    model_call_limit: "We ran out of steps before settling on a pick. Try a more specific request, like a brand or a feature.",
+    tool_call_limit: "We ran out of catalog lookups before settling on a pick. Try a more specific request.",
+    question_limit: "Too many follow-up questions. Please start a new request with your budget included.",
+    plan_repair_limit: "We couldn't find an offer that passes the budget check.",
+    answer_repair_limit: "We couldn't use the answers given. Please start a new request with your budget included.",
+    context_limit: "The conversation got too long. Please start a new request.", plan_repairs_exhausted: "We couldn't find an offer that fits the budget.",
+    evidence_insufficient: "We couldn't verify enough of the offers to recommend one.", requirements_unverified: "We couldn't verify the answers needed to recommend something.",
+    no_feasible_plan: "No verifiable option in this catalog meets your requirements and budget.",
+    convergence_failed: "We couldn't settle on a checked pick from what we found. Try a simpler or more specific request.",
+    clarification_budget_exhausted: "We needed more answers than this request allows. Please start a new request with your budget included.",
+    cancelled: "You stopped this request.",
+  },
+  zh: {
+    validation_unavailable: "预算核对暂时不可用。", question_expired: "问题已过期，请重新提问。", deadline_exceeded: "用时太长，已停止。",
+    model_unavailable: "模型服务暂时不可用，请过几分钟再试。", max_model_calls: "尝试次数用完了，还没找到合适的。",
+    model_call_limit: "步骤用完了，还没定下推荐。换个更具体的说法试试，比如品牌或功能。", tool_call_limit: "目录查询次数用完了。换个更具体的说法试试。",
+    question_limit: "追问太多了。请带上预算重新提问。", plan_repair_limit: "没找到能通过预算核对的报价。",
+    answer_repair_limit: "给出的回答没法用。请带上预算重新提问。", context_limit: "对话太长了，请重新提问。", plan_repairs_exhausted: "没找到符合预算的报价。",
+    evidence_insufficient: "能核实的报价不够，没法推荐。", requirements_unverified: "没法核实推荐所需的信息。",
+    no_feasible_plan: "目录里没有能核实满足你的要求和预算的商品。", convergence_failed: "没能从找到的商品里定下一个核对过的推荐。换个更简单或更具体的说法试试。",
+    clarification_budget_exhausted: "这次需要的追问超出了限制。请带上预算重新提问。", cancelled: "你停止了这次请求。",
+  },
+};
+const ERRORS = {
+  en: { not_waiting: "This question was already answered.", run_not_found: "This request is no longer available (the service may have restarted). Please ask again.",
+        question_mismatch: "The question changed. Please refresh and try again.", run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error.",
+        run_exists: "This request was already started. Please ask again.", invalid_request: "The service could not accept this request. Please rephrase it and try again.",
+        harness_unavailable: "The shopping service is not reachable right now. Please try again in a few minutes.",
+        model_unavailable: "The model is not available right now (it may be moving to a new node). Please try again in a few minutes.",
+        rate_limited: "Too many requests at once. Please wait for the current one or try again in a minute.",
+        busy: "The service is busy with other requests. Please try again in a minute.",
+        unauthorized: "Your sign-in has expired. Please reload the page to sign in again.",
+        dropped: "The connection to the service dropped. The result may be incomplete.", failedReq: (s) => `Request failed (${s}).`, noSources: "Could not load sources: " },
+  zh: { not_waiting: "这个问题已经回答过了。", run_not_found: "这次请求已经不在了（服务可能重启过），请重新提问。", question_mismatch: "问题已变化，请刷新后重试。",
+        run_busy: "这次请求还在处理中。", internal_error: "服务出了意外错误。", run_exists: "这次请求已经开始了，请重新提问。",
+        invalid_request: "服务无法接受这个请求，请换个说法再试。", harness_unavailable: "购物服务暂时连不上，请过几分钟再试。",
+        model_unavailable: "模型暂时不可用（可能正在切换节点），请过几分钟再试。", rate_limited: "同时的请求太多了，请等当前请求完成或一分钟后再试。",
+        busy: "服务正忙，请一分钟后再试。", unauthorized: "登录已过期，请刷新页面重新登录。",
+        dropped: "与服务的连接断了，结果可能不完整。", failedReq: (s) => `请求失败（${s}）。`, noSources: "来源加载失败：" },
+};
 // Only these are money amounts; the model may also ask free-form fields (laptop_wattage, simultaneous_use, ...).
 const AMOUNT_FIELDS = new Set(["purchase_cap", "periodic_budget", "spending", "reserve"]);
-const fieldLabel = (f) => FIELD_LABELS[f] || (f.charAt(0).toUpperCase() + f.slice(1)).replace(/_/g, " ");
 // Answer checks in the harness (agent/answers.py); a rejected answer comes back as the same question.
 const ANSWER_ISSUES = new Set(["invalid_answer_fields", "empty_answer", "invalid_budget", "invalid_currency",
                                "invalid_budget_basis", "invalid_answer_type", "conflicting_budget_answer", "answer_too_large"]);
-const TOOL_LABELS = { search_products: "Searching the catalog", retrieve_evidence: "Looking up reviews and details",
-                      get_offer_facts: "Reading offer details", resolve_evidence: "Opening sources",
-                      describe_filters: "Checking available filters" };
-const STATUS = { completed: "Here's our pick", incomplete: "We couldn't finish this one", failed: "Something went wrong",
-                 cancelled: "Stopped", waiting_user: "Waiting for your answer" };
-const STOP = {
-  validation_unavailable: "The budget check is unavailable right now.",
-  question_expired: "The question expired. Please ask again.",
-  deadline_exceeded: "This took too long and was stopped.",
-  model_unavailable: "The model service is not available right now. Please try again in a few minutes.",
-  max_model_calls: "We ran out of attempts before finding a good pick.",
-  model_call_limit: "We ran out of steps before settling on a pick. Try a more specific request, like a brand or a feature.",
-  tool_call_limit: "We ran out of catalog lookups before settling on a pick. Try a more specific request.",
-  question_limit: "Too many follow-up questions. Please start a new request with your budget included.",
-  plan_repair_limit: "We couldn't find an offer that passes the budget check.",
-  answer_repair_limit: "We couldn't use the answers given. Please start a new request with your budget included.",
-  context_limit: "The conversation got too long. Please start a new request.",
-  plan_repairs_exhausted: "We couldn't find an offer that fits the budget.",
-  evidence_insufficient: "We couldn't verify enough of the offers to recommend one.",
-  requirements_unverified: "We couldn't verify the answers needed to recommend something.",
-  no_feasible_plan: "No verifiable option in this catalog meets your requirements and budget.",
-  convergence_failed: "We couldn't settle on a checked pick from what we found. Try a simpler or more specific request.",
-  clarification_budget_exhausted: "We needed more answers than this request allows. Please start a new request with your budget included.",
-  cancelled: "You stopped this request.",
-};
-const ERRORS = { not_waiting: "This question was already answered.",
-                 run_not_found: "This request is no longer available (the service may have restarted). Please ask again.",
-                 question_mismatch: "The question changed. Please refresh and try again.",
-                 run_busy: "This request is still being processed.", internal_error: "The service hit an unexpected error.",
-                 run_exists: "This request was already started. Please ask again.",
-                 invalid_request: "The service could not accept this request. Please rephrase it and try again.",
-                 harness_unavailable: "The shopping service is not reachable right now. Please try again in a few minutes.",
-                 model_unavailable: "The model is not available right now (it may be moving to a new node). Please try again in a few minutes.",
-                 rate_limited: "Too many requests at once. Please wait for the current one or try again in a minute.",
-                 busy: "The service is busy with other requests. Please try again in a minute.",
-                 unauthorized: "Your sign-in has expired. Please reload the page to sign in again." };
-const COST = { items: "Items", shipping: "Shipping", tax: "Tax" };
 const STAGES = ["understand", "search", "compare", "check", "explain"];
+const ICONS = {
+  charger: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="7" width="12" height="13" rx="3"/><path d="M10 7V3M14 7V3M12 11l-2 3h4l-2 3"/></svg>',
+  earbuds: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4a3 3 0 0 0-3 3v2a3 3 0 0 0 3 3h1V4H7ZM17 4a3 3 0 0 1 3 3v2a3 3 0 0 1-3 3h-1V4h1Z"/><path d="M8 12v6M16 12v6"/></svg>',
+  keyboard: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="6.5" width="19" height="11" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M7 14h10"/></svg>',
+  backpack: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6V5a4 4 0 0 1 8 0v1"/><rect x="5" y="6" width="14" height="15" rx="4"/><path d="M9 14h6v3H9z"/></svg>',
+  watch: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="6" width="12" height="12" rx="3"/><path d="M9 6l1-3h4l1 3M9 18l1 3h4l1-3M12 9.5V12l1.5 1.5"/></svg>',
+  monitor: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6M12 16v4"/></svg>',
+  mouse: '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="5"/><path d="M12 7v3"/></svg>',
+  bag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8z"/><path d="M9 7V5.5a3 3 0 0 1 6 0V7"/></svg>',
+};
 
-let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, cap: null, fallback: false };
+let LANG = (() => { try { const s = localStorage.getItem("lang"); if (s === "en" || s === "zh") return s; } catch (e) {} return (navigator.language || "").startsWith("zh") ? "zh" : "en"; })();
+const L = () => I18N[LANG];
+let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, fallback: false, answered: false,
+              result: null, look: null, counts: { search: 0, read: 0, rejected: 0 }, health: null, lastCall: null };
 
 function el(tag, attrs, ...kids) {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs || {})) {
-    if (k === "class") n.className = v; else if (v !== null && v !== undefined) n.setAttribute(k, v);
+    if (k === "class") n.className = v; else if (k === "html") n.innerHTML = v; else if (v !== null && v !== undefined && v !== false) n.setAttribute(k, v);
   }
   for (const k of kids) if (k !== null && k !== undefined && k !== "") n.append(k instanceof Node ? k : document.createTextNode(String(k)));
   return n;
 }
 const show = (id, on) => $(id).classList.toggle("hidden", !on);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 function notice(target, kind, text, retry) {
   const box = $(target); box.replaceChildren();
   if (!text) return;
   const n = el("div", { class: "notice " + kind, role: kind === "err" ? "alert" : "status" }, el("span", {}, text));
-  if (retry) { const b = el("button", { type: "button" }, "Try again"); b.onclick = retry; n.append(b); }
+  if (retry) { const b = el("button", { type: "button" }, L().tryAgain); b.onclick = retry; n.append(b); }
   box.append(n);
 }
 const SYM = { USD: "$" };
 function fmt(amount, cur) {
-  if (amount === null || amount === undefined || amount === "") return "Unknown";
+  if (amount === null || amount === undefined || amount === "") return "—";
   const n = Number(amount);
   const s = isFinite(n) ? n.toFixed(2) : String(amount);
   return (SYM[cur] || "") + s + (SYM[cur] ? "" : " " + (cur || ""));
 }
-function priceNode(minor, cur) {
-  const n = (minor / 100).toFixed(2).split(".");
-  return el("div", { class: "price", "aria-label": fmt(minor / 100, cur) },
-    el("span", { class: "sym" }, SYM[cur] || cur + " "), el("span", { class: "whole" }, n[0]), el("span", { class: "cents" }, n[1]));
+const fieldLabel = (f) => L().fields[f] || (f.charAt(0).toUpperCase() + f.slice(1)).replace(/_/g, " ");
+const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
+const favicon = (u) => { const h = hostOf(u); return h ? "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(h) + "&sz=64" : null; };
+const day = (iso) => { try { return new Date(iso).toLocaleDateString(LANG === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return ""; } };
+const elapsed = () => ((performance.now() - state.t0) / 1000).toFixed(1);
+
+// ---- static text and language switch ------------------------------------------------------------------------
+function applyLang() {
+  document.documentElement.lang = LANG;
+  document.querySelectorAll("[data-i]").forEach((n) => { const v = L()[n.dataset.i]; if (typeof v === "string") n.textContent = v; });
+  $("msg").placeholder = L().placeholder; $("revMsg").placeholder = L().revPlaceholder;
+  document.querySelectorAll("[data-lang]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === LANG)));
+  $("examples").replaceChildren(...L().examples.map(([ico, q, cap, zh]) => {
+    const b = el("button", { class: "ex", type: "button", "data-q": q, "data-b": cap }, el("span", { class: "ico", html: ICONS[ico] }), el("span", {}, zh || q));
+    b.onclick = () => { $("msg").value = q; $("cap").value = cap; syncSend(); if (!state.busy) ask(q, cap); };
+    return b;
+  }));
+  $("refineChips").replaceChildren(...L().chips.map((c) => { const b = el("button", { class: "fchip", type: "button" }, c); b.onclick = () => { $("revMsg").value = c; $("revMsg").focus(); }; return b; }));
+  renderHealth(); renderHistory();
+  if (state.result) render(state.result, true);
+  else if (!$("thread").classList.contains("hidden")) setTitle();
 }
+document.querySelectorAll("[data-lang]").forEach((b) => (b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem("lang", LANG); } catch (e) {} applyLang(); }));
+addEventListener("scroll", () => $("top").classList.toggle("scrolled", scrollY > 4), { passive: true });
+
+// ---- progress -------------------------------------------------------------------------------------------------
 function logStep(text, bad) {
-  const t = ((performance.now() - state.t0) / 1000).toFixed(1) + "s";
-  $("steps").append(el("li", {}, el("span", { class: "t" }, t), el("span", { class: bad ? "bad" : "" }, text)));
+  $("steps").append(el("li", {}, el("span", { class: "t" }, elapsed() + "s"), el("span", { class: bad ? "bad" : "" }, text)));
 }
 function stage(key, how) {
   const i = STAGES.indexOf(key);
-  document.querySelectorAll("#stepper .st").forEach((n, j) => {
-    n.classList.remove("active", "fail");
+  document.querySelectorAll("#stepper .step").forEach((n, j) => {
+    n.classList.remove("active", "fail", "done");
     if (how === "fail" && j === i) n.classList.add("fail");
     else if (j < i || (how === "done" && j === i)) n.classList.add("done");
     else if (j === i) n.classList.add("active");
   });
 }
-function stagesDone(withExplain) {
-  document.querySelectorAll("#stepper .st").forEach((n) => {
-    n.classList.remove("active");
-    if (n.dataset.k !== "explain" || withExplain) n.classList.add("done");
+function stagesDone(withExplain, ok) {
+  document.querySelectorAll("#stepper .step").forEach((n) => {
+    if (n.classList.contains("active")) { n.classList.remove("active"); n.classList.add(ok ? "done" : "fail"); }
+    if (ok && (n.dataset.k !== "explain" || withExplain)) n.classList.add("done");
   });
+}
+function setTitle(kind) {
+  state.phase = kind || state.phase || "working";
+  const t = $("trace");
+  t.classList.toggle("done", state.phase === "done"); t.classList.toggle("fail", state.phase === "fail");
+  $("progTitle").textContent = state.phase === "done" ? L().done(state.doneIn) : state.phase === "fail" ? L().failed
+    : state.phase === "waiting" ? L().waiting : L().working;
+}
+function chip(box, text, bad) { $(box).append(el("span", { class: "q" + (bad ? " bad" : "") }, text)); }
+function searchLabel(args) {
+  if (!args || typeof args !== "object") return null;
+  const f = args.filters || {};
+  const parts = [];
+  if (typeof args.query === "string" && args.query) parts.push(args.query);
+  if (typeof f.category === "string") parts.push(f.category);
+  const max = f.max_price_minor ?? (f.hard_constraints && f.hard_constraints.price && f.hard_constraints.price.value);
+  if (typeof max === "number") parts.push("≤ $" + (max / 100).toFixed(0));
+  return parts.length ? parts.join(" · ") : null;
 }
 function setBusy(b) {
   state.busy = b;
-  for (const id of ["send", "qSend", "revSend"]) $(id).disabled = b;
+  for (const id of ["send", "qSend", "revSend"]) $(id).disabled = b || (id === "send" && !$("msg").value.trim());
   show("cancel", b);
 }
 
 async function health() {
-  try {
-    const r = await (await fetch("/api/health")).json();
-    const h = r.harness;
-    $("health").replaceChildren(el("span", { class: "dot " + (h ? "ok" : "bad") }),
-      el("span", {}, h ? `Online · job ${h.job_id}` : "Service offline"));
-    $("health").title = h ? `Catalog ${h.snapshot_id}\nNode ${h.node || "?"}\nModel ${h.model_address ? "ready" : "not ready"}` : (r.error || "");
-  } catch (e) {
-    $("health").replaceChildren(el("span", { class: "dot bad" }), el("span", {}, "Backend offline"));
+  try { state.health = await (await fetch("/api/health")).json(); } catch (e) { state.health = { backendDown: true }; }
+  renderHealth();
+}
+function renderHealth() {
+  const r = state.health, box = $("health");
+  if (!r) return;
+  const h = r.harness;
+  box.replaceChildren(el("span", { class: "dot " + (h ? "ok" : "bad") }), el("span", {}, r.backendDown ? L().backendOff : h ? L().online(h.job_id) : L().offline));
+  box.title = h ? `Catalog ${h.snapshot_id}\nNode ${h.node || "?"}\nModel ${h.model_address ? "ready" : "not ready"}` : (r.error || "");
+  const model = h && h.model;
+  show("modelChip", !!model); show("powered", !!model);
+  if (model) {
+    $("modelChip").replaceChildren(el("span", { class: "mk" }, "AI"), el("b", {}, model));
+    $("modelChip").title = `${h.profile || ""} · ${h.node || ""}`.replace(/^ · | · $/g, "");
+    $("powered").replaceChildren(el("span", {}, L().poweredBy), el("b", {}, model), el("span", {}, L().poweredWhere(h.node, h.snapshot_id)));
   }
 }
 
 function onAgentEvent(ev) {
-  const d = ev.data || {};
+  const d = ev.data || {}, T = L(), tools = TOOLS[LANG];
   switch (ev.type) {
-    case "run_started": stage("understand"); logStep("Started"); break;
-    case "run_resumed": stage("understand"); logStep("Got your answer, continuing"); break;
-    case "decision_started": logStep("Thinking about the next step"); break;
+    case "run_started": stage("understand"); logStep(T.started); break;
+    case "run_resumed": stage("understand"); logStep(T.resumed); break;
+    case "decision_started": logStep(T.thinking); break;
     case "action_selected":
-      if (d.action_type === "propose_plan") { stage("check"); logStep("Picked an offer"); }
-      else if (d.action_type === "ask_user") logStep("Needs more information");
+      if (d.action_type === "propose_plan") { stage("check"); logStep(T.pickedOffer); }
+      else if (d.action_type === "ask_user") logStep(T.needsInfo);
       break;
-    case "action_rejected": logStep("Invalid model output, retrying (" + d.code + ")", true); break;
-    case "tool_started":
-      stage(d.tool === "search_products" || d.tool === "describe_filters" ? "search" : "compare");
-      logStep(TOOL_LABELS[d.tool] || d.tool); break;
-    case "tool_finished": if (d.status !== "ok") logStep((TOOL_LABELS[d.tool] || d.tool) + " failed (" + d.code + ")", true); break;
-    case "tool_rejected": logStep("Invalid tool request (" + d.code + ")", true); break;
+    case "action_rejected": logStep(T.badOutput(d.code), true); break;
+    case "tool_started": {
+      const isSearch = d.tool === "search_products" || d.tool === "describe_filters";
+      stage(isSearch ? "search" : "compare");
+      logStep(tools[d.tool] || d.tool);
+      if (d.tool === "search_products") { state.counts.search++; const s = searchLabel(d.arguments); chip("dSearch", "⌕ " + (s || tools.search_products)); }
+      else if (d.tool === "get_offer_facts" || d.tool === "retrieve_evidence" || d.tool === "resolve_evidence") {
+        state.counts.read++; chip("dCompare", tools[d.tool] || d.tool);
+      }
+      break;
+    }
+    case "tool_finished": if (d.status !== "ok") { logStep(T.toolFailed(tools[d.tool] || d.tool, d.code), true); } break;
+    case "tool_rejected": logStep(T.badTool(d.code), true); break;
     case "validation_finished":
-      if (d.status === "passed") { stage("check", "done"); logStep("Budget check passed"); }
-      else { stage("compare"); logStep("Budget check failed (" + d.status + "), looking again", true); }
+      if (d.status === "passed") { stage("check", "done"); logStep(T.passed); $("dCheck").textContent = T.passedD; }
+      else { state.counts.rejected++; stage("compare"); logStep(T.notPassed(d.status), true); $("dCheck").textContent = T.rejectedD(state.counts.rejected); }
       break;
-    case "explain_started": stage("explain"); logStep("Writing the explanation"); break;
-    case "explain_done": stage("explain", "done"); logStep(d.fallback ? "Explanation did not pass checks; using the template" : "Explanation checked"); break;
-    case "answer_rejected": logStep("That answer could not be used (" + d.code + ")", true); break;
+    case "explain_started": stage("explain"); logStep(T.writing); break;
+    case "explain_done": stage("explain", "done"); logStep(d.fallback ? T.explainFallback : T.explainOk); $("dExplain").textContent = d.fallback ? T.explainFallback : T.explainOk; break;
+    case "answer_rejected": logStep(T.answerBad(d.code), true); break;
   }
 }
 
@@ -485,8 +680,8 @@ async function streamCall(path, body, onEvent) {
   const resp = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
                                    body: JSON.stringify({ session_id: session, ...body }) });
   if (!resp.ok) {
-    let msg = "Request failed (" + resp.status + ").";
-    try { const j = await resp.json(); msg = (j.error && (ERRORS[j.error.code] || j.error.message)) || msg; } catch (e) {}
+    let msg = ERRORS[LANG].failedReq(resp.status);
+    try { const j = await resp.json(); msg = (j.error && (ERRORS[LANG][j.error.code] || j.error.message)) || msg; } catch (e) {}
     throw new Error(msg);
   }
   const reader = resp.body.getReader(), dec = new TextDecoder();
@@ -508,145 +703,195 @@ async function streamCall(path, body, onEvent) {
       onEvent(event, data ? JSON.parse(data) : null);
     }
   }
-  if (!sawEnd) throw new Error("The connection to the service dropped. The result may be incomplete.");
+  if (!sawEnd) throw new Error(ERRORS[LANG].dropped);
 }
 
 function handle(event, data) {
-  if (event === "meta") { state.runId = data.run_id; $("runId").textContent = "Request " + data.run_id; return; }
-  if (event === "error") { logStep(ERRORS[data.code] || ("Error: " + data.code), true); notice("streamError", "err", ERRORS[data.code] || data.message); return; }
+  if (event === "meta") { state.runId = data.run_id; $("runId").textContent = data.run_id; return; }
+  if (event === "error") { logStep(ERRORS[LANG][data.code] || ("Error: " + data.code), true); notice("streamError", "err", ERRORS[LANG][data.code] || data.message); return; }
   if (event !== "agent") return;
   if (data.type === "explain_delta") {
     state.explain += (data.data && data.data.text) || "";
-    show("result", true); show("why", true);
-    $("whyText").textContent = state.explain;
-    $("whyText").classList.add("caret");
-    $("whyNote").textContent = "Draft — numbers and sources are checked when it finishes.";
+    show("result", true); show("why", true); show("skel", false);
+    renderExplanation(state.explain); $("whyText").classList.add("caret");
+    $("whyNote").textContent = L().draft;
     return;
   }
   onAgentEvent(data);
   if (data.result) render(data.result);
 }
 
-function render(r) {
+// ---- results ----------------------------------------------------------------------------------------------------
+function render(r, again) {
   if (r.status === "waiting_user" && r.pending_question) {
-    // The same question right after an answer means the harness rejected that answer: say why.
-    const last = (r.issues || []).slice(-1)[0];
-    const again = state.answered && state.pending && state.pending.question === r.pending_question.question
-                  && last && ANSWER_ISSUES.has(last.code);
-    notice("qNotice", "warn", again ? "We couldn't use that answer: " + (last.message || last.code) : "");
-    state.answered = false;
-    state.pending = r.pending_question;
-    stage("understand", "done");
+    show("skel", false);
+    if (!again) {
+      // The same question right after an answer means the harness rejected that answer: say why.
+      const last = (r.issues || []).slice(-1)[0];
+      state.rejectedAnswer = state.answered && state.pending && state.pending.question === r.pending_question.question
+                             && last && ANSWER_ISSUES.has(last.code) ? (last.message || last.code) : null;
+      state.answered = false; state.pending = r.pending_question;
+      stage("understand", "done"); logStep(L().waitingLog); setTitle("waiting");
+    }
+    notice("qNotice", "warn", state.rejectedAnswer ? L().answerRejected + state.rejectedAnswer : "");
     show("question", true);
-    $("qText").textContent = r.pending_question.question;
-    const box = $("qFields"); box.replaceChildren();
+    // A question about budget fields only (the validator's pre-search check) gets plain wording; the harness text
+    // names raw field names. Questions the model writes about anything else are shown as written.
+    const budgetOnly = r.pending_question.required_fields.every((f) => AMOUNT_FIELDS.has(f) || f === "currency" || f === "budget_basis");
+    $("qText").textContent = budgetOnly ? L().budgetQ : r.pending_question.question;
+    $("qText").title = budgetOnly ? r.pending_question.question : "";
+    const box = $("qFields"), kept = {};
+    box.querySelectorAll("[id^=q_]").forEach((n) => (kept[n.id] = n.value));
+    box.replaceChildren();
     for (const f of r.pending_question.required_fields) {
+      const id = "q_" + f;
       const input = f === "currency"
-        ? el("select", { class: "input", id: "q_" + f }, el("option", {}, "USD"))
+        ? el("select", { class: "input", id }, el("option", {}, "USD"))
         : f === "budget_basis"
-        ? el("select", { class: "input", id: "q_" + f }, el("option", { value: "pre_tax" }, "Before tax"),
-             el("option", { value: "all_in" }, "Including tax"))
+        ? el("select", { class: "input", id }, el("option", { value: "pre_tax" }, L().basis.pre_tax), el("option", { value: "all_in" }, L().basis.all_in))
         : AMOUNT_FIELDS.has(f)
-        ? el("input", { class: "input", id: "q_" + f, inputmode: "decimal", placeholder: f === "purchase_cap" ? "e.g. 100" : "" })
-        : el("input", { class: "input", id: "q_" + f, maxlength: "200" });
+        ? el("input", { class: "input", id, inputmode: "decimal", placeholder: f === "purchase_cap" ? "100" : "" })
+        : el("input", { class: "input", id, maxlength: "200" });
+      if (kept[id]) input.value = kept[id];
       box.append(el("label", { class: "f" }, fieldLabel(f), input));
     }
-    const first = box.querySelector("input"); if (first) first.focus();
-    logStep("Waiting for your answer");
-    $("progTitle").textContent = "Waiting for your answer";
+    if (!again) { const first = box.querySelector("input"); if (first) first.focus(); }
     return;
   }
-  show("question", false);
-  show("result", true);
-  $("whyText").classList.remove("caret");
+  state.result = r;
+  show("question", false); show("skel", false); show("result", true);
   const ok = r.status === "completed" && r.verified_plan;
-  $("progTitle").textContent = ok ? "Done" : (STATUS[r.status] || "Finished");
-  stagesDone(!!r.explanation);
-  if (!ok) document.querySelectorAll("#stepper .st.active").forEach(n => n.classList.add("fail"));
+  if (!again) {
+    state.doneIn = r.usage && r.usage.elapsed_s != null ? Number(r.usage.elapsed_s).toFixed(1) : elapsed();
+    stagesDone(!!r.explanation, ok);
+    $("trace").open = false;
+  }
+  setTitle(ok ? "done" : "fail");
   const head = $("resultStatus"); head.replaceChildren();
   if (!ok) {
-    const why = r.message || STOP[r.stop_reason] || (r.stop_reason ? "Stopped (" + r.stop_reason.replace(/_/g, " ") + ")." : "") ||
+    const why = r.message || STOP[LANG][r.stop_reason] || (r.stop_reason ? r.stop_reason.replace(/_/g, " ") + "." : "") ||
                 (r.issues && r.issues.length ? r.issues.map(i => i.message || i.code).join("; ") : "");
-    head.append(el("div", { class: "notice " + (r.status === "cancelled" ? "warn" : "err") },
-      el("span", {}, el("b", {}, STATUS[r.status] || r.status), why ? " — " + why : "")));
-    if (r.clarification && r.clarification.question) head.append(el("p", { class: "muted" }, r.clarification.question));
+    const retry = el("button", { class: "primary", type: "button" }, L().tryAgain);
+    retry.onclick = () => state.original && ask(state.original.message, state.original.constraints.purchase_cap || "");
+    const fresh = el("button", { class: "btn-line", type: "button" }, L().newQ);
+    fresh.onclick = goHome;
+    head.append(el("div", { class: "failcard" }, el("div", { class: "ic" }, r.status === "cancelled" ? "■" : "!"),
+      el("div", {}, el("h2", {}, STATUS[LANG][r.status] || r.status), el("p", {}, why),
+        r.clarification && r.clarification.question ? el("p", {}, r.clarification.question) : "",
+        el("div", { class: "actions" }, retry, fresh))));
+    for (const id of ["lead", "why", "summary", "sourcesCard"]) show(id, false);
     $("products").replaceChildren();
   } else {
     const p = r.verified_plan;
-    const list = el("div", { class: "more-items" });
-    p.items.forEach((it, idx) => list.append(productCard(it, idx === 0, p.currency)));
-    $("products").replaceChildren(list);
+    $("products").replaceChildren(...p.items.map((it, idx) => idx === 0 ? heroCard(it, p.currency) : miniCard(it, p.currency)));
     if (r.explanation) {
       show("why", true);
       state.fallback = !!r.explanation.fallback;
-      // The harness's own fallback template is not in English; build the summary here from the checked plan
-      // (and refine it with the offer title and seller once they are loaded).
-      $("whyText").textContent = state.fallback ? planSummary(p, null) : r.explanation.text;
-      $("whyNote").replaceChildren(el("span", {}, state.fallback
-        ? "Summary generated from the budget-checked plan (the model's draft quoted figures we could not verify)."
-        : "Checked: every number and source above comes from the plan and its evidence."));
-    }
+      $("whyText").classList.remove("caret");
+      // The harness's own fallback template is not in English; build the summary from the checked plan instead.
+      if (state.fallback) $("whyText").textContent = planSummaryText(p); else renderExplanation(r.explanation.text);
+      $("whyNote").replaceChildren(el("span", {}, "✓"), el("span", {}, state.fallback ? L().fallbackNote : L().checked));
+    } else show("why", false);
+    $("cols").style.gridTemplateColumns = r.explanation ? "" : "1fr";
     summary(p);
-    lookup(p);
+    renderLead(p);
+    if (again && state.look) fillLookup(p, state.look); else lookup(p);
   }
   show("refine", !!state.original);
-  const u = r.usage || {};
+  if (!again && !ok) saveHistory();            // a plan is saved once its offer details have loaded (lookup)
+  const u = r.usage || {}, s = L().stats;
   $("stats").replaceChildren(
-    el("div", {}, el("b", {}, u.model_calls ?? "–"), el("span", {}, "Model calls")),
-    el("div", {}, el("b", {}, u.tool_calls ?? "–"), el("span", {}, "Tool calls")),
-    el("div", {}, el("b", {}, u.elapsed_s != null ? Number(u.elapsed_s).toFixed(1) + "s" : "–"), el("span", {}, "Compute")));
-  show("usage", true);
+    el("span", {}, el("b", {}, u.model_calls ?? "–"), " " + s[0]), el("span", {}, el("b", {}, u.tool_calls ?? "–"), " " + s[1]),
+    el("span", {}, el("b", {}, u.elapsed_s != null ? Number(u.elapsed_s).toFixed(1) + "s" : "–"), " " + s[2]),
+    state.health && state.health.harness && state.health.harness.model ? el("span", {}, el("b", {}, state.health.harness.model)) : "");
+  show("stats", true);
 }
 
-function planSummary(p, info) {
-  const it = p.items[0];
-  const what = info && info.title ? info.title : "this offer";
-  const from = info && info.seller ? " from " + info.seller : "";
-  const ship = "shipping" in (p.cost_breakdown || {})
-    ? (Number(p.cost_breakdown.shipping) === 0 ? " with free shipping" : " including " + fmt(p.cost_breakdown.shipping, p.currency) + " shipping") : "";
-  const more = p.items.length > 1 ? ` and ${p.items.length - 1} more item(s)` : "";
-  const qty = it.quantity > 1 ? it.quantity + " × " : "";
-  const pre = "tax" in (p.cost_breakdown || {}) ? "" : " before tax";
-  return `We picked ${qty}${what}${from}${more}. It comes to ${fmt(p.total_cost, p.currency)}${pre}${ship}, ` +
-         `leaving ${fmt(p.remaining_funds, p.currency)} of your budget. The sources below show where each fact comes from.`;
+function offerInfo(p) {
+  const look = state.look, it = p.items[0];
+  if (!look) return {};
+  const o = (look.offers || []).find((x) => x.offer_id === it.offer_id) || {};
+  const shop = (look.shops || {})[it.offer_id] || {};
+  return { title: o.store_title, seller: shop.merchant || state.sellerOf && state.sellerOf[o.variant_id] };
 }
+// The model writes light Markdown (bullets, **bold**, [E1] citations). Escape first, then add only those.
+function renderExplanation(text) {
+  const inline = (s) => esc(s).replace(/\*\*(.+?)\*\*/g, "<b>$1</b>")
+    .replace(/\[(E\d+(?:\s*,\s*E\d+)*)\]/g, (m, ids) => ids.split(/\s*,\s*/).map((id) => `<a class="cite" href="#sourcesAnchor">${id}</a>`).join(""));
+  // The product card and the receipt already show the item, price, shipping and totals; keep the reasons.
+  const repeats = /^\*\*\s*(item|product|quantity|qty|unit price|price|shipping|total cost|total|remaining funds|remaining|budget|商品|数量|单价|价格|运费|总价|合计|剩余|预算)\s*[:：]?\s*\*\*\s*[:：]?/i;
+  const intro = /^(here is|here's|this is) (your|the) (verified |budget-checked )?(shopping )?plan/i;
+  const blocks = (drop) => {
+    const out = [];
+    let list = null;
+    for (const raw of String(text).split("\n")) {
+      const line = raw.trim();
+      const item = line.match(/^(?:[*\-•]|\d+\.)\s+(.*)$/);
+      if (item) {
+        if (drop && repeats.test(item[1])) continue;
+        const feat = item[1].match(/^\*\*\s*(key features|features|主要特点|特点|卖点)\s*[:：]?\s*\*\*\s*[:：]?\s*(.*)$/i);
+        if (feat) {                                     // "30H playtime, water-resistant and 2 mics" -> chips
+          const cites = (feat[2].match(/\[E\d+(?:\s*,\s*E\d+)*\]/g) || []).join("");
+          const parts = feat[2].replace(/\[E\d+(?:\s*,\s*E\d+)*\]/g, "").split(/\s*(?:,|，|、|;|；|\band\b|和)\s*/).map((s) => s.trim().replace(/\.$/, "")).filter(Boolean);
+          out.push({ features: parts, cites }); list = null; continue;
+        }
+        if (!list) { list = []; out.push(list); }
+        list.push(item[1].replace(/^\*\*\s*(why|reason|理由)\s*[:：]?\s*\*\*\s*[:：]?\s*/i, ""));
+        continue;
+      }
+      list = null;
+      if (line && !(drop && intro.test(line))) out.push(line);
+    }
+    return out;
+  };
+  let out = blocks(true);
+  if (!out.length) out = blocks(false);
+  $("whyText").innerHTML = out.map((b) => b.features ? `<div class="feats">${b.features.map((f) => `<span class="feat">✓ ${inline(f)}</span>`).join("")}${inline(b.cites)}</div>`
+    : Array.isArray(b) ? "<ul>" + b.map((x) => "<li>" + inline(x) + "</li>").join("") + "</ul>"
+    : /^(note|注意|说明)\s*[:：]/i.test(b) ? `<p class="mnote">${inline(b.replace(/^(note|注意|说明)\s*[:：]\s*/i, ""))}</p>` : "<p>" + inline(b) + "</p>").join("");
+}
+const shortTitle = (t) => !t || t.length <= 64 ? t : t.slice(0, Math.max(t.lastIndexOf(" ", 62), 40)).replace(/[\s,\-–]+$/, "") + "…";
+function planSummaryText(p) { const d = document.createElement("div"); d.innerHTML = leadHtml(p); return d.textContent; }
+function leadHtml(p) {
+  const T = L(), info = offerInfo(p), it = p.items[0];
+  const what = esc((it.quantity > 1 ? it.quantity + " × " : "") + (shortTitle(info.title) || T.thisOffer)) + (p.items.length > 1 ? " +" + (p.items.length - 1) : "");
+  const cb = p.cost_breakdown || {};
+  const ship = "shipping" in cb ? (Number(cb.shipping) === 0 ? T.freeShip : T.withShip(fmt(cb.shipping, p.currency))) : "";
+  return T.lead(what, info.seller ? esc(T.from(info.seller)) : "", fmt(p.total_cost, p.currency), "tax" in cb ? "" : T.pre, ship, fmt(p.remaining_funds, p.currency));
+}
+function renderLead(p) { $("lead").innerHTML = leadHtml(p); show("lead", true); }
 
-function productCard(it, top, cur) {
-  return el("article", { class: "product", "data-offer": it.offer_id },
-    el("div", { class: "thumb", "aria-hidden": "true" }, svgBag()),
+function heroCard(it, cur) {
+  return el("article", { class: "hero", "data-offer": it.offer_id },
+    el("div", { class: "pic" }, el("span", { class: "tag" }, L().pick), el("span", { html: ICONS.bag })),
     el("div", {},
-      el("div", { class: "badges" }, top ? el("span", { class: "badge pick" }, "Our pick") : "", el("span", { class: "badge ok" }, "✓ Within budget")),
-      el("h3", { class: "ptitle" }, "Loading offer details…"),
-      el("div", { class: "seller" }, "Offer " + it.offer_id),
-      el("div", { class: "pricebox" }),
-      el("div", { class: "facts" }),
-      el("div", { class: "qty" }, "Quantity: " + it.quantity)));
+      el("div", { class: "seller" }, el("span", { class: "seen" }, L().loading)),
+      el("h2", { class: "ptitle" }, "…"),
+      el("div", { class: "price" }, el("span", { class: "now" }), el("span", { class: "okbadge" }, "✓ " + L().within)),
+      el("div", { class: "facts" }, it.quantity > 1 ? el("span", { class: "fact" }, L().qty(it.quantity)) : ""),
+      el("div", { class: "actions" })));
 }
-function svgBag() {
-  const ns = "http://www.w3.org/2000/svg";
-  const s = document.createElementNS(ns, "svg");
-  s.setAttribute("width", "54"); s.setAttribute("height", "54"); s.setAttribute("viewBox", "0 0 24 24");
-  s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor"); s.setAttribute("stroke-width", "1.5");
-  s.setAttribute("stroke-linecap", "round"); s.setAttribute("stroke-linejoin", "round");
-  for (const d of ["M6 7h12l-1.2 12.2a2 2 0 0 1-2 1.8H9.2a2 2 0 0 1-2-1.8z", "M9 7V5.5a3 3 0 0 1 6 0V7"]) {
-    const p = document.createElementNS(ns, "path"); p.setAttribute("d", d); s.append(p);
-  }
-  return s;
+function miniCard(it, cur) {
+  return el("article", { class: "mini", "data-offer": it.offer_id },
+    el("div", { class: "pic" }, el("span", { html: ICONS.bag })),
+    el("div", {}, el("h2", { class: "ptitle" }, L().loading), el("div", { class: "seller" }), el("div", { class: "facts" }, el("span", { class: "fact" }, L().qty(it.quantity)))),
+    el("div", { class: "now" }));
 }
 
 function summary(p) {
-  const t = $("sumTable"); t.replaceChildren();
-  const pre = !("tax" in (p.cost_breakdown || {}));
-  for (const [k, v] of Object.entries(p.cost_breakdown || {}))
-    t.append(el("tr", {}, el("td", {}, COST[k] || k), el("td", {}, Number(v) === 0 && k === "shipping" ? "FREE" : fmt(v, p.currency))));
-  if (pre) t.append(el("tr", {}, el("td", { class: "muted" }, "Tax"), el("td", { class: "muted" }, "Not included")));
-  t.append(el("tr", { class: "total" }, el("td", {}, pre ? "Total before tax" : "Total"), el("td", {}, fmt(p.total_cost, p.currency))));
-  t.append(el("tr", {}, el("td", {}, "Left in your budget"), el("td", {}, fmt(p.remaining_funds, p.currency))));
+  const T = L(), t = $("sumTable"), cb = p.cost_breakdown || {}, pre = !("tax" in cb);
+  const names = { items: T.items, shipping: T.shipping, tax: T.taxL };
+  t.replaceChildren(...Object.entries(cb).map(([k, v]) =>
+    el("div", { class: "ln" }, el("span", {}, names[k] || k), el("span", {}, Number(v) === 0 && k === "shipping" ? T.free : fmt(v, p.currency)))));
+  if (pre) t.append(el("div", { class: "ln dim" }, el("span", {}, T.taxL), el("span", {}, T.notIncl)));
+  t.append(el("div", { class: "ln tot" }, el("span", {}, pre ? T.totalPre : T.total), el("span", {}, fmt(p.total_cost, p.currency))));
   const total = Number(p.total_cost), left = Number(p.remaining_funds), budget = total + left;
   const pct = budget > 0 ? Math.min(100, Math.round(total / budget * 100)) : 0;
   $("meter").classList.toggle("tight", pct > 85);
-  $("meter").firstElementChild.style.width = pct + "%";
-  $("meterText").textContent = budget > 0 ? `Uses ${pct}% of your ${fmt(budget, p.currency)} budget` : "";
+  const bar = $("meter").firstElementChild; bar.style.width = "0";
+  requestAnimationFrame(() => requestAnimationFrame(() => (bar.style.width = pct + "%")));
+  const [lw, lv] = T.leftOf(fmt(p.remaining_funds, p.currency));
+  $("meterText").replaceChildren(el("span", {}, T.budgetOf(fmt(budget, p.currency))), el("span", {}, lw, el("b", {}, lv)));
   show("summary", true);
 }
 
@@ -657,57 +902,156 @@ async function lookup(plan) {
     const resp = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: session, run_id: state.runId, offer_ids, evidence_ids }) });
     const r = await resp.json();
-    if (!resp.ok) throw new Error(r.error && (ERRORS[r.error.code] || r.error.message));
-    const sellerOf = {};
-    for (const e of r.evidence) if (e.source_label) sellerOf[e.variant_id] = e.source_label;
-    const seen = new Set();
-    for (const o of r.offers) {
-      if (seen.has(o.offer_id)) continue;
-      seen.add(o.offer_id);
-      const node = document.querySelector(`[data-offer="${CSS.escape(o.offer_id)}"]`);
-      if (!node) continue;
-      node.querySelector(".ptitle").textContent = o.store_title || o.offer_id;
-      node.querySelector(".seller").textContent = (sellerOf[o.variant_id] ? "Sold by " + sellerOf[o.variant_id] : "Seller unknown") +
-        (o.observed_at ? " · price seen " + new Date(o.observed_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "");
-      node.querySelector(".pricebox").replaceChildren(priceNode(o.price_minor, o.currency));
-      const facts = node.querySelector(".facts");
-      facts.replaceChildren(
-        o.shipping_status === "known"
-          ? el("span", { class: "fact ok" }, o.shipping_minor === 0 ? "✓ FREE shipping" : "Shipping " + fmt(o.shipping_minor / 100, o.currency))
-          : el("span", { class: "fact warn" }, "Shipping unknown"),
-        el("span", { class: "fact" + (o.tax_status === "known" ? "" : " warn") }, o.tax_status === "known" ? "Tax " + fmt(o.tax_minor / 100, o.currency) : "Tax not included"),
-        o.price_stale ? el("span", { class: "fact warn" }, "Price may have changed") : "");
-    }
-    if (state.fallback && r.offers.length) {
-      const o = r.offers.find(x => x.offer_id === plan.items[0].offer_id) || r.offers[0];
-      $("whyText").textContent = planSummary(plan, { title: o.store_title, seller: sellerOf[o.variant_id] });
-    }
-    const box = $("sources"); box.replaceChildren();
-    for (const e of r.evidence) {
-      const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
-      let host = "";
-      try { host = url ? new URL(url).hostname.replace(/^www\./, "") : ""; } catch (x) {}
-      box.append(el("div", { class: "ev" },
-        el("div", { class: "src" }, e.source_label || host || "Source", el("span", { class: "muted" }, e.observed_at ? " · " + new Date(e.observed_at).toLocaleDateString("en-US") : "")),
-        el("div", {}, e.title || e.evidence_id),
-        url ? el("a", { href: url, target: "_blank", rel: "noopener noreferrer" }, host ? "View on " + host + " ↗" : url) : el("span", { class: "muted" }, "No link"),
-        e.text ? el("div", { class: "excerpt" }, e.text.length > 280 ? e.text.slice(0, 280) + "…" : e.text) : ""));
-    }
-    show("sourcesCard", r.evidence.length > 0);
+    if (!resp.ok) throw new Error(r.error && (ERRORS[LANG][r.error.code] || r.error.message));
+    state.look = r;
+    fillLookup(plan, r);
+    saveHistory();
   } catch (e) {
-    $("sources").replaceChildren(el("div", { class: "muted" }, "Could not load sources: " + e.message));
+    $("sources").replaceChildren(el("li", { class: "seen" }, ERRORS[LANG].noSources + e.message));
     show("sourcesCard", true);
+    saveHistory();
   }
 }
 
-function resetRun() {
-  state.explain = ""; state.pending = null; state.t0 = performance.now();
-  $("steps").replaceChildren(); $("runId").textContent = ""; $("progTitle").textContent = "Working on it";
-  notice("streamError"); notice("topNotice");
-  document.querySelectorAll("#stepper .st").forEach(n => n.classList.remove("done", "active", "fail"));
-  show("welcome", false); show("progress", true);
-  for (const id of ["question", "result", "why", "summary", "refine", "usage", "sourcesCard"]) show(id, false);
+function fillLookup(plan, r) {
+  const T = L(), sellerOf = {}, linkOf = {};
+  for (const e of r.evidence) {
+    if (e.source_label && !sellerOf[e.variant_id]) sellerOf[e.variant_id] = e.source_label;
+    if (/^https?:\/\//.test(e.source_url || "") && !linkOf[e.variant_id]) linkOf[e.variant_id] = e.source_url;
+  }
+  state.sellerOf = sellerOf;
+  const seen = new Set();
+  for (const o of r.offers) {
+    if (seen.has(o.offer_id)) continue;
+    seen.add(o.offer_id);
+    const node = document.querySelector(`[data-offer="${CSS.escape(o.offer_id)}"]`);
+    if (!node) continue;
+    const shop = (r.shops || {})[o.offer_id] || {};
+    const url = shop.url || linkOf[o.variant_id] || null;
+    const seller = shop.merchant || sellerOf[o.variant_id] || hostOf(url) || "";
+    const photo = (r.photos || {})[o.variant_id];
+    node.querySelector(".ptitle").textContent = o.store_title || o.offer_id;
+    if (photo && /^https?:\/\//.test(photo)) {
+      const pic = node.querySelector(".pic"), tag = pic.querySelector(".tag");
+      pic.replaceChildren(...(tag ? [tag] : []), el("img", { src: photo, alt: o.store_title || "", referrerpolicy: "no-referrer", loading: "lazy" }));
+    }
+    const sellerBox = node.querySelector(".seller");
+    const fav = url ? favicon(url) : null;
+    sellerBox.replaceChildren(...(fav ? [el("img", { src: fav, alt: "" })] : []), el("span", {}, seller),
+      o.observed_at ? el("span", { class: "seen" }, "· " + T.seenOn(day(o.observed_at))) : "");
+    const price = fmt(o.price_minor / 100, o.currency);
+    node.querySelector(".now").textContent = price;
+    const facts = node.querySelector(".facts");
+    const qty = plan.items.find((i) => i.offer_id === o.offer_id);
+    facts.replaceChildren(
+      o.shipping_status === "known"
+        ? el("span", { class: "fact" + (o.shipping_minor === 0 ? " good" : "") }, o.shipping_minor === 0 ? "✓ " + T.shipFree : T.ship(fmt(o.shipping_minor / 100, o.currency)))
+        : el("span", { class: "fact warn" }, T.shipUnknown),
+      el("span", { class: "fact" + (o.tax_status === "known" ? "" : " warn") }, o.tax_status === "known" ? T.tax(fmt(o.tax_minor / 100, o.currency)) : T.taxNo),
+      o.price_stale ? el("span", { class: "fact warn" }, T.stale) : "",
+      qty && qty.quantity > 1 ? el("span", { class: "fact" }, T.qty(qty.quantity)) : "");
+    const actions = node.querySelector(".actions");
+    if (actions) actions.replaceChildren(
+      url ? el("a", { class: "btn-accent", href: url, target: "_blank", rel: "noopener noreferrer" }, (seller ? T.view(seller) : T.viewShop) + " ↗") : "",
+      el("a", { class: "btn-line", href: "#sourcesAnchor" }, T.seeSources));
+  }
+  renderLead(plan);
+  if (state.fallback) $("whyText").textContent = planSummaryText(plan);
+  const box = $("sources"); box.replaceChildren();
+  r.evidence.forEach((e, i) => {
+    const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
+    const host = url ? hostOf(url) : "";
+    const fav = url ? favicon(url) : null;
+    const body = [el("span", { class: "num" }, i + 1), ...(fav ? [el("img", { src: fav, alt: "" })] : []),
+      el("span", {}, el("div", { class: "st" }, e.title || e.evidence_id),
+        el("div", { class: "sd" }, [e.source_label || host || T.source, e.observed_at ? day(e.observed_at) : ""].filter(Boolean).join(" · ")),
+        e.text ? el("div", { class: "sx" }, e.text) : "")];
+    box.append(el("li", {}, url ? el("a", { class: "src", href: url, target: "_blank", rel: "noopener noreferrer" }, ...body) : el("div", { class: "src" }, ...body)));
+  });
+  show("sourcesCard", r.evidence.length > 0);
+}
+
+// ---- history (this browser only) ---------------------------------------------------------------------------------
+const HKEY = "shop-advisor-history";
+function loadHistory() { try { const h = JSON.parse(localStorage.getItem(HKEY) || "[]"); return Array.isArray(h) ? h : []; } catch (e) { return []; } }
+function storeHistory(h) {
+  for (let n = h.length; n > 0; n = Math.floor(n / 2)) {          // drop the oldest entries if storage is full
+    try { localStorage.setItem(HKEY, JSON.stringify(h.slice(0, n))); return; } catch (e) {}
+  }
+}
+function traceSnapshot() {
+  return { steps: [...document.querySelectorAll("#stepper .step")].map((n) => n.className),
+           search: [...$("dSearch").children].map((n) => [n.textContent, n.classList.contains("bad")]),
+           compare: [...$("dCompare").children].map((n) => [n.textContent, n.classList.contains("bad")]),
+           understand: $("dUnderstand").textContent, check: $("dCheck").textContent, explain: $("dExplain").textContent,
+           log: [...$("steps").children].map((li) => [li.children[0].textContent, li.children[1].textContent, li.children[1].classList.contains("bad")]) };
+}
+function saveHistory() {
+  const r = state.result;
+  if (!r || !state.runId || !state.original) return;
+  const entry = { id: state.runId, at: Date.now(), session, message: state.original.message, constraints: state.original.constraints,
+                  result: r, look: state.look, doneIn: state.doneIn, fallback: state.fallback, trace: traceSnapshot() };
+  storeHistory([entry, ...loadHistory().filter((e) => e.id !== entry.id)].slice(0, 40));
+  state.viewing = entry.id;
+  renderHistory();
+}
+function renderHistory() {
+  const h = loadHistory(), box = $("history"), T = L();
+  box.replaceChildren();
+  show("clearHistory", h.length > 0);
+  if (!h.length) { box.append(el("div", { class: "empty" }, T.noHistory)); return; }
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  let group = null;
+  for (const e of h) {
+    const g = e.at >= start.getTime() ? T.today : T.earlier;
+    if (g !== group) { box.append(el("h5", {}, g)); group = g; }
+    const r = e.result || {}, p = r.verified_plan;
+    const photo = p && e.look && e.look.photos && e.look.offers ? (() => { const o = e.look.offers.find((x) => x.offer_id === p.items[0].offer_id); return o && e.look.photos[o.variant_id]; })() : null;
+    const pic = el("span", { class: "hp" }, photo && /^https?:\/\//.test(photo) ? el("img", { src: photo, alt: "", referrerpolicy: "no-referrer", loading: "lazy" }) : el("span", { html: ICONS.bag }));
+    const meta = p ? el("span", { class: "hm" }, el("span", { class: "okc" }, "✓ "), fmt(p.total_cost, p.currency) + " · " + T.histLeft(fmt(p.remaining_funds, p.currency)))
+                   : el("span", { class: "hm" }, STATUS[LANG][r.status] || T.histStopped);
+    const b = el("button", { class: "hitem" + (state.viewing === e.id ? " on" : ""), type: "button", title: e.message },
+      pic, el("span", {}, el("div", { class: "ht" }, e.message.split("\nChange: ").pop()), meta));
+    b.onclick = () => openHistory(e.id);
+    box.append(b);
+  }
+}
+function openHistory(id) {
+  const e = loadHistory().find((x) => x.id === id);
+  if (!e || state.busy) return;
+  const cap = (e.constraints || {}).purchase_cap || "";
+  resetRun(e.message, cap);
+  Object.assign(state, { runId: e.id, viewSession: e.session, original: { message: e.message, constraints: e.constraints || {} },
+                         look: e.look || null, doneIn: e.doneIn, fallback: !!e.fallback, viewing: e.id });
+  $("runId").textContent = e.id;
+  const t = e.trace || {};
+  document.querySelectorAll("#stepper .step").forEach((n, i) => { if (t.steps && t.steps[i]) n.className = t.steps[i]; });
+  for (const [box, list] of [["dSearch", t.search], ["dCompare", t.compare]]) (list || []).forEach(([text, bad]) => chip(box, text, bad));
+  $("dUnderstand").textContent = t.understand || ""; $("dCheck").textContent = t.check || ""; $("dExplain").textContent = t.explain || "";
+  (t.log || []).forEach(([time, text, bad]) => $("steps").append(el("li", {}, el("span", { class: "t" }, time), el("span", { class: bad ? "bad" : "" }, text))));
+  $("trace").open = false; show("skel", false);
+  render(e.result, true);
+  renderHistory();
+}
+$("clearHistory").onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) {} state.viewing = null; renderHistory(); };
+$("sideNew").onclick = () => goHome();
+
+// ---- requests -------------------------------------------------------------------------------------------------
+function resetRun(bubbleText, cap) {
+  Object.assign(state, { explain: "", pending: null, t0: performance.now(), result: null, look: null, fallback: false, answered: false,
+                         rejectedAnswer: null, phase: "working", counts: { search: 0, read: 0, rejected: 0 } });
+  $("steps").replaceChildren(); $("runId").textContent = "";
+  for (const id of ["dSearch", "dCompare"]) $(id).replaceChildren();
+  for (const id of ["dCheck", "dExplain"]) $(id).textContent = "";
+  $("dUnderstand").textContent = cap ? `${L().budget} $${cap}` : L().noBudget;
+  notice("streamError"); notice("topNotice"); notice("qNotice");
+  document.querySelectorAll("#stepper .step").forEach(n => n.classList.remove("done", "active", "fail"));
+  $("trace").open = true; setTitle("working");
+  $("bubble").replaceChildren(bubbleText, cap ? el("span", { class: "meta" }, `${L().budget} $${cap}`) : "");
+  show("home", false); show("thread", true); show("newChat", true); show("skel", true);
+  for (const id of ["question", "result", "why", "summary", "refine", "sourcesCard", "lead", "stats"]) show(id, false);
   $("products").replaceChildren(); $("resultStatus").replaceChildren(); $("sources").replaceChildren();
+  scrollTo({ top: 0 });
 }
 
 async function run(path, body) {
@@ -715,30 +1059,39 @@ async function run(path, body) {
   try {
     await streamCall(path, body, handle);
   } catch (e) {
-    notice("streamError", "err", e.message, () => { resetRun(); run(path, body); });
+    show("skel", false); setTitle("fail");
+    notice("streamError", "err", e.message, () => { run(path, body); });
   } finally {
     setBusy(false);
   }
 }
 
 const money = (s) => /^\d+(\.\d{1,2})?$/.test(s);
+function syncSend() { $("send").disabled = state.busy || !$("msg").value.trim(); }
 
 function ask(message, cap) {
   message = (message || "").trim();
-  if (!message) { notice("topNotice", "warn", "Tell us what you're shopping for first."); $("msg").focus(); return; }
+  if (!message) { notice("topNotice", "warn", L().needMsg); $("msg").focus(); return; }
   cap = (cap || "").trim();
-  if (cap && !money(cap)) { notice("topNotice", "warn", "Enter the budget as a number, like 100 or 99.50."); $("cap").focus(); return; }
+  if (cap && !money(cap)) { notice("topNotice", "warn", L().capNum); $("cap").focus(); return; }
   const constraints = cap ? { purchase_cap: cap, currency: $("cur").value } : {};
   state.original = { message, constraints };
-  resetRun();
+  resetRun(message, cap);
+  Object.assign(state, { viewSession: session, viewing: null }); renderHistory();
   run("/api/ask", { message, constraints, explain: $("explain").checked });
 }
 
+function goHome() {
+  if (state.busy && state.runId) cancel();
+  state.result = null; state.viewing = null; renderHistory();
+  show("thread", false); show("home", true); show("newChat", false);
+  $("msg").value = ""; syncSend(); $("msg").focus(); scrollTo({ top: 0 });
+}
+$("brand").onclick = $("newChat").onclick = goHome;
+
+$("msg").addEventListener("input", () => { syncSend(); const m = $("msg"); m.style.height = "auto"; m.style.height = m.scrollHeight + "px"; });
+$("msg").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); if (!state.busy) ask($("msg").value, $("cap").value); } });
 $("searchForm").onsubmit = (e) => { e.preventDefault(); if (!state.busy) ask($("msg").value, $("cap").value); };
-document.querySelectorAll("[data-q]").forEach(b => b.addEventListener("click", () => {
-  $("msg").value = b.dataset.q; $("cap").value = b.dataset.b || "";
-  if (!state.busy) ask(b.dataset.q, b.dataset.b);
-}));
 
 $("qForm").onsubmit = (e) => {
   e.preventDefault();
@@ -746,43 +1099,46 @@ $("qForm").onsubmit = (e) => {
   const answer = {};
   for (const f of q.required_fields) {
     const v = $("q_" + f).value.trim();
-    if (!v) { notice("streamError", "warn", "Please fill in: " + fieldLabel(f)); return; }
-    if (AMOUNT_FIELDS.has(f) && !money(v)) { notice("streamError", "warn", fieldLabel(f) + " should be a number, like 100."); return; }
+    if (!v) { notice("qNotice", "warn", L().fill(fieldLabel(f))); return; }
+    if (AMOUNT_FIELDS.has(f) && !money(v)) { notice("qNotice", "warn", L().number(fieldLabel(f))); return; }
     answer[f] = v;
   }
-  notice("streamError");
+  notice("qNotice");
   state.answered = true;
   if (state.original) state.original.constraints = { ...state.original.constraints, ...answer };
-  show("question", false);
+  show("question", false); show("skel", true); setTitle("working"); $("trace").open = true;
   run("/api/answer", { run_id: state.runId, question_id: q.question_id, answer });
 };
 
-document.querySelectorAll("#refineChips .chip").forEach(c => c.addEventListener("click", () => {
-  $("revMsg").value = c.textContent; $("revMsg").focus();
-}));
+$("revMsg").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.shiftKey && !e.isComposing) { e.preventDefault(); $("revForm").requestSubmit(); } });
 $("revForm").onsubmit = (e) => {
   e.preventDefault();
   const rev = $("revMsg").value.trim();
-  if (!rev || !state.original || state.busy) { notice("streamError", "warn", "Say what should change."); return; }
+  if (!rev || !state.original || state.busy) { notice("streamError", "warn", L().sayChange); return; }
   const cap = $("revCap").value.trim();
-  if (cap && !money(cap)) { notice("streamError", "warn", "Enter the new budget as a number."); return; }
+  if (cap && !money(cap)) { notice("streamError", "warn", L().revNum); return; }
   const constraints = cap ? { ...state.original.constraints, purchase_cap: cap, currency: state.original.constraints.currency || "USD" }
                           : state.original.constraints;
-  const parent = state.runId;
+  // The backend only links a revision to a run of this browser session; a run reopened from an older session's
+  // history is revised as a fresh request.
+  const parent = state.viewSession === session ? state.runId : null;
   const message = state.original.message + "\nChange: " + rev;
   state.original = { message, constraints };
   $("revMsg").value = ""; $("revCap").value = "";
-  resetRun();
-  run("/api/ask", { message, constraints, revises: parent, explain: $("explain").checked });
+  resetRun(message, constraints.purchase_cap || "");
+  Object.assign(state, { viewSession: session, viewing: null }); renderHistory();
+  run("/api/ask", { message, constraints, ...(parent ? { revises: parent } : {}), explain: $("explain").checked });
 };
 
-$("cancel").onclick = async () => {
+async function cancel() {
   if (!state.runId) return;
   await fetch("/api/cancel", { method: "POST", headers: { "Content-Type": "application/json" },
                                body: JSON.stringify({ session_id: session, run_id: state.runId }) });
-  logStep("Stop requested");
-};
+  logStep(L().stopReq);
+}
+$("cancel").onclick = (e) => { e.preventDefault(); e.stopPropagation(); cancel(); };
 
+applyLang(); syncSend();
 health(); setInterval(health, 30000);
 </script>
 </body>
