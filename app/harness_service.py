@@ -18,7 +18,8 @@ A client that disconnects cancels its run.
 
 The harness (agent/) is used as is: AgentRuntime, the real knowledge tools, the budget validator and the
 evidence resolver for the streamed explanation. Policy and model settings come from configs/agent.yaml
-(profile tacc-fast by default: thinking off). Checkpoints are in memory: a question left unanswered when this
+(profile tacc-demo by default: thinking off, 16 model calls so one request can return several products;
+the evaluation keeps tacc-fast with 8). Checkpoints are in memory: a question left unanswered when this
 job ends cannot be resumed by the next job (the SQLite store of PR #13 is not verified on TACC yet).
 
   python -m app.harness_service --selftest          # local: scripted model, real seed snapshot, real HTTP
@@ -443,7 +444,7 @@ def main() -> int:
     ap.add_argument("--selftest", action="store_true", help="scripted model, seed snapshot, real HTTP (no TACC)")
     ap.add_argument("--config", type=Path, default=ROOT / "configs/knowledge.json")
     ap.add_argument("--agent-config", type=Path, default=ROOT / "configs/agent.yaml")
-    ap.add_argument("--profile", default="tacc-fast")
+    ap.add_argument("--profile", default="tacc-demo")
     ap.add_argument("--port", type=int, default=PORT)
     ap.add_argument("--explain", action="store_true", help="explain verified plans by default (per request: explain)")
     ap.add_argument("--deadline-s", type=float, default=0, help="stop accepting and exit after this many seconds")

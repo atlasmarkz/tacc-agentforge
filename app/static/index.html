@@ -194,6 +194,18 @@ ol.logl .bad { color: var(--bad); }
 .btn-accent:hover { background: var(--accent-2); }
 .btn-line { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); background: transparent; border-radius: 999px; padding: 9px 16px; text-decoration: none; }
 .btn-line:hover { background: var(--paper); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(196px, 1fr)); gap: 14px; margin-bottom: 14px; }
+.pcard { display: flex; flex-direction: column; background: var(--card); border: 1px solid var(--line); border-radius: 22px; box-shadow: var(--shadow); padding: 14px; animation: rise .45s ease both; }
+.pcard .pic { margin-bottom: 12px; }
+.pcard .seller { flex-wrap: wrap; column-gap: 7px; row-gap: 0; line-height: 1.35; }
+.pcard .seller .seen { flex-basis: 100%; }
+.pcard h2 { font-size: 16px; line-height: 1.35; margin: 6px 0 4px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.pcard .price { margin: 6px 0 8px; }
+.pcard .price .now { font-size: 26px; }
+.pcard .facts { margin-bottom: 12px; }
+.pcard .actions { margin-top: auto; }
+.pcard .btn-accent { padding: 8px 14px; font-size: 14px; }
+.receipt .ln.item span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 190px; }
 .mini { display: grid; grid-template-columns: 76px 1fr auto; gap: 14px; align-items: center; background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 10px 14px 10px 10px; margin-bottom: 10px; }
 .mini .pic { border-radius: 12px; }
 .mini h2 { font-size: 15px; margin: 0; font-weight: 500; }
@@ -385,9 +397,12 @@ const I18N = {
     items: "Items", shipping: "Shipping", taxL: "Tax", notIncl: "not included", free: "Free", total: "Total", totalPre: "Total before tax",
     budgetOf: (v) => `Your budget ${v}`, leftOf: (v) => ["left ", v],
     checked: "Checked: every number and source above comes from the budget-checked plan and its evidence.",
-    fallbackNote: "Summary written from the budget-checked plan (the model's draft quoted figures we could not verify).",
+    fallbackNote: "The model's draft quoted figures we could not verify, so this shows the checked facts instead.",
+    fallbackWhy: "It matches what you asked for, its price and shipping come from the shop listing, and it passed the exact budget check.",
     draft: "Writing… numbers and sources are checked when it finishes.",
     lead: (what, from, total, pre, ship, left) => `We picked <b>${what}</b>${from}. It comes to <b>${total}</b>${pre}${ship}, leaving <b>${left}</b> of your budget.`,
+    leadMulti: (n, total, pre, left) => `We put together <b>${n} items</b> for you. Together they come to <b>${total}</b>${pre}, leaving <b>${left}</b> of your budget.`,
+    histItems: (n) => `${n} items`,
     from: (s) => ` from ${s}`, pre: " before tax", withShip: (v) => `, including ${v} shipping`, freeShip: " with free shipping",
     thisOffer: "this offer", source: "Source", noLink: "No link", stats: ["Model calls", "Catalog lookups", "Compute"],
     tryAgain: "Try again", newQ: "Ask something else", answerRejected: "We couldn't use that answer: ",
@@ -428,9 +443,12 @@ const I18N = {
     items: "商品", shipping: "运费", taxL: "税费", notIncl: "未计入", free: "免费", total: "合计", totalPre: "合计（不含税）",
     budgetOf: (v) => `你的预算 ${v}`, leftOf: (v) => ["还剩 ", v],
     checked: "已核对：上面的每个数字和来源都来自通过预算校验的方案及其证据。",
-    fallbackNote: "这段总结根据通过校验的方案生成（模型草稿里有无法核实的数字）。",
+    fallbackNote: "模型草稿里有无法核实的数字，这里改为展示已核对的信息。",
+    fallbackWhy: "它符合你的需求，价格和运费来自商家页面，并通过了精确的预算核对。",
     draft: "正在撰写…完成后会核对其中的数字和来源。",
     lead: (what, from, total, pre, ship, left) => `推荐 <b>${what}</b>${from}。合计 <b>${total}</b>${pre}${ship}，预算还剩 <b>${left}</b>。`,
+    leadMulti: (n, total, pre, left) => `为你挑了 <b>${n} 件商品</b>，合计 <b>${total}</b>${pre}，预算还剩 <b>${left}</b>。`,
+    histItems: (n) => `${n} 件`,
     from: (s) => `（${s}）`, pre: "（不含税）", withShip: (v) => `，含运费 ${v}`, freeShip: "，包邮",
     thisOffer: "这款商品", source: "来源", noLink: "无链接", stats: ["模型调用", "目录查询", "计算用时"],
     tryAgain: "重试", newQ: "换个问题", answerRejected: "这个回答没法用：",
@@ -769,13 +787,14 @@ function render(r, again) {
     $("products").replaceChildren();
   } else {
     const p = r.verified_plan;
-    $("products").replaceChildren(...p.items.map((it, idx) => idx === 0 ? heroCard(it, p.currency) : miniCard(it, p.currency)));
+    $("products").replaceChildren(p.items.length === 1 ? heroCard(p.items[0], p.currency)
+      : el("div", { class: "grid" }, ...p.items.map((it, idx) => gridCard(it, idx))));
     if (r.explanation) {
       show("why", true);
       state.fallback = !!r.explanation.fallback;
       $("whyText").classList.remove("caret");
       // The harness's own fallback template is not in English; build the summary from the checked plan instead.
-      if (state.fallback) $("whyText").textContent = planSummaryText(p); else renderExplanation(r.explanation.text);
+      if (state.fallback) fallbackWhy(state.look); else renderExplanation(r.explanation.text);
       $("whyNote").replaceChildren(el("span", {}, "✓"), el("span", {}, state.fallback ? L().fallbackNote : L().checked));
     } else show("why", false);
     $("cols").style.gridTemplateColumns = r.explanation ? "" : "1fr";
@@ -836,10 +855,24 @@ function renderExplanation(text) {
     : Array.isArray(b) ? "<ul>" + b.map((x) => "<li>" + inline(x) + "</li>").join("") + "</ul>"
     : /^(note|注意|说明)\s*[:：]/i.test(b) ? `<p class="mnote">${inline(b.replace(/^(note|注意|说明)\s*[:：]\s*/i, ""))}</p>` : "<p>" + inline(b) + "</p>").join("");
 }
+// When the model's draft is rejected, show what was checked instead: short product facts from the plan's own
+// evidence (e.g. "Connectivity: Wireless, Bluetooth"), with the plain reason underneath.
+function fallbackWhy(look) {
+  const box = $("whyText"), facts = [];
+  for (const e of (look && look.evidence) || [])
+    if (e.kind === "attribute" && e.text && e.text.length <= 70 && !facts.includes(e.text)) facts.push(e.text);
+  box.replaceChildren(
+    facts.length ? el("div", { class: "feats" }, ...facts.slice(0, 6).map((f) => el("span", { class: "feat" }, "✓ " + f))) : "",
+    el("p", {}, L().fallbackWhy));
+}
 const shortTitle = (t) => !t || t.length <= 64 ? t : t.slice(0, Math.max(t.lastIndexOf(" ", 62), 40)).replace(/[\s,\-–]+$/, "") + "…";
 function planSummaryText(p) { const d = document.createElement("div"); d.innerHTML = leadHtml(p); return d.textContent; }
 function leadHtml(p) {
   const T = L(), info = offerInfo(p), it = p.items[0];
+  if (p.items.length > 1) {
+    const n = p.items.reduce((s, i) => s + i.quantity, 0);
+    return T.leadMulti(n, fmt(p.total_cost, p.currency), "tax" in (p.cost_breakdown || {}) ? "" : T.pre, fmt(p.remaining_funds, p.currency));
+  }
   const what = esc((it.quantity > 1 ? it.quantity + " × " : "") + (shortTitle(info.title) || T.thisOffer)) + (p.items.length > 1 ? " +" + (p.items.length - 1) : "");
   const cb = p.cost_breakdown || {};
   const ship = "shipping" in cb ? (Number(cb.shipping) === 0 ? T.freeShip : T.withShip(fmt(cb.shipping, p.currency))) : "";
@@ -856,6 +889,15 @@ function heroCard(it, cur) {
       el("div", { class: "price" }, el("span", { class: "now" }), el("span", { class: "okbadge" }, "✓ " + L().within)),
       el("div", { class: "facts" }, it.quantity > 1 ? el("span", { class: "fact" }, L().qty(it.quantity)) : ""),
       el("div", { class: "actions" })));
+}
+function gridCard(it, idx) {
+  return el("article", { class: "pcard", "data-offer": it.offer_id, style: `animation-delay:${idx * 90}ms` },
+    el("div", { class: "pic" }, el("span", { class: "tag" }, String(idx + 1)), el("span", { html: ICONS.bag })),
+    el("div", { class: "seller" }, el("span", { class: "seen" }, L().loading)),
+    el("h2", { class: "ptitle" }, "…"),
+    el("div", { class: "price" }, el("span", { class: "now" })),
+    el("div", { class: "facts" }),
+    el("div", { class: "actions" }));
 }
 function miniCard(it, cur) {
   return el("article", { class: "mini", "data-offer": it.offer_id },
@@ -924,7 +966,7 @@ function fillLookup(plan, r) {
     const sellerBox = node.querySelector(".seller");
     const fav = url ? favicon(url) : null;
     sellerBox.replaceChildren(...(fav ? [el("img", { src: fav, alt: "" })] : []), el("span", {}, seller),
-      o.observed_at ? el("span", { class: "seen" }, "· " + T.seenOn(day(o.observed_at))) : "");
+      o.observed_at ? el("span", { class: "seen" }, (node.classList.contains("pcard") ? "" : "· ") + T.seenOn(day(o.observed_at))) : "");
     const price = fmt(o.price_minor / 100, o.currency);
     node.querySelector(".now").textContent = price;
     const facts = node.querySelector(".facts");
@@ -938,11 +980,22 @@ function fillLookup(plan, r) {
       qty && qty.quantity > 1 ? el("span", { class: "fact" }, T.qty(qty.quantity)) : "");
     const actions = node.querySelector(".actions");
     if (actions) actions.replaceChildren(
-      url ? el("a", { class: "btn-accent", href: url, target: "_blank", rel: "noopener noreferrer" }, (seller ? T.view(seller) : T.viewShop) + " ↗") : "",
+      url ? el("a", { class: "btn-accent", href: url, target: "_blank", rel: "noopener noreferrer" },
+              (seller && !node.classList.contains("pcard") ? T.view(seller) : T.viewShop) + " ↗") : "",
       el("a", { class: "btn-line", href: "#sourcesAnchor" }, T.seeSources));
   }
+  if (plan.items.length > 1) {                    // a set of products: list each one in the receipt
+    const t = $("sumTable");
+    t.querySelectorAll(".ln.item").forEach((n) => n.remove());
+    t.querySelectorAll(".ln:not(.item)").forEach((n) => { if (n.firstChild && n.firstChild.textContent === T.items) n.remove(); });   // the lines below replace the subtotal
+    t.prepend(...plan.items.map((it) => {
+      const o = r.offers.find((x) => x.offer_id === it.offer_id);
+      return o ? el("div", { class: "ln item" }, el("span", { title: o.store_title || "" }, (it.quantity > 1 ? it.quantity + " × " : "") + (shortTitle(o.store_title) || o.offer_id)),
+                    el("span", {}, fmt(o.price_minor * it.quantity / 100, o.currency))) : "";
+    }));
+  }
   renderLead(plan);
-  if (state.fallback) $("whyText").textContent = planSummaryText(plan);
+  if (state.fallback) fallbackWhy(r);
   const box = $("sources"); box.replaceChildren();
   r.evidence.forEach((e, i) => {
     const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
@@ -994,7 +1047,9 @@ function renderHistory() {
     const r = e.result || {}, p = r.verified_plan;
     const photo = p && e.look && e.look.photos && e.look.offers ? (() => { const o = e.look.offers.find((x) => x.offer_id === p.items[0].offer_id); return o && e.look.photos[o.variant_id]; })() : null;
     const pic = el("span", { class: "hp" }, photo && /^https?:\/\//.test(photo) ? el("img", { src: photo, alt: "", referrerpolicy: "no-referrer", loading: "lazy" }) : el("span", { html: ICONS.bag }));
-    const meta = p ? el("span", { class: "hm" }, el("span", { class: "okc" }, "✓ "), fmt(p.total_cost, p.currency) + " · " + T.histLeft(fmt(p.remaining_funds, p.currency)))
+    const meta = p ? el("span", { class: "hm" }, el("span", { class: "okc" }, "✓ "),
+                        (p.items.length > 1 ? T.histItems(p.items.reduce((s, i) => s + i.quantity, 0)) + " · " : "") +
+                        fmt(p.total_cost, p.currency) + " · " + T.histLeft(fmt(p.remaining_funds, p.currency)))
                    : el("span", { class: "hm" }, STATUS[LANG][r.status] || T.histStopped);
     const b = el("button", { class: "hitem" + (state.viewing === e.id ? " on" : ""), type: "button", title: e.message },
       pic, el("span", {}, el("div", { class: "ht" }, e.message.split("\nChange: ").pop()), meta));
