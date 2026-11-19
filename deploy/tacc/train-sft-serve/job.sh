@@ -19,5 +19,30 @@ test -s args.txt || { echo "args.txt needs: --adapter <directory>" >&2; exit 2; 
 read -r -a ARGS <<< "$(cat args.txt)"
 OUT="$TACC_USERDIR/tacc-agentforge-results/sft-serve-$SLURM_JOB_ID"
 hostname
+# GPU preflight, the same as deploy/tacc/service/qwen-service/job.sh.
+# On the 10-0-*-11 nodes Slurm sets CUDA_VISIBLE_DEVICES=2,3, but the job sees only its own two GPUs, numbered
+# 0 and 1, so vLLM fails with NVMLError_InvalidArgument (jobs 28936, 28955; 29909 and 29910 during the README
+# check). Renumber to what the job can see when the allocated IDs are out of range.
+if [ -n "${CUDA_VISIBLE_DEVICES:-}" ] && command -v nvidia-smi > /dev/null; then
+    visible=$(nvidia-smi -L | grep -c '^GPU ')
+    IFS=, read -r -a allocated <<< "$CUDA_VISIBLE_DEVICES"
+    for id in "${allocated[@]}"; do
+        if [[ "$id" =~ ^[0-9]+$ ]] && [ "$id" -ge "$visible" ] && [ "${#allocated[@]}" -le "$visible" ]; then
+            CUDA_VISIBLE_DEVICES=$(seq -s, 0 $((${#allocated[@]} - 1)))
+            echo "CUDA_VISIBLE_DEVICES ${allocated[*]} is outside the $visible visible GPUs; using $CUDA_VISIBLE_DEVICES"
+            export CUDA_VISIBLE_DEVICES
+            break
+        fi
+    done
+fi
+# Processes outside Slurm sometimes hold the allocated GPUs; vLLM would then fail with out-of-memory errors for
+# every variant. Stop at once with the reason instead (resubmit; Slurm usually picks another node).
+if command -v nvidia-smi > /dev/null; then
+    busy=$(nvidia-smi --query-gpu=index,memory.used --format=csv,noheader,nounits | awk -F', *' '$2 > 2048 {printf "%s:%sMiB ", $1, $2}')
+    if [ -n "$busy" ]; then
+        echo "GPUs already in use by processes outside this job: $busy- not starting vLLM on $(hostname); resubmit"
+        exit 3
+    fi
+fi
 qwen-python -u serve_check.py --out "$OUT" "${ARGS[@]}"
 echo "RESULTS_DIR=$OUT"

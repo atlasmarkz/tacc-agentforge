@@ -67,7 +67,13 @@ logger = logging.getLogger(__name__)
 
 
 class CancelToken:
-    """Thread-safe cancellation: closes the connection currently in use and wakes any back-off sleep."""
+    """Thread-safe cancellation: shuts the connection in use down and wakes any back-off sleep.
+
+    It only shuts the socket down; the request's own thread closes it. Closing from this thread freed the file
+    descriptor while the reader was between select() and recv(); a new connection could then get the same
+    number and the reader blocked on that unrelated socket until its timeout (a 20 s hang seen in
+    test_stream_cancel_mid_generation, about 1 in 12 runs under load). shutdown() makes the reader see EOF at
+    once, and the server still sees the client go away and aborts the generation."""
 
     def __init__(self) -> None:
         self._event = threading.Event()
@@ -83,20 +89,32 @@ class CancelToken:
         with self._lock:
             conn = self._conn
         if conn is not None:
-            _close_quietly(conn)
+            _shutdown_quietly(conn)
 
     def attach(self, conn: http.client.HTTPConnection | None) -> None:
         with self._lock:
             self._conn = conn
         if conn is not None and self._event.is_set():
-            _close_quietly(conn)
+            _shutdown_quietly(conn)
 
     def wait(self, seconds: float) -> bool:
         """Sleep up to `seconds`; return True if cancelled meanwhile."""
         return self._event.wait(max(0.0, seconds))
 
 
+def _shutdown_quietly(conn: http.client.HTTPConnection) -> None:
+    """Wake any reader of `conn` with EOF without freeing its file descriptor (safe from another thread)."""
+    try:
+        sock = conn.sock
+        if sock is not None:
+            import socket
+            sock.shutdown(socket.SHUT_RDWR)
+    except Exception:
+        pass
+
+
 def _close_quietly(conn: http.client.HTTPConnection) -> None:
+    """Shut down and close; only the thread that owns the request may call this."""
     try:
         sock = conn.sock
         if sock is not None:

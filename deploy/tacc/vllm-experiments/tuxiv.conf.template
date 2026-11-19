@@ -10,6 +10,7 @@ job:
   name: __JOBNAME__
   general:
     - partition=tacc
+    - exclude=10-0-1-10,10-0-1-11
     - nodes=1
     - ntasks=1
     - cpus-per-task=8
