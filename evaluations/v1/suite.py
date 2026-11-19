@@ -52,8 +52,20 @@ def price_base(index, split):
     return 10 if split == 'dev' else 11 + (index // 4) % 2
 
 
+def amounts(index, split):
+    """Budget amounts written into the request. Dev keeps 80 / 30 / 50 (unchanged); heldout uses its own, so
+    that request texts differ too, not only catalog prices (PR #31 review: dialogue, ledger, basket and
+    uncertainty requests do not mention prices, so heldout-02/06 and others still read the same). Every heldout
+    amount is at least as generous as dev's, so no feasible case becomes infeasible."""
+    if split == 'dev':
+        return {'cap': 80, 'revised_cap': 30, 'spent': 50}
+    variant = (index // 4) % 2
+    return {'cap': 85 + 5 * variant, 'revised_cap': 35 + 5 * variant, 'spent': 45 - 5 * variant}
+
+
 def make_case(index, category, kind, split='heldout'):
     base = price_base(index, split)
+    money = amounts(index, split)
     lang = 'zh' if index % 2 == 0 else 'en'
     key, val = ATTRS[category]
     cid = f'v1-{split}-{index:02d}'
@@ -86,7 +98,7 @@ def make_case(index, category, kind, split='heldout'):
     if clarify:
         constraints = {'currency': 'USD'}
     else:
-        constraints = {'currency': 'USD', 'purchase_cap': '80.00'}
+        constraints = {'currency': 'USD', 'purchase_cap': f"{money['cap']}.00"}
         if kind == 'single':
             # Offer 1 is the cheapest that meets the requirement: base + 5, shipping 2.00, tax 1.00.
             boundary = f'{base + 7}.00' if basis == 'pre_tax' else f'{base + 8}.00'
@@ -99,7 +111,7 @@ def make_case(index, category, kind, split='heldout'):
             elif index % 4 == 2:
                 constraints['purchase_cap'] = boundary
         if kind == 'ledger':
-            constraints.update(periodic_budget='100.00', spent='50.00', reserve='20.00')
+            constraints.update(periodic_budget='100.00', spent=f"{money['spent']}.00", reserve='20.00')
             if index % 2:
                 constraints['purchase_cap'] = '20.00'
     quantity = 2 if kind == 'basket' and index % 2 else 1
@@ -116,13 +128,14 @@ def make_case(index, category, kind, split='heldout'):
         if index % 2:
             initial = {k: v for k, v in constraints.items() if k != 'purchase_cap'}
             message = f'Choose {detail}; ask me for my purchase cap.' if lang == 'en' else f'推荐 {detail}，请先询问购买预算。'
-            turns = [{'trigger_fields': ['purchase_cap'], 'answer': {'purchase_cap': '80.00'}}]
+            turns = [{'trigger_fields': ['purchase_cap'], 'answer': {'purchase_cap': f"{money['cap']}.00"}}]
         else:
             initial = constraints.copy()
-            message = f'请推荐 {detail}，预算80美元。' if lang == 'zh' else f'Choose {detail}, budget 80 USD.'
-            turns = [{'revision': '预算改成30美元，保留其余要求。' if lang == 'zh' else 'Change the cap to 30 USD; keep other requirements.',
-                      'answer': {'purchase_cap': '30.00'}}]
-            constraints['purchase_cap'] = '30.00'
+            cap, revised = money['cap'], money['revised_cap']
+            message = f'请推荐 {detail}，预算{cap}美元。' if lang == 'zh' else f'Choose {detail}, budget {cap} USD.'
+            turns = [{'revision': f'预算改成{revised}美元，保留其余要求。' if lang == 'zh' else f'Change the cap to {revised} USD; keep other requirements.',
+                      'answer': {'purchase_cap': f'{revised}.00'}}]
+            constraints['purchase_cap'] = f'{revised}.00'
     else:
         initial = constraints.copy()
     case = {'schema_version': 1, 'case_id': cid, 'split': split, 'category': category, 'task_type': kind,
@@ -146,7 +159,7 @@ def build(out, fifth=False):
     out.mkdir(parents=True, exist_ok=True)
     (out / 'cases.jsonl').write_text(''.join(json.dumps(r, ensure_ascii=False) + '\n' for r in rows), encoding='utf-8')
     dump(out / 'catalogs.json', catalogs)
-    # revision 2 (2026-11-19): heldout prices and caps use their own base, so no case repeats another.
+    # revision 2 (2026-11-19): heldout prices, caps and budget amounts are its own, so no case repeats another.
     dump(out / 'manifest.json', {'version': 1, 'revision': 2, 'synthetic': True, 'status': 'complete' if fifth else 'awaiting_post_freeze_category',
          'dev': 10, 'heldout': 40 if fifth else 32, 'pending': 0 if fifth else 8,
          'hashes': {name: digest(out / name) for name in ('cases.jsonl', 'catalogs.json')}})

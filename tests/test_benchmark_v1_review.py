@@ -27,9 +27,11 @@ def _content(case, catalog):
 @pytest.mark.parametrize("fifth", [False, True])
 def test_no_case_repeats_another(tmp_path, fifth):
     rows, catalogs = _rows(tmp_path, fifth)
-    seen = Counter(_content(r, catalogs[r["catalog_id"]]) for r in rows)
     assert len(rows) == (50 if fifth else 42)
-    assert max(seen.values()) == 1
+    # Neither the whole case nor the request alone may repeat: dialogue, ledger, basket and uncertainty requests
+    # do not mention prices, so different catalogs alone are not enough (PR #31 review).
+    assert max(Counter(_content(r, catalogs[r["catalog_id"]]) for r in rows).values()) == 1
+    assert max(Counter(_content(r, None) for r in rows).values()) == 1
 
 
 def test_committed_data_is_what_the_generator_builds(tmp_path):
