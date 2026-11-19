@@ -272,6 +272,7 @@
     <section class="card ask hidden" id="question">
       <h2>One quick question</h2>
       <p class="qtext" id="qText"></p>
+      <div id="qNotice"></div>
       <form id="qForm" autocomplete="off">
         <div class="fields" id="qFields"></div>
         <div class="row"><button class="btn primary" id="qSend" type="submit">Continue</button></div>
@@ -341,7 +342,13 @@ const session = (() => {
 })();
 
 const FIELD_LABELS = { purchase_cap: "Budget", currency: "Currency", periodic_budget: "Budget for the period",
-                       spending: "Already spent this period", reserve: "Amount to keep aside" };
+                       spending: "Already spent this period", reserve: "Amount to keep aside", budget_basis: "Tax" };
+// Only these are money amounts; the model may also ask free-form fields (laptop_wattage, simultaneous_use, ...).
+const AMOUNT_FIELDS = new Set(["purchase_cap", "periodic_budget", "spending", "reserve"]);
+const fieldLabel = (f) => FIELD_LABELS[f] || (f.charAt(0).toUpperCase() + f.slice(1)).replace(/_/g, " ");
+// Answer checks in the harness (agent/answers.py); a rejected answer comes back as the same question.
+const ANSWER_ISSUES = new Set(["invalid_answer_fields", "empty_answer", "invalid_budget", "invalid_currency",
+                               "invalid_budget_basis", "invalid_answer_type", "conflicting_budget_answer", "answer_too_large"]);
 const TOOL_LABELS = { search_products: "Searching the catalog", retrieve_evidence: "Looking up reviews and details",
                       get_offer_facts: "Reading offer details", resolve_evidence: "Opening sources",
                       describe_filters: "Checking available filters" };
@@ -522,6 +529,12 @@ function handle(event, data) {
 
 function render(r) {
   if (r.status === "waiting_user" && r.pending_question) {
+    // The same question right after an answer means the harness rejected that answer: say why.
+    const last = (r.issues || []).slice(-1)[0];
+    const again = state.answered && state.pending && state.pending.question === r.pending_question.question
+                  && last && ANSWER_ISSUES.has(last.code);
+    notice("qNotice", "warn", again ? "We couldn't use that answer: " + (last.message || last.code) : "");
+    state.answered = false;
     state.pending = r.pending_question;
     stage("understand", "done");
     show("question", true);
@@ -530,8 +543,13 @@ function render(r) {
     for (const f of r.pending_question.required_fields) {
       const input = f === "currency"
         ? el("select", { class: "input", id: "q_" + f }, el("option", {}, "USD"))
-        : el("input", { class: "input", id: "q_" + f, inputmode: "decimal", placeholder: f === "purchase_cap" ? "e.g. 100" : "" });
-      box.append(el("label", { class: "f" }, FIELD_LABELS[f] || f, input));
+        : f === "budget_basis"
+        ? el("select", { class: "input", id: "q_" + f }, el("option", { value: "pre_tax" }, "Before tax"),
+             el("option", { value: "all_in" }, "Including tax"))
+        : AMOUNT_FIELDS.has(f)
+        ? el("input", { class: "input", id: "q_" + f, inputmode: "decimal", placeholder: f === "purchase_cap" ? "e.g. 100" : "" })
+        : el("input", { class: "input", id: "q_" + f, maxlength: "200" });
+      box.append(el("label", { class: "f" }, fieldLabel(f), input));
     }
     const first = box.querySelector("input"); if (first) first.focus();
     logStep("Waiting for your answer");
@@ -728,11 +746,12 @@ $("qForm").onsubmit = (e) => {
   const answer = {};
   for (const f of q.required_fields) {
     const v = $("q_" + f).value.trim();
-    if (!v) { notice("streamError", "warn", "Please fill in: " + (FIELD_LABELS[f] || f)); return; }
-    if (f !== "currency" && !money(v)) { notice("streamError", "warn", (FIELD_LABELS[f] || f) + " should be a number, like 100."); return; }
+    if (!v) { notice("streamError", "warn", "Please fill in: " + fieldLabel(f)); return; }
+    if (AMOUNT_FIELDS.has(f) && !money(v)) { notice("streamError", "warn", fieldLabel(f) + " should be a number, like 100."); return; }
     answer[f] = v;
   }
   notice("streamError");
+  state.answered = true;
   if (state.original) state.original.constraints = { ...state.original.constraints, ...answer };
   show("question", false);
   run("/api/answer", { run_id: state.runId, question_id: q.question_id, answer });
