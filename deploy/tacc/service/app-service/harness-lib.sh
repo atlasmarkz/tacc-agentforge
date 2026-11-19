@@ -18,7 +18,7 @@ harness_install_deps() {
     echo "installing harness dependencies into $HARNESS_LIB"
     # The course vLLM env has no pip, so use the user's own Miniconda pip (Python 3.8) and ask it for
     # Python 3.12 wheels (what qwen-python runs), as the train-env-setup job did.
-    local pip_py=/mnt/home/markzhang/.Miniconda3/bin/python
+    local pip_py="$TACC_USERDIR/../.Miniconda3/bin/python"
     # Miniconda's pip is 20.2.4 (2020): too old for modern wheel tags (manylinux_2_17+). Bootstrap a
     # recent pip (pure Python, still supports Python 3.8) into USERDIR and use that one.
     local newpip="$TACC_USERDIR/pip-new"
