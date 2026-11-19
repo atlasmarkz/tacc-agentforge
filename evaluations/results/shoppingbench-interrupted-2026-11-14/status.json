@@ -1,0 +1,8 @@
+{
+  "status": "interrupted_not_a_clean_model_comparison",
+  "tasks": 250,
+  "api_complete": 46,
+  "api_incomplete": 204,
+  "recovery_rule": "retry only empty API completions; do not select by reward",
+  "source_sha256": "dd8affe0e83940566fbf483b99a295b8c4fb4bd596386e110d9c25d6d56d211c"
+}

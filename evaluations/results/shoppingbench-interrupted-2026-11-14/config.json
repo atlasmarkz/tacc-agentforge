@@ -1,0 +1,18 @@
+{
+  "task": "voucher",
+  "system_prompt_file": "/bench/src/agent/prompt/rollout.md",
+  "synthesize_file": "/bench/data/synthesize_voucher_test.jsonl",
+  "rollout_file": "/outputs/voucher/rollouts.jsonl",
+  "threads": 4,
+  "model_config": {
+    "model": "qwen3.8-27b",
+    "temperature": 0,
+    "max_tokens": 2048,
+    "stream": true,
+    "extra_body": {
+      "chat_template_kwargs": {
+        "enable_thinking": false
+      }
+    }
+  }
+}
