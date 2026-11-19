@@ -158,7 +158,13 @@ ol.logl .bad { color: var(--bad); }
 .ask { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px 22px; margin: 0 0 24px; animation: rise .4s ease both; }
 .ask h2 { font-size: 18px; margin: 0 0 6px; }
 .ask .qtext { margin: 0 0 16px; color: var(--ink-2); font-size: 16px; }
-.fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px 16px; margin-bottom: 16px; }
+.fields { display: flex; flex-direction: column; gap: 18px; margin-bottom: 18px; }
+.fgroup { display: flex; flex-direction: column; gap: 8px; }
+.flabel { font-size: 14px; font-weight: 600; }
+.qchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.qchip { border: 1px solid var(--line); background: var(--paper); border-radius: 999px; padding: 7px 14px; font-size: 14px; transition: background .15s, border-color .15s, color .15s; }
+.qchip:hover { border-color: var(--line-2); background: #fff; }
+.qchip[aria-pressed="true"] { background: var(--ink); border-color: var(--ink); color: var(--paper); }
 .f { display: flex; flex-direction: column; gap: 6px; font-size: 14px; font-weight: 500; }
 .input { border: 1px solid var(--line); background: var(--paper); border-radius: 12px; padding: 10px 12px; outline: 0; font-weight: 400; }
 .input:focus { border-color: var(--line-2); background: #fff; }
@@ -386,6 +392,7 @@ const I18N = {
     working: "Looking for you…", waiting: "Waiting for your answer", done: (s) => `Done in ${s} s`, failed: "Stopped",
     sUnderstand: "Understanding your request", sSearch: "Searching the catalog", sCompare: "Comparing offers",
     sCheck: "Checking the budget", sExplain: "Writing the explanation", log: "Activity log",
+    typeOwn: "Or type your own", yes: "Yes", no: "No", noPref: "No preference",
     noBudget: "no budget yet", askTitle: "One quick question", continue: "Continue",
     budgetQ: "How much would you like to spend? We only recommend offers that fit this budget.",
     whyTitle: "Why this pick", payTitle: "What you'll pay", sourcesTitle: "Sources", refineTitle: "Want to adjust?",
@@ -432,6 +439,7 @@ const I18N = {
                ["keyboard", "A mechanical keyboard for programming", "120", "适合写代码的机械键盘"], ["backpack", "A backpack for commuting", "80", "通勤用的双肩包"]],
     working: "正在帮你找…", waiting: "等你回答", done: (s) => `找好了，用时 ${s} 秒`, failed: "已停止",
     sUnderstand: "理解你的需求", sSearch: "搜索商品目录", sCompare: "比较报价", sCheck: "核对预算", sExplain: "撰写推荐理由", log: "详细记录",
+    typeOwn: "也可以自己输入", yes: "是", no: "否", noPref: "没有特别要求",
     noBudget: "还没给预算", askTitle: "先确认一下", continue: "继续",
     budgetQ: "你打算花多少钱？我们只推荐在这个预算内的商品。",
     whyTitle: "为什么推荐它", payTitle: "费用明细", sourcesTitle: "参考来源", refineTitle: "还想调整？",
@@ -560,7 +568,66 @@ function fmt(amount, cur) {
   const s = isFinite(n) ? n.toFixed(2) : String(amount);
   return (SYM[cur] || "") + s + (SYM[cur] ? "" : " " + (cur || ""));
 }
-const fieldLabel = (f) => L().fields[f] || (f.charAt(0).toUpperCase() + f.slice(1)).replace(/_/g, " ");
+// Field names come from the model (laptop_wattage, item_type, ...): readable in either language.
+const ZH_LABELS = [[/watt|power/, "功率"], [/simultan|together|same_time|at_once/, "是否同时使用"], [/categor|item|product|things?|needs?$|needed/, "需要的商品"],
+                   [/quantit|count|number|how_many/, "数量"], [/prefer/, "偏好"], [/requirement|feature|spec/, "具体要求"], [/brand/, "品牌"],
+                   [/size|dimension/, "尺寸"], [/colou?r/, "颜色"], [/model/, "型号"], [/destination|where|location/, "目的地"],
+                   [/duration|days|length|period/, "时长"], [/use|purpose|activity/, "用途"], [/gender|age|who|for_whom/, "使用者"]];
+const humanize = (f) => (f.charAt(0).toUpperCase() + f.slice(1)).replace(/_/g, " ");
+const fieldLabel = (f) => L().fields[f] || (LANG === "zh" ? (ZH_LABELS.find(([re]) => re.test(f.toLowerCase())) || [])[1] : null) || humanize(f);
+
+// ---- options for a question ------------------------------------------------------------------------------------
+// The harness question is free text, but the model usually lists examples ("e.g. 45W, 65W, 100W" / "如防晒霜、泳衣等").
+// Pull those out as chips; the text box stays, so the user can pick, combine or type their own.
+const SUG_SPLIT = /\s*(?:,|，|、|;|；|\/|\bor\b|\band\b|或者|或|以及|还是)\s*/i;
+const SUG_NOISE = /^(etc\.?|and so on|something else|anything else|others?|other|more|等等?|其他|以及其他|之类|之类的)$/i;
+function examplesFrom(q) {
+  const m = q.match(/[（(]\s*(?:e\.g\.?,?|eg\.?,?|for example:?|such as|如|例如|比如)\s*([^)）]+)[)）]/i)
+         || q.match(/(?:for example|such as|e\.g\.)\s*[:：,]?\s*([^?？。!！]+)/i)
+         || q.match(/(?:例如|比如|包括)\s*[:：]?\s*([^？?。！!）)]+)/);
+  if (!m) return [];
+  const out = [];
+  for (let part of m[1].replace(/(?:等等?|之类的?|etc\.?)\s*$/i, "").split(SUG_SPLIT)) {
+    part = part.trim().replace(/^(a|an|the)\s+/i, "").replace(/[.。]$/, "");
+    if (part && part.length <= 40 && !SUG_NOISE.test(part) && !out.includes(part)) out.push(part);
+  }
+  return out.slice(0, 8);
+}
+function suggestionPlan(question, fields) {
+  const T = L(), ex = examplesFrom(question), plan = {};
+  const yesNo = (f) => /simultan|together|both|same_time|at_once|waterproof|required$|urgent|gift|include/i.test(f);
+  const listy = (f) => /item|categor|product|thing|needs?$|needed|type/i.test(f);
+  const pref = (f) => /prefer|requirement|feature|brand|note|detail|wish/i.test(f);
+  const qty = (f) => /quantit|count|number|how_many/i.test(f);
+  let used = false;
+  for (const f of fields) {
+    if (AMOUNT_FIELDS.has(f) || f === "currency" || f === "budget_basis") continue;
+    if (yesNo(f)) plan[f] = { opts: [T.yes, T.no], multi: false };
+    else if (ex.length && !used && (listy(f) || !fields.some(listy))) { plan[f] = { opts: ex, multi: listy(f) }; used = true; }
+    else if (qty(f)) plan[f] = { opts: ["1", "2", "3"], multi: false };
+    else if (pref(f)) plan[f] = { opts: [T.noPref], multi: false };
+  }
+  return plan;
+}
+const tokens = (v) => v.split(/\s*[,，、]\s*/).map((x) => x.trim()).filter(Boolean);
+function chipsFor(s, input) {
+  const row = el("div", { class: "qchips", role: "group" });
+  const sync = () => {
+    const have = s.multi ? tokens(input.value) : [input.value.trim()];
+    row.querySelectorAll(".qchip").forEach((b) => b.setAttribute("aria-pressed", String(have.includes(b.dataset.v))));
+  };
+  for (const o of s.opts) {
+    const b = el("button", { class: "qchip", type: "button", "data-v": o, "aria-pressed": "false" }, o);
+    b.onclick = () => {
+      if (s.multi) { const t = tokens(input.value), i = t.indexOf(o); if (i >= 0) t.splice(i, 1); else t.push(o); input.value = t.join(", "); }
+      else input.value = input.value.trim() === o ? "" : o;
+      sync(); input.focus();
+    };
+    row.append(b);
+  }
+  input.addEventListener("input", sync); sync();
+  return row;
+}
 const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 const favicon = (u) => { const h = hostOf(u); return h ? "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(h) + "&sz=64" : null; };
 const day = (iso) => { try { return new Date(iso).toLocaleDateString(LANG === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return ""; } };
@@ -747,7 +814,8 @@ function render(r, again) {
     const box = $("qFields"), kept = {};
     box.querySelectorAll("[id^=q_]").forEach((n) => (kept[n.id] = n.value));
     box.replaceChildren();
-    for (const f of r.pending_question.required_fields) {
+    const fields = r.pending_question.required_fields, plan = suggestionPlan(r.pending_question.question, fields);
+    for (const f of fields) {
       const id = "q_" + f;
       const input = f === "currency"
         ? el("select", { class: "input", id }, el("option", {}, "USD"))
@@ -755,9 +823,13 @@ function render(r, again) {
         ? el("select", { class: "input", id }, el("option", { value: "pre_tax" }, L().basis.pre_tax), el("option", { value: "all_in" }, L().basis.all_in))
         : AMOUNT_FIELDS.has(f)
         ? el("input", { class: "input", id, inputmode: "decimal", placeholder: f === "purchase_cap" ? "100" : "" })
-        : el("input", { class: "input", id, maxlength: "200" });
+        : el("input", { class: "input", id, maxlength: "200", placeholder: L().typeOwn });
       if (kept[id]) input.value = kept[id];
-      box.append(el("label", { class: "f" }, fieldLabel(f), input));
+      const group = el("div", { class: "fgroup" }, el("label", { class: "flabel", for: id }, fieldLabel(f)));
+      const s = plan[f];
+      if (s && input.tagName === "INPUT") group.append(chipsFor(s, input));
+      group.append(input);
+      box.append(group);
     }
     if (!again) { const first = box.querySelector("input"); if (first) first.focus(); }
     return;
