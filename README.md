@@ -33,13 +33,16 @@ In the evaluated deployment, the browser talks to a local Python backend (`app/`
 | `knowledge/` | SerpApi collection, SQLite/FTS5 snapshots, retrieval tools ([guide](knowledge/README.md)) |
 | `assets/knowledge/pilot-snapshot.zip` | The frozen catalog snapshot used by every evaluation (`snapshot_5bcd00723fb0b7589cbe50c8`) |
 | `evaluations/` | 42 test cases, independent ground-truth enumerator, scorer, baseline runner, freeze manifest, **raw results** |
+| `evaluations/v1/`, `evaluations/bench.py`, `budget/` | Additional v1 benchmark on synthetic fixtures (not part of C1–C7): 50 cases, independent oracle, six configurations, its own business-side validator ([runbook](evaluations/v1/README.md)) |
 | `inference/` | Model client, serving-experiment runner and report generator, **raw serving results** |
 | `deploy/tacc/` | TACC job definitions: vLLM service with hourly handover, evaluation job, serving experiments, private vLLM build, SFT jobs |
+| `deploy/benchmark/` | Container and helpers for the public ShoppingBench track of the v1 benchmark |
 | `training/` | LoRA SFT pilot on the INT4 checkpoint: data pipeline, trainer, raw results ([report](training/README.md)) |
 | `quantization/` | **Placeholder only, not implemented** (see [status](#project-status-what-is-and-is-not-done)) |
+| `scripts/check_artifact.py` | **One command that runs every stage below that needs no GPU** and prints `SUCCESS`/`FAILED` per stage |
 | `scripts/reproduce_results.py` | One command that recomputes the reported numbers from the committed raw data |
 | `docs/experiments/` | Experiment reports (baseline, private vLLM, LoRA feasibility, data collection) |
-| `tests/`, `agent/tests/` | About 600 automated tests that run offline |
+| `tests/`, `agent/tests/` | About 690 automated tests that run offline |
 
 No model weights, adapters or credentials are in the repository. The base model is the course-provided checkpoint on TACC. The trained LoRA adapter (about 218 MB) stays on the cluster.
 
@@ -64,6 +67,8 @@ All numbers come from runs on TACC. The raw data is committed, and `scripts/repr
 # Getting Started Instructions
 
 Expected time: about **10 minutes**, with no GPU and no TACC account. This part shows that the artifact installs, its tests pass, and the full request path works end to end: page → backend → harness → knowledge base → budget validator. A scripted stand-in replaces the model.
+
+After [Setup](#setup), one command runs every check of this section and Step 1 of the Detailed Instructions, and prints `SUCCESS` or `FAILED` for each stage ([Example 0](#example-0-one-command-check-about-4-minutes)). Examples 1–2 run the same checks one at a time.
 
 ## Prerequisites
 
@@ -92,13 +97,35 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 **Expected:** `doctor` prints a JSON report that starts with `"ready": true` and ends with
 `"valid": true, "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8", "errors": []`.
 
+## Example 0: one-command check (about 4 minutes)
+
+```bash
+.venv/bin/python scripts/check_artifact.py
+```
+
+**Expected:** seven stages, each ending in `SUCCESS`, then the final line `ALL 7 STAGES SUCCEEDED` (exit code 0):
+
+```text
+[1/7] environment          SUCCESS (0 s): Python 3.12.x, dependencies import
+[2/7] catalog snapshot     SUCCESS (1 s): snapshot_5bcd00723fb0b7589cbe50c8 installed and verified (FTS5: True)
+[3/7] automated tests      SUCCESS (85 s): 686 passed, 2 skipped, 14 subtests passed in ...
+[4/7] harness self-test    SUCCESS (1 s): SELFTEST OK (10/10 checks true)
+[5/7] end-to-end request   SUCCESS (3 s): verified plan offer_640a303bc366430cfd53139e: total 16.87 USD, 83.13 left; without a budget the run asks for one
+[6/7] main results         SUCCESS (1 s): ALL MATCH (6 comparisons: C1-C7 recomputed from the committed raw data)
+[7/7] v1 benchmark         SUCCESS (1 s): fixture data verified; preflight READY (a model endpoint is only needed for new runs)
+
+ALL 7 STAGES SUCCEEDED
+```
+
+A failed stage prints the reason and the end of the failing command's output, and the other stages still run. For example, `[1/7] environment FAILED: missing packages [...]` means the Setup install command was not run with this interpreter. Add `--skip-tests` to leave out stage 3.
+
 ## Example 1: automated tests (about 1.5 minutes)
 
 ```bash
 .venv/bin/python -m pytest tests agent/tests -q
 ```
 
-**Expected:** `622 passed, 2 skipped`. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC).
+**Expected:** `686 passed, 2 skipped` and no failures. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC). Without `python-dotenv` (part of the Setup command), six more tests are skipped.
 
 ## Example 2: end-to-end request without a GPU (about 1 minute)
 
@@ -120,7 +147,7 @@ Next, the same path that the browser uses. Start the demo harness (scripted mode
 Open http://127.0.0.1:8765 and ask: *wireless earbuds for commuting, under 100 USD*. Or send the request from a third terminal:
 
 ```bash
-curl -sN http://127.0.0.1:8765/api/ask -H 'Content-Type: application/json' -d '{
+curl -sN --noproxy '*' http://127.0.0.1:8765/api/ask -H 'Content-Type: application/json' -d '{
   "session_id": "s1234567890abcdef",
   "message": "wireless earbuds for commuting, under 100 USD",
   "constraints": {"currency": "USD", "purchase_cap": "100", "budget_basis": "pre_tax"}}'
@@ -134,6 +161,8 @@ curl -sN http://127.0.0.1:8765/api/ask -H 'Content-Type: application/json' -d '{
   "currency": "USD", "total_cost": "16.87", "remaining_funds": "83.13",
   "cost_breakdown": {"items": "9.88", "shipping": "6.99"}}
 ```
+
+`--noproxy '*'` keeps an `HTTP_PROXY` setting from sending the local request elsewhere. Stage 5 of Example 0 sends the same request and checks this result automatically.
 
 Leave out `purchase_cap` and the run instead stops with `"status": "waiting_user"` and a question asking for the budget. In the page, answering it resumes the run. The scripted model follows a fixed script, so this example tests the system around the model, not the model's decisions.
 
@@ -185,7 +214,7 @@ The script does six checks:
 - **C6:** recounts the SFT first-step check from the raw model outputs.
 - **C7:** tallies model calls and end states of the 9 post-freeze replays.
 
-Each result is compared with the committed copy and marked `MATCH` or `DIFFERS`.
+Each result is compared with the committed copy and marked `MATCH` or `DIFFERS`. The script must end with `ALL MATCH`; stage 6 of `scripts/check_artifact.py` runs it and checks this.
 
 **Expected output** (abridged):
 
@@ -321,6 +350,18 @@ Follow [training/README.md](training/README.md) §6. The data step runs offline:
 
 It prints 69 examples from 6 cases, which matches training/README §2. Training (`deploy/tacc/train-sft/`) and serving (`deploy/tacc/train-sft-serve/`) each need a 2-GPU job. Use `tcloud submit` in place of the Windows helper shown there. **Note:** the regenerated file's SHA-256 (`880183e9…`) differs from the `train_sha256` recorded for job 28670 (`5a5475ad…`, in `training/results/sft-pilot-28670/training_meta.json`). The example counts match, but the exact training input of that job cannot be verified byte for byte from this repository.
 
+## Additional: v1 benchmark (not part of C1–C7)
+
+The v1 benchmark is a separate, synthetic-fixture track ([runbook](evaluations/v1/README.md), [design](docs/benchmark-design.md)). Only dev runs exist (10 cases, one or three repeats); the held-out split has not been run, so it supports no claim above. Its fixture data (revision 2) and preflight are checked offline by stage 7 of Example 0:
+
+```bash
+.venv/bin/python -m evaluations.v1.suite verify      # expected: the manifest with "revision": 2
+.venv/bin/python -m evaluations.bench check          # expected: RESULT: READY
+.venv/bin/python -m evaluations.bench report --input evaluations/results/v1-dev-29437   # rewrites REPORT.md; identical to the committed one
+```
+
+A new run needs a model endpoint (`BENCHMARK_BASE_URL` or `BENCHMARK_ADDRESS_FILE`, for example the service of Step 2); see the runbook §2–3.
+
 ---
 
 # Project status: what is and is not done
@@ -336,6 +377,7 @@ It prints 69 examples from 6 cases, which matches training/README §2. Training 
 | SFT | Pilot only (C6); no end-to-end evaluation of the adapter |
 | **Quantization** (`quantization/`, Task 8) | **Not implemented.** The code is a stub. All results use the course's pre-quantized AWQ INT4 model; no precision comparison was run. |
 | Fifth, unseen category; human ratings of explanations; retrieval Recall@5/MRR@5 | Not done. The 602-row relevance pool in `evaluations/relevance_pool.jsonl` is unlabeled. |
+| v1 benchmark (synthetic fixtures, six configurations, ShoppingBench track) | Dev runs and tooling done; held-out split not run; its fifth category (`desk_lamps`) is not released. Not used for C1–C7. |
 | Fix for the model-call limit (issue #21) | Fixed on `main` after the freeze (PR #29, C7) and checked in 9 targeted real-model replays. The frozen system (`cc6059d`) still has this failure mode, and the held-out split was not rerun with the fix. |
 
 ## Known limitations and expected variation
@@ -348,6 +390,7 @@ It prints 69 examples from 6 cases, which matches training/README §2. Training 
 - **Correctness is relative to the frozen snapshot**, not to the real world. All 251 offers have unknown tax, so budgets are compared before tax. Known data errors in the snapshot carry over into the ground truth ([evaluations/README.md](evaluations/README.md) §4).
 - **The validator checks money, not requirements.** It approved three B3v plans even though a required attribute was unknown (baseline report §6).
 - **TACC availability.** The service needs a free 2-GPU node, and a queued successor job leaves a gap of minutes or more. The runner waits and retries instead of failing.
+- **One flaky test was fixed after the frozen commit.** On `main` before this fix, cancelling a streaming model call could hang until its 20 s timeout: the cancelling thread closed the socket, and its file descriptor could be reused while the reading thread was about to call `recv()`. `tests/test_client.py::test_stream_cancel_mid_generation` failed in about 1 of 12 runs under load because of it. Cancellation now only shuts the socket down (`inference/client.py`); 32 parallel stress runs passed. The frozen commit `cc6059d` still has the race, which affects cancellation only, not the scored results.
 - **Documentation language.** Several sub-guides (`evaluations/README.md`, `docs/experiments/baseline.md`, `training/README.md`, the runbook) are written in Chinese. This README contains everything needed to run and reproduce the results.
 
 ## Further reading
