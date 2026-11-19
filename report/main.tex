@@ -366,6 +366,49 @@ This shows that the pipeline works end to end (traces $\rightarrow$ training on 
 the category-name defect can be trained away. It is \textbf{not a quality result}: 10 prompts from the development
 split, first action only, and the adapter memorized a tiny dataset.
 
+\section{Public Cloud Deployment (Extension)}\label{sec:cloud}
+
+The evaluated system above serves one user from a local backend. As an extension, the branch
+\texttt{feat/\allowbreak{}cloud-agent-service} runs the same agent as a public service; it is \emph{not} part of the evaluation
+(C1--C7) and is maintained separately from \texttt{main}. TACC only serves the model; everything else runs on free
+cloud tiers.
+
+\begin{table}[H]
+\centering\small
+\caption{Components of the cloud deployment.}\label{tab:cloud}
+\begin{tabularx}{\linewidth}{@{}l l Y@{}}
+\toprule
+Component & Where & Role \\
+\midrule
+Page & Cloudflare Pages & Static page; a same-origin Pages Function proxies \texttt{/api} with a shared secret and the visitor's IP \\
+Entry & Tailscale Funnel & Public HTTPS address of the VM; outbound connections only, no open ports \\
+Backend, agent & Google Compute Engine (e2-micro) & The backend checks the proxy secret, keeps run ownership in SQLite and limits each visitor IP to 2 streams and 6 new requests per minute (8 in total). The agent keeps SQLite checkpoints on local disk, so a paused run survives restarts \\
+Model tunnel & same VM & Follows the address the vLLM job publishes, reopens the SSH tunnel on a fresh port after each hourly handover and keeps the old one open while its streams finish \\
+Service switch & same VM & One systemd target: starting it submits the vLLM job and keeps the handover chain going; stopping it cancels the jobs, so GPUs are used only while the service is on \\
+Snapshots & Google Cloud Storage & Immutable snapshot archives; the VM downloads one by ID and checks its SHA-256 \\
+Model & TACC & vLLM job as in Section~\ref{sec:system} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\textbf{Larger catalog.} Continuing collection from the published snapshot (all 202 SerpApi searches left in the
+month) gave a 7-category snapshot for the public service: smartwatches, monitors and mice added, 221 products with
+details (from 80), 607 offers, 974 reviews and 9{,}416 evidence records. Evaluation stays on the frozen 4-category
+snapshot, and the three new categories can no longer serve as the reserved unseen category.
+
+\textbf{Checks on the live service (real model, 2026-11-16).} A request through the public page completed in 37\,s
+with a verified plan (\$22.99 of \$100) and a model-written explanation that passed the evidence check; events
+streamed live through the proxy and the tunnel; a run waiting for the budget answer completed after the agent and
+backend were restarted; requests that bypass the proxy were refused. Requests in the new categories completed for a
+smartwatch (\$16.99) and a mouse (\$14.43). A monitor request first failed because the model wrote the comparison
+\texttt{>=} instead of \texttt{gte} and gave up searching; after the tools accepted comparison symbols it completed
+(\$99.00 of \$250). The deployment costs nothing to run (GCP free tier, Cloudflare and Tailscale free plans).
+
+\textbf{Observed problems.} The explanations for the monitor and the mouse fell back to the template, because the
+number check rejected specification numbers from the evidence (e.g.\ ``144\,Hz''). One hourly handover left the model
+unavailable for about 12 minutes: the successor's first vLLM start timed out after 20 minutes, and the keeper only
+resubmits when no job exists. The recommended monitor was a pre-owned offer, which the agent does not distinguish.
+
 \section{Limitations}\label{sec:limits}
 
 \begin{itemize}
@@ -402,7 +445,7 @@ also found that serving-experiment jobs failed on nodes with mismatched GPU IDs;
 \toprule
 Member & Contributions \\
 \midrule
-Hechuan Zhang & Model serving on TACC with automatic recovery, hourly handover and runbook; budget validator; evaluation cases, independent enumerator, scorer and frozen baseline; browser, backend and cluster bridge; serving and speculative-decoding experiments including the vLLM fix; SFT pilot; README, reproduction and artifact check; public cloud deployment (separate branch). \\
+Hechuan Zhang & Model serving on TACC with automatic recovery, hourly handover and runbook; budget validator; evaluation cases, independent enumerator, scorer and frozen baseline; browser, backend and cluster bridge; serving and speculative-decoding experiments including the vLLM fix; SFT pilot; README, reproduction and artifact check; the public cloud deployment and the catalog expansion (Section~\ref{sec:cloud}). \\
 Berlin Chen & Agent runtime (LangGraph loop, tools, policies, checkpoints); convergence and explanation fixes; the post-freeze fix of the call limit (C7). \\
 Jieming Chen & Knowledge base: SerpApi collection, SQLite/FTS5 snapshots, retrieval tools and offline bootstrap; tool error recovery and schema discovery; persistent session memory and bounded context selection; the additional v1 benchmark and ShoppingBench track. \\
 \bottomrule
