@@ -16,11 +16,11 @@ TACC AgentForge is the course project for **Advanced AI Computing and Systems (C
   <img src="docs/images/browser-demo.gif" width="900" alt="Live run with the real model on TACC (about 3x speed): asked what to buy for a trip to Bali with a $200 budget, the agent asks what is needed, then searches the catalog and returns a backpack, earbuds and a power bank with photos, an itemised receipt checked against the budget, and the sources.">
 </p>
 
-*Recorded on TACC with the real model: the agent recommends earbuds at **$22.99 before tax** and shows the **$77.01** left in the budget. Idle waits are shortened.*
+*Recorded on TACC with the real model: asked what to buy for a trip to Bali with a $200 budget, the agent asks what is needed, then recommends a backpack, earbuds and a power bank for **$87.34 before tax** and shows the **$112.66** left in the budget. Idle waits are shortened.*
 
-![Evaluated deployment: browser page and local backend, an SSH tunnel to one TACC GPU job that runs the agent harness, the budget validator, vLLM and the pinned knowledge snapshot; the evaluation runner and the SerpApi data pipeline below](docs/images/evaluated-architecture.png)
+<p align="center"><img src="docs/images/architecture.png" width="900" alt="Evaluated architecture: the browser page and local backend on your computer; an SSH tunnel to one TACC GPU job that runs the agent harness, the budget validator, vLLM and the pinned knowledge snapshot; the evaluation runner and the SerpApi data pipeline below, offline."></p>
 
-*The evaluated deployment. Post-training is a pilot and quantization is not implemented; see [Project status](#project-status-what-is-and-is-not-done). The diagram is generated from `report/figures/architecture.tex`.*
+*The evaluated deployment. Post-training is a pilot and quantization is not implemented; see [Project status](#project-status-what-is-and-is-not-done).*
 
 In the evaluated deployment, the browser talks to a local Python backend (`app/`), which reaches TACC over SSH. One two-GPU TACC job runs vLLM and the agent harness (`agent/`) side by side. The agent queries a pinned SQLite/FTS5 catalog snapshot (`knowledge/`) and only returns plans approved by the budget validator (`agent/budget.py`).
 
