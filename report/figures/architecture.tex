@@ -1,0 +1,36 @@
+% Evaluated deployment of TACC AgentForge (used by report/main.tex and, as a PNG, by README.md).
+\begin{tikzpicture}[
+  font=\small, >=Latex,
+  box/.style={draw, rounded corners=1.5pt, align=center, inner sep=3pt, minimum height=10mm, fill=white,
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
+  lab/.style={font=\footnotesize\itshape, inner sep=1.5pt},
+  flow/.style={->, thick},
+  aux/.style={->, densely dashed}]
+
+% ---- user side (left)
+\node[box, text width=24mm] (page) at (0,0) {\textbf{Browser page}\\\texttt{app/static}};
+\node[box, text width=27mm] (backend) at (0,-2.0) {\textbf{Local backend}\\\texttt{app/backend.py}};
+\draw[flow, <->] (page) -- node[lab, right] {HTTP, event stream} (backend);
+
+% ---- TACC GPU job (right): two columns
+\node[box, text width=46mm] (harness) at (6.6,0) {\textbf{Agent harness}\\\texttt{app/harness\_service.py}\\LangGraph loop: \emph{tool} $\mid$ \emph{ask} $\mid$ \emph{propose}};
+\node[box, text width=46mm] (validator) at (6.6,-2.3) {\textbf{Budget validator} \texttt{agent/budget.py}\\exact minor-unit amounts;\\unknown fees stay unknown};
+\node[box, text width=40mm] (vllm) at (12.3,0) {\textbf{vLLM} (2 GPUs, TP=2)\\Qwen3.8-27B AWQ INT4\\CUDA graphs, prefix cache};
+\node[box, text width=40mm] (kb) at (12.3,-2.3) {\textbf{Knowledge snapshot}\\SQLite + FTS5, 5 read-only tools\\\texttt{snapshot\_5bcd\ldots}};
+\draw[rounded corners=3pt] ($(harness.north west)+(-0.35,0.75)$) rectangle ($(kb.south east)+(0.3,-0.35)$);
+\node[lab, anchor=north west] at ($(harness.north west)+(-0.30,0.70)$) {TACC GPU job (1-hour limit; a successor job takes over every hour)};
+
+\draw[flow] (backend.east) -- node[lab, above, sloped] {SSH tunnel via gateway} (harness.west);
+\draw[flow, <->] (harness) -- node[lab, above] {prompt} node[lab, below] {action} (vllm);
+\draw[flow] (harness) -- node[lab, right] {proposed plan} (validator);
+\draw[flow] ($(harness.east)+(0,-0.35)$) -- node[lab, above, sloped, pos=0.55] {tool calls} ($(kb.north west)+(0.3,0)$);
+\draw[flow] (validator) -- node[lab, above] {offer facts} (kb);
+
+% ---- offline side (bottom): evaluation on the left, data pipeline under the knowledge base
+\node[box, text width=50mm] (eval) at (2.2,-4.7) {\textbf{Evaluation runner}\\\texttt{evaluations/}: B0--B3v,\\independent ground-truth enumerator};
+\node[box, text width=28mm] (collect) at (8.4,-4.7) {\textbf{SerpApi collection}\\archived responses};
+\node[box, text width=28mm] (export) at (12.3,-4.7) {\textbf{Ingest + export}\\immutable snapshot};
+\draw[flow] (collect) -- (export);
+\draw[aux] (export.north) -- node[lab, right] {pinned snapshot ID} (kb.south);
+\draw[aux] (eval.east) -| node[lab, right, pos=0.75] {runs the agent} (validator.south);
+\end{tikzpicture}

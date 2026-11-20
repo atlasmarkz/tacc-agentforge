@@ -48,7 +48,7 @@ No model weights, adapters or credentials are in the repository. The base model 
 
 ## Main Results
 
-All numbers come from runs on TACC. The raw data is committed, and `scripts/reproduce_results.py` recomputes each one (see [Step 1](#step-1-recompute-every-reported-number-under-1-minute)). The *Project report* column gives the section, table or figure of the group's project report (submitted as a PDF; its source and build script are in [`report/`](https://github.com/atlasmarkz/tacc-agentforge/tree/a1ca3dc61feed1e757855c9da793c541b324aa0b/report), and its appendix reproduces this README) that reports each result.
+All numbers come from runs on TACC. The raw data is committed, and `scripts/reproduce_results.py` recomputes each one (see [Step 1](#step-1-recompute-every-reported-number-under-1-minute)). The *Project report* column gives the section, table or figure of the group's project report (submitted as a PDF; its source and build script are in [`report/`](report/), and its appendix reproduces this README) that reports each result.
 
 | ID | Result | Project report | Evidence in this repo |
 |---|---|---|---|

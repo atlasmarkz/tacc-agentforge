@@ -89,3 +89,15 @@ deploy/tacc/service/benchmark/pkg/
 
 # Blind-review mapping must never be committed with reviewer templates.
 **/review/private-key.jsonl
+
+# Report build output (report/build.sh)
+report/build/
+report/*.aux
+report/*.log
+report/*.out
+report/*.fls
+report/*.fdb_latexmk
+report/main.pdf
+report/figures/*.aux
+report/figures/*.log
+report/figures/architecture-preview.png
