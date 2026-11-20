@@ -18,9 +18,9 @@ TACC AgentForge is the course project for **Advanced AI Computing and Systems (C
 
 *Recorded on TACC with the real model: asked what to buy for a trip to Bali with a $200 budget, the agent asks what is needed, then recommends a backpack, earbuds and a power bank for **$87.34 before tax** and shows the **$112.66** left in the budget. Idle waits are shortened.*
 
-<p align="center"><img src="docs/images/architecture.png" width="900" alt="Evaluated architecture: the browser page and local backend on your computer; an SSH tunnel to one TACC GPU job that runs the agent harness, the budget validator, vLLM and the pinned knowledge snapshot; the evaluation runner and the SerpApi data pipeline below, offline."></p>
+<p align="center"><img src="docs/images/architecture.png" width="900" alt="Dual-branch architecture of TACC AgentForge: Branch A (main, evaluated) connects a local backend over SSH to a two-GPU TACC job running the agent harness, budget validator, frozen SQLite/FTS5 snapshot and vLLM; Branch B (feat/cloud-agent-service, extension) runs the public frontend, backend, agent and 7-category GCS snapshot on Cloudflare Pages, Tailscale Funnel and GCE while sharing the TACC vLLM engine; right shows offline SerpApi collection, frozen evaluation (C1–C3, C7) and serving/SFT experiments (C4–C6)."></p>
 
-*The evaluated deployment. Post-training is a pilot; see [Project status](#project-status-what-is-and-is-not-done).*
+*Dual-branch system architecture: evaluated local/TACC deployment (`main`) and public cloud extension (`feat/cloud-agent-service`), sharing the 2-GPU TACC vLLM server. Post-training is a pilot; see [Project status](#project-status-what-is-and-is-not-done).*
 
 In the evaluated deployment, the browser talks to a local Python backend (`app/`), which reaches TACC over SSH. One two-GPU TACC job runs vLLM and the agent harness (`agent/`) side by side. The agent queries a pinned SQLite/FTS5 catalog snapshot (`knowledge/`) and only returns plans approved by the budget validator (`agent/budget.py`).
 
