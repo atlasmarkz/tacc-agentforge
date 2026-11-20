@@ -252,6 +252,13 @@ ol.logl .bad { color: var(--bad); }
 .whymodel { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 14px; }
 .mlabel { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
 .mlabel .mk { width: 20px; height: 20px; border-radius: 6px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
+.narr { margin: 0 0 18px; padding: 16px 18px 8px; border: 1px solid #F1E2CF; border-radius: 16px; background: linear-gradient(135deg, #FFF7EC 0%, #FFFDFA 70%); }
+.narr .mlabel { margin-bottom: 10px; }
+.narrtext { font-size: 16.5px; line-height: 1.85; color: var(--ink); min-height: 28px; }
+.narrtext p { margin: 0 0 12px; }
+.narrtext.caret p:last-child::after { content: "▍"; color: var(--accent); margin-left: 2px; animation: pulse 1s steps(2) infinite; }
+.nline { height: 12px; border-radius: 6px; margin: 12px 0; background: linear-gradient(90deg, #F0E6D8, #F9F2E8, #F0E6D8); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
+.factsh { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); margin: 4px 0 0; }
 .whytext p { margin: 0 0 10px; }
 .whytext ul { margin: 0 0 10px; padding: 0; list-style: none; }
 .whytext li { position: relative; padding-left: 18px; margin-bottom: 7px; }
@@ -375,7 +382,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 28
       <p class="lead-line hidden" id="lead"></p>
       <div id="products"></div>
       <div class="cols" id="cols">
-        <section class="panel hidden" id="why"><h3 data-i="whyTitle"></h3><div id="whyCards"></div><div class="whymodel hidden" id="whyModel"><div class="mlabel"><span class="mk">AI</span><span data-i="modelSays"></span></div><div class="whytext" id="whyText"></div></div><div class="whynote" id="whyNote"></div></section>
+        <section class="panel hidden" id="why"><h3 data-i="whyTitle"></h3><div class="narr hidden" id="whyNarr"><div class="mlabel"><span class="mk">AI</span><span data-i="narrTitle"></span></div><div class="narrtext" id="narrText"></div></div><div class="factsh" data-i="factsTitle"></div><div id="whyCards"></div><div class="whymodel hidden" id="whyModel"><div class="mlabel"><span class="mk">AI</span><span data-i="modelSays"></span></div><div class="whytext" id="whyText"></div></div><div class="whynote" id="whyNote"></div></section>
         <section class="panel receipt hidden" id="summary"><h3 data-i="payTitle"></h3><div id="sumTable"></div><div class="bar" id="meter"><i></i></div><div class="left" id="meterText"></div></section>
       </div>
       <section class="hidden" id="sourcesCard"><h4 class="sec" id="sourcesAnchor" data-i="sourcesTitle"></h4><ol class="sources" id="sources"></ol></section>
@@ -426,7 +433,7 @@ const I18N = {
     sUnderstand: "Understanding your request", sSearch: "Searching the catalog", sCompare: "Comparing offers",
     sCheck: "Checking the budget", sExplain: "Writing the explanation", log: "Activity log",
     typeOwn: "Or type your own", yes: "Yes", no: "No", noPref: "No preference",
-    modelSays: "Notes from the AI",
+    modelSays: "Notes from the AI", narrTitle: "Why this suits you", factsTitle: "Key facts",
     rFit: "Fits what you asked for", rBudget: "Within your budget", rChecked: "Prices you can trace",
     rGoal: (g) => `You asked for <q>${g}</q>.`, rChange: (c) => ` You then changed it: <q>${c}</q>.`,
     rIs: (cat) => ` This is ${/^[aeiou]/i.test(cat) ? "an" : "a"} <b>${cat}</b>`, rHits: (h) => `, and it mentions ${h}`, rCat: ", in the category you wanted",
@@ -484,7 +491,7 @@ const I18N = {
     working: "正在帮你找…", waiting: "等你回答", done: (s) => `找好了，用时 ${s} 秒`, failed: "已停止",
     sUnderstand: "理解你的需求", sSearch: "搜索商品目录", sCompare: "比较报价", sCheck: "核对预算", sExplain: "撰写推荐理由", log: "详细记录",
     typeOwn: "也可以自己输入", yes: "是", no: "否", noPref: "没有特别要求",
-    modelSays: "AI 的补充说明",
+    modelSays: "AI 的补充说明", narrTitle: "为什么适合你", factsTitle: "关键事实",
     rFit: "贴合你的需求", rBudget: "在预算之内", rChecked: "价格有出处",
     rGoal: (g) => `你想要<q>${g}</q>。`, rChange: (c) => `之后你调整为<q>${c}</q>。`,
     rIs: (cat) => `这是一款<b>${cat}</b>`, rHits: (h) => `，商品信息里提到了 ${h}`, rCat: "，属于你想买的品类",
@@ -835,8 +842,8 @@ function onAgentEvent(ev) {
   }
 }
 
-async function streamCall(path, body, onEvent) {
-  const resp = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" },
+async function streamCall(path, body, onEvent, signal) {
+  const resp = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, signal,
                                    body: JSON.stringify({ session_id: session, ...body }) });
   if (!resp.ok) {
     let msg = ERRORS[LANG].failedReq(resp.status);
@@ -878,6 +885,55 @@ function handle(event, data) {
   }
   onAgentEvent(data);
   if (data.result) render(data.result);
+}
+
+// ---- the streamed "why this suits you" paragraph ----------------------------------------------------------------------
+// The harness writes it for the shopper's own goal from the verified plan's facts and sends it one checked sentence at
+// a time (app/narrative.py); the page types it out as it arrives. If it cannot be written, the fact cards remain.
+const narr = { text: "", queue: "", timer: null, abort: null, streaming: false, got: false, ctl: 0 };
+function narrReset() {
+  narr.ctl++; clearInterval(narr.timer); narr.timer = null;
+  if (narr.abort) { try { narr.abort.abort(); } catch (e) {} }
+  Object.assign(narr, { text: "", queue: "", abort: null, streaming: false, got: false });
+  $("narrText").replaceChildren(); $("narrText").classList.remove("caret"); show("whyNarr", false);
+}
+function renderNarr() {
+  const box = $("narrText");
+  box.replaceChildren(...narr.text.split(/\n+/).map((x) => x.trim()).filter(Boolean).map((x) => el("p", {}, x)));
+  box.classList.toggle("caret", narr.streaming || !!narr.queue);
+}
+function narrTick() {
+  if (!narr.queue) {
+    clearInterval(narr.timer); narr.timer = null;
+    if (!narr.streaming) { renderNarr(); if (state.result && narr.text) saveHistory(); }
+    return;
+  }
+  const n = narr.queue.length > 200 ? 8 : narr.queue.length > 80 ? 4 : 2;
+  narr.text += narr.queue.slice(0, n); narr.queue = narr.queue.slice(n);
+  renderNarr();
+}
+function narrPush(text) { narr.queue += text; if (!narr.timer) narr.timer = setInterval(narrTick, 24); }
+async function narrate() {
+  if (!$("explain").checked || !state.runId || !state.original) return;
+  narrReset();
+  const my = narr.ctl, run = state.runId, ctl = new AbortController();
+  narr.abort = ctl; narr.streaming = true;
+  show("whyNarr", true); show("why", true);
+  $("narrText").replaceChildren(...[96, 88, 64].map((w) => el("div", { class: "nline", style: `width:${w}%` })));
+  const details = { ...state.original.constraints };
+  try {
+    await streamCall("/api/narrative", { run_id: run, goal: state.original.message, details, lang: LANG }, (ev, data) => {
+      if (narr.ctl !== my) return;
+      if (ev === "narrative" && data && data.text) {
+        if (!narr.got) { narr.got = true; $("narrText").replaceChildren(); }
+        narrPush(data.text);
+      }
+    }, ctl.signal);
+  } catch (e) { /* the fact cards below are still there */ }
+  if (narr.ctl !== my) return;
+  narr.streaming = false;
+  if (!narr.got) { show("whyNarr", false); return; }
+  if (!narr.timer) narrTick();                       // everything was typed already: finish and save
 }
 
 // ---- results ----------------------------------------------------------------------------------------------------
@@ -960,6 +1016,7 @@ function render(r, again) {
     summary(p);
     renderLead(p);
     if (again && state.look) fillLookup(p, state.look); else lookup(p);
+    if (!again) narrate();
   }
   show("refine", !!state.original);
   if (!again && !ok) saveHistory();            // a plan is saved once its offer details have loaded (lookup)
@@ -1265,7 +1322,8 @@ function saveHistory() {
   const r = state.result;
   if (!r || !state.runId || !state.original) return;
   const entry = { id: state.runId, at: Date.now(), session, message: state.original.message, constraints: state.original.constraints,
-                  result: r, look: state.look, doneIn: state.doneIn, fallback: state.fallback, trace: traceSnapshot() };
+                  result: r, look: state.look, doneIn: state.doneIn, fallback: state.fallback, trace: traceSnapshot(),
+                  narrative: narr.text || "" };
   storeHistory([entry, ...loadHistory().filter((e) => e.id !== entry.id)].slice(0, 40));
   state.viewing = entry.id;
   renderHistory();
@@ -1308,6 +1366,7 @@ function openHistory(id) {
   (t.log || []).forEach(([time, text, bad]) => $("steps").append(el("li", {}, el("span", { class: "t" }, time), el("span", { class: bad ? "bad" : "" }, text))));
   $("trace").open = false; show("skel", false);
   render(e.result, true);
+  if (e.narrative) { narr.text = e.narrative; narr.got = true; narr.streaming = false; show("whyNarr", true); renderNarr(); }
   renderHistory();
 }
 $("clearHistory").onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) {} state.viewing = null; renderHistory(); };
@@ -1317,7 +1376,7 @@ $("sideNew").onclick = () => goHome();
 function resetRun(bubbleText, cap) {
   Object.assign(state, { explain: "", pending: null, t0: performance.now(), result: null, look: null, fallback: false, answered: false,
                          rejectedAnswer: null, phase: "working", counts: { search: 0, read: 0, rejected: 0 } });
-  $("steps").replaceChildren(); $("runId").textContent = "";
+  narrReset(); $("steps").replaceChildren(); $("runId").textContent = "";
   for (const id of ["dSearch", "dCompare"]) $(id).replaceChildren();
   for (const id of ["dCheck", "dExplain"]) $(id).textContent = "";
   $("dUnderstand").textContent = cap ? `${L().budget} $${cap}` : L().noBudget;
@@ -1355,12 +1414,12 @@ function ask(message, cap) {
   state.original = { message, constraints };
   resetRun(message, cap);
   Object.assign(state, { viewSession: session, viewing: null }); renderHistory();
-  run("/api/ask", { message, constraints, explain: $("explain").checked });
+  run("/api/ask", { message, constraints, explain: false });
 }
 
 function goHome() {
   if (state.busy && state.runId) cancel();
-  state.result = null; state.viewing = null; renderHistory();
+  narrReset(); state.result = null; state.viewing = null; renderHistory();
   show("thread", false); show("home", true); show("newChat", false);
   $("msg").value = ""; syncSend(); $("msg").focus(); scrollTo({ top: 0 });
 }
@@ -1404,7 +1463,7 @@ $("revForm").onsubmit = (e) => {
   $("revMsg").value = ""; $("revCap").value = "";
   resetRun(message, constraints.purchase_cap || "");
   Object.assign(state, { viewSession: session, viewing: null }); renderHistory();
-  run("/api/ask", { message, constraints, ...(parent ? { revises: parent } : {}), explain: $("explain").checked });
+  run("/api/ask", { message, constraints, ...(parent ? { revises: parent } : {}), explain: false });
 };
 
 async function cancel() {

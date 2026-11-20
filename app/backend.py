@@ -349,6 +349,8 @@ def make_handler(backend: Backend, auth=None):
                     return self.cancel(owner, body)
                 if self.path == "/api/lookup":
                     return self.lookup(owner, body)
+                if self.path == "/api/narrative":
+                    return self.narrative(session, owner, body, limit)
             except (HarnessError, OSError) as exc:
                 return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
@@ -408,6 +410,23 @@ def make_handler(backend: Backend, auth=None):
             if not backend.owned(owner, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
             self._json(200, backend.client.post(f"/runs/{run_id}/cancel", {}))
+
+        def narrative(self, session, owner, body, limit):
+            """The streamed "why this pick" paragraph for one of this visitor's finished runs. It is a model call
+            like an ask or an answer, so it counts against the same per-visitor and total limits."""
+            run_id = body.get("run_id")
+            if not backend.owned(owner, run_id):
+                return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
+            if not self.reserve(limit, new_run=False):
+                return
+            try:
+                details = body.get("details")
+                payload = {"goal": body.get("goal") if isinstance(body.get("goal"), str) else "",
+                           "details": details if isinstance(details, dict) else {},
+                           "lang": "zh" if body.get("lang") == "zh" else "en"}
+                self.relay(session, owner, run_id, f"/runs/{run_id}/narrative", payload, kind="narrative")
+            finally:
+                backend.release(limit)
 
         def lookup(self, owner, body):
             run_id = body.get("run_id")
