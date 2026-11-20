@@ -262,6 +262,8 @@ def test_lookup_adds_a_product_photo_and_the_shop_link_for_the_page(tmp_path):
         CREATE TABLE raw_records (raw_id TEXT, archive_path TEXT);
         CREATE TABLE evidence (id INTEGER PRIMARY KEY, variant_id TEXT, raw_id TEXT, json_pointer TEXT);
         CREATE TABLE offers (offer_id TEXT, merchant TEXT, url TEXT);
+        CREATE TABLE variants (variant_id TEXT, category TEXT);
+        INSERT INTO variants VALUES ('v-a', 'earbuds'), ('v-b', NULL);
         INSERT INTO raw_records VALUES ('r1', 'raw/r1.json'), ('r2', '../outside.json');
         INSERT INTO evidence (variant_id, raw_id, json_pointer) VALUES
             ('v-a', 'r1', '/shopping_results/0/extensions/0'), ('v-b', 'r1', '/shopping_results/1'),
@@ -271,10 +273,11 @@ def test_lookup_adds_a_product_photo_and_the_shop_link_for_the_page(tmp_path):
     con.commit()
     con.close()
     service = types.SimpleNamespace(kb=types.SimpleNamespace(snapshots_root=tmp_path / "snapshots"), snapshot_id="snap", photos={})
-    photos, shops = HarnessService.presentation(service, {"v-a", "v-b", "v-c", "v-d", "v-none"}, {"o-a", "o-b"})
+    photos, shops, categories = HarnessService.presentation(service, {"v-a", "v-b", "v-c", "v-d", "v-none"}, {"o-a", "o-b"})
     # Found from a pointer inside the result item; non-web URLs, paths outside the snapshot and bad pointers give none.
     assert photos == {"v-a": "https://img.example/a.webp", "v-b": None, "v-c": None, "v-d": None, "v-none": None}
     assert shops == {"o-a": {"merchant": "Walmart", "url": "https://walmart.example/a"}, "o-b": {"merchant": "Shop", "url": None}}
+    assert categories == {"v-a": "earbuds"}                      # a variant without a category is left out
 
 
 def test_health_lists_the_categories_the_catalog_can_serve():
