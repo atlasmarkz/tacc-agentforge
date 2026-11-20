@@ -416,7 +416,7 @@ resubmits when no job exists. The recommended monitor was a pre-owned offer, whi
 \item \textbf{The validator checks money, not requirements.} It approved three plans whose required attribute was unknown.
 \item \textbf{Correctness is relative to the frozen snapshot.} All 251 offers have unknown tax, so budgets are compared before tax; known data errors carry into the ground truth.
 \item \textbf{Small samples.} 32 held-out cases; single-call repeats are identical at temperature 0, so they give 32 independent results. Serving and MTP cells are single measurements.
-\item \textbf{Not done.} New quantization (all results use the course's AWQ INT4 model), the fifth unseen category, human ratings of explanations, and retrieval Recall/MRR (the relevance pool is unlabeled).
+\item \textbf{Not done.} The fifth unseen category, human ratings of explanations, and retrieval Recall/MRR (the relevance pool is unlabeled).
 \item \textbf{Variation.} vLLM batching is not bit-deterministic, so a TACC rerun of multi-step attempts can differ; latency depends on the node.
 \end{itemize}
 
