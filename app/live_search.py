@@ -163,6 +163,7 @@ class LiveSearch:
         self._next_key = 0
         self._used = {"day": self.today(), "used": 0}
         self._cache: dict[str, tuple[float, list[dict]]] = {}
+        self.last_error: str | None = None                  # the latest provider failure, redacted (shown by /health)
         self._ssl = ssl.create_default_context(cafile=CA_BUNDLE if Path(CA_BUNDLE).exists() else None)
         if self.counter and self.counter.is_file():
             try:
@@ -187,7 +188,8 @@ class LiveSearch:
     def status(self) -> dict:
         with self._lock:
             self._roll()
-            return {"enabled": True, "keys": len(self.keys), "used_today": self._used["used"], "daily_limit": self.daily_limit}
+            return {"enabled": True, "keys": len(self.keys), "used_today": self._used["used"], "daily_limit": self.daily_limit,
+                    "last_error": self.last_error}
 
     def _roll(self) -> None:
         today = self.today()
@@ -221,9 +223,10 @@ class LiveSearch:
                 body = exc.read().decode("utf-8", errors="replace")
             finally:
                 exc.close()
+            hint = " ".join(body[:100].split())
             if exc.code in (401, 403, 429):
-                raise LiveSearchError("key_rejected", f"HTTP {exc.code}") from None
-            raise LiveSearchError("live_search_unavailable", f"HTTP {exc.code}") from None
+                raise LiveSearchError("key_rejected", f"HTTP {exc.code} {hint}") from None
+            raise LiveSearchError("live_search_unavailable", f"HTTP {exc.code} {hint}") from None
         try:
             data = json.loads(body)
         except ValueError:
@@ -263,10 +266,12 @@ class LiveSearch:
                     break
                 except LiveSearchError as exc:                      # a rejected or used-up key: try the next one
                     last = LiveSearchError(exc.code, redact(exc.public_message, self.keys))
+                    self.last_error = f"{last.code}: {last.public_message}"[:200]
                     if exc.code != "key_rejected":
                         break
                 except (URLError, TimeoutError, OSError) as exc:
                     last = LiveSearchError("live_search_unavailable", redact(f"network error: {type(exc).__name__}", self.keys))
+                    self.last_error = f"{last.code}: {redact(f'{type(exc).__name__}: {exc}', self.keys)}"[:200]
                     break
             if data is None:
                 code = "live_search_unavailable"
