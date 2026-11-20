@@ -91,8 +91,8 @@ class HarnessClient:
         finally:
             conn.close()
 
-    def post(self, path, payload):
-        conn, resp = self._open("POST", path, payload)
+    def post(self, path, payload, timeout=None):
+        conn, resp = self._open("POST", path, payload, timeout=timeout)
         try:
             return json.loads(resp.read())
         finally:
@@ -275,6 +275,8 @@ def make_handler(backend: Backend):
                     return self.lookup(session, body)
                 if self.path == "/api/narrative":
                     return self.narrative(session, body)
+                if self.path == "/api/form":
+                    return self.form(session, body)
             except (HarnessError, OSError) as exc:
                 return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
@@ -324,6 +326,19 @@ def make_handler(backend: Backend):
                        "details": details if isinstance(details, dict) else {},
                        "lang": "zh" if body.get("lang") == "zh" else "en"}
             self.relay(session, run_id, f"/runs/{run_id}/narrative", payload, kind="narrative")
+
+        def form(self, session, body):
+            """The follow-up question of one of this session's waiting runs, worded for the shopper."""
+            run_id = body.get("run_id")
+            if not backend.owned(session, run_id):
+                return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
+            details = body.get("details")
+            payload = {"goal": body.get("goal") if isinstance(body.get("goal"), str) else "",
+                       "question": body.get("question") if isinstance(body.get("question"), str) else "",
+                       "fields": body.get("fields") if isinstance(body.get("fields"), list) else [],
+                       "details": details if isinstance(details, dict) else {},
+                       "lang": "zh" if body.get("lang") == "zh" else "en"}
+            self._json(200, backend.client.post(f"/runs/{run_id}/form", payload, timeout=40))
 
         def lookup(self, session, body):
             run_id = body.get("run_id")
