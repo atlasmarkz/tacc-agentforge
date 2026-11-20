@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: 1140px 580px; margin: 0; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #ffffff;
+    width: 1140px;
+    height: 580px;
+    overflow: hidden;
+  }
+  svg {
+    display: block;
+    width: 1140px;
+    height: 580px;
+  }
+  .serif-h  { font-family: "Times New Roman", Georgia, "Liberation Serif", serif; font-weight: 700; fill: #111827; }
+  .serif-sh { font-family: "Times New Roman", Georgia, "Liberation Serif", serif; font-weight: 700; fill: #1F2937; }
+  .sans-t   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 700; fill: #111827; }
+  .sans-b   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 400; fill: #374151; }
+  .sans-m   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 600; fill: #374151; }
+  .sans-s   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 500; fill: #4B5563; }
+  .mono     { font-family: Menlo, "SF Mono", "Courier New", monospace; font-weight: 500; fill: #334155; }
+  .pill-t   { font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-weight: 700; letter-spacing: 0.3px; }
+</style>
+</head>
+<body>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1140 580" width="1140" height="580">
+  <defs>
+    <!-- Crisp subtle elevation shadow for cards -->
+    <filter id="cardShadow" x="-6%" y="-6%" width="112%" height="116%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="2.2" flood-color="#0F172A" flood-opacity="0.06"/>
+    </filter>
+    <!-- Refined slender arrowheads -->
+    <marker id="arrDark" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.2" markerHeight="6.2" orient="auto-start-reverse">
+      <path d="M 1 1.8 L 9 5 L 1 8.2 z" fill="#334155"/>
+    </marker>
+    <marker id="arrTeal" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.2" markerHeight="6.2" orient="auto-start-reverse">
+      <path d="M 1 1.8 L 9 5 L 1 8.2 z" fill="#0F6B66"/>
+    </marker>
+    <marker id="arrDash" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="6.2" markerHeight="6.2" orient="auto-start-reverse">
+      <path d="M 1 1.8 L 9 5 L 1 8.2 z" fill="#475569"/>
+    </marker>
+    <!-- Header clip paths for clean rounded-top banners -->
+    <clipPath id="clipC1"><rect x="12" y="12" width="322" height="556" rx="10"/></clipPath>
+    <clipPath id="clipC2"><rect x="372" y="12" width="448" height="556" rx="10"/></clipPath>
+    <clipPath id="clipC3"><rect x="858" y="12" width="270" height="556" rx="10"/></clipPath>
+  </defs>
+
+  <!-- Pure white canvas -->
+  <rect x="0" y="0" width="1140" height="580" fill="#FFFFFF"/>
+
+  <!-- ========================================================================= -->
+  <!-- COLUMN 1: TWO DEPLOYMENT BRANCHES (x=12..334, w=322)                      -->
+  <!-- ========================================================================= -->
+  <g clip-path="url(#clipC1)">
+    <rect x="12" y="12" width="322" height="556" fill="#FCF8F5"/>
+    <rect x="12" y="12" width="322" height="40" fill="#EFD9CC"/>
+    <line x1="12" y1="52" x2="334" y2="52" stroke="#D7B29B" stroke-width="1"/>
+  </g>
+  <rect x="12" y="12" width="322" height="556" rx="10" fill="none" stroke="#D7B29B" stroke-width="1.2"/>
+  <text x="173" y="38" text-anchor="middle" class="serif-h" font-size="16" fill="#5A2A12">1. Two Deployment Branches</text>
+
+  <!-- Branch A Panel (main) -->
+  <rect x="24" y="66" width="298" height="162" rx="8" fill="#FFFFFF" stroke="#CFD9E5" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <rect x="36" y="76" width="194" height="22" rx="11" fill="#E8F0FA" stroke="#B7CCE6" stroke-width="0.9"/>
+  <text x="133" y="91" text-anchor="middle" class="sans-m" font-size="10.8" fill="#1C3F6E">Branch A: <tspan class="mono" font-size="10.2" fill="#1C3F6E">main</tspan> (Evaluated)</text>
+
+  <!-- Browser card -->
+  <rect x="36" y="110" width="110" height="104" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.9"/>
+  <!-- Browser vector icon -->
+  <g transform="translate(75, 120)" fill="none" stroke="#1E40AF" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="0" y="2" width="32" height="24" rx="3" fill="#EFF6FF"/>
+    <line x1="0" y1="9" x2="32" y2="9"/>
+    <circle cx="5" cy="5.5" r="0.9" fill="#1E40AF" stroke="none"/>
+    <circle cx="9" cy="5.5" r="0.9" fill="#1E40AF" stroke="none"/>
+    <path d="M 10 18 L 14 14 L 18 17 L 23 13" stroke="#2563EB"/>
+  </g>
+  <text x="91" y="164" text-anchor="middle" class="sans-t" font-size="11">User Browser</text>
+  <text x="91" y="180" text-anchor="middle" class="mono" font-size="9">app/static</text>
+  <text x="91" y="195" text-anchor="middle" class="sans-s" font-size="9">Form · Live SSE</text>
+  <text x="91" y="207" text-anchor="middle" class="sans-s" font-size="9">Verified Receipt</text>
+
+  <!-- Bidirectional arrow Browser <-> Local Backend -->
+  <line x1="149" y1="157" x2="177" y2="157" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+  <line x1="177" y1="167" x2="149" y2="167" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+  <text x="163" y="150" text-anchor="middle" class="sans-s" font-size="8.2">HTTP</text>
+  <text x="163" y="179" text-anchor="middle" class="sans-s" font-size="8.2">SSE</text>
+
+  <!-- Local Backend card -->
+  <rect x="180" y="110" width="130" height="104" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.9"/>
+  <!-- Server/Laptop vector icon -->
+  <g transform="translate(229, 120)" fill="none" stroke="#9A3412" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="26" height="18" rx="2" fill="#FFF7ED"/>
+    <line x1="0" y1="24" x2="32" y2="24"/>
+    <path d="M 9 10 L 13 13 L 9 16" stroke="#C2410C"/>
+    <line x1="16" y1="16" x2="22" y2="16" stroke="#C2410C"/>
+  </g>
+  <text x="245" y="164" text-anchor="middle" class="sans-t" font-size="11">Local Backend</text>
+  <text x="245" y="180" text-anchor="middle" class="mono" font-size="9">app/backend.py</text>
+  <text x="245" y="195" text-anchor="middle" class="sans-s" font-size="9">Session Log &amp;</text>
+  <text x="245" y="207" text-anchor="middle" class="sans-s" font-size="9">Stream Relay</text>
+
+  <!-- Branch B Panel (feat/cloud-agent-service) -->
+  <rect x="24" y="242" width="298" height="314" rx="8" fill="#FFFFFF" stroke="#B6D7D2" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <rect x="36" y="252" width="274" height="22" rx="11" fill="#E6F4F1" stroke="#A6D4CC" stroke-width="0.9"/>
+  <text x="173" y="267" text-anchor="middle" class="sans-m" font-size="10.4" fill="#115E59">Branch B: <tspan class="mono" font-size="9.5" fill="#115E59">feat/cloud-agent-service</tspan> (Ext.)</text>
+
+  <!-- Row 1 of Branch B: Public Users -> Cloudflare -> Tailscale -->
+  <!-- Public Users -->
+  <g transform="translate(38, 287)">
+    <circle cx="19" cy="14" r="12" fill="#EFF6FF" stroke="#2563EB" stroke-width="1.3"/>
+    <ellipse cx="19" cy="14" rx="5.5" ry="12" fill="none" stroke="#2563EB" stroke-width="1.1"/>
+    <line x1="7" y1="14" x2="31" y2="14" stroke="#2563EB" stroke-width="1.1"/>
+    <text x="19" y="40" text-anchor="middle" class="sans-t" font-size="9.6">Public</text>
+    <text x="19" y="51" text-anchor="middle" class="sans-t" font-size="9.6">Users</text>
+  </g>
+  <line x1="79" y1="301" x2="96" y2="301" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+
+  <!-- Cloudflare Pages -->
+  <rect x="99" y="284" width="98" height="60" rx="6" fill="#FFFBF5" stroke="#E5C5A3" stroke-width="0.9"/>
+  <g transform="translate(133, 290)" fill="none" stroke="#C2591D" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 8 18 H 23 A 5 5 0 0 0 23.5 8.2 A 7 7 0 0 0 10.2 6.8 A 5.5 5.5 0 0 0 8 18 Z" fill="#FFEDD5"/>
+  </g>
+  <text x="148" y="322" text-anchor="middle" class="sans-t" font-size="9.8">Cloudflare Pages</text>
+  <text x="148" y="335" text-anchor="middle" class="sans-s" font-size="8.4">Static UI · /api Proxy</text>
+
+  <line x1="199" y1="301" x2="215" y2="301" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+
+  <!-- Tailscale Funnel -->
+  <rect x="218" y="284" width="92" height="60" rx="6" fill="#F4FBF9" stroke="#A7D4CA" stroke-width="0.9"/>
+  <g transform="translate(251, 290)" fill="none" stroke="#0F766E" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 13 2 L 23 6 V 12 C 23 17.5 18.5 21 13 23 C 7.5 21 3 17.5 3 12 V 6 Z" fill="#CCFBF1"/>
+    <path d="M 9.5 12.5 L 12 15 L 17 10" stroke="#0F766E" stroke-width="1.5"/>
+  </g>
+  <text x="264" y="322" text-anchor="middle" class="sans-t" font-size="9.8">Tailscale Funnel</text>
+  <text x="264" y="335" text-anchor="middle" class="sans-s" font-size="8.4">HTTPS Ingress</text>
+
+  <!-- Arrow Tailscale -> GCE VM -->
+  <path d="M 264 344 L 264 358 L 220 358 L 220 368" fill="none" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+
+  <!-- Row 2 of Branch B: GCS Bucket + GCE e2-micro VM -->
+  <!-- GCS Bucket -->
+  <rect x="36" y="370" width="112" height="172" rx="6" fill="#F4F8FD" stroke="#B7CDE8" stroke-width="0.9"/>
+  <g transform="translate(76, 384)" fill="none" stroke="#1D4ED8" stroke-width="1.4">
+    <ellipse cx="16" cy="6" rx="13" ry="4.5" fill="#DBEAFE"/>
+    <path d="M 3 6 V 23 C 3 25.5 8.8 27.5 16 27.5 C 23.2 27.5 29 25.5 29 23 V 6" fill="#EFF6FF"/>
+    <path d="M 3 14.5 C 3 17 8.8 19 16 19 C 23.2 19 29 17 29 14.5"/>
+  </g>
+  <text x="92" y="431" text-anchor="middle" class="sans-t" font-size="10.4">GCS Bucket</text>
+  <text x="92" y="447" text-anchor="middle" class="sans-s" font-size="8.8">7-Category</text>
+  <text x="92" y="459" text-anchor="middle" class="sans-s" font-size="8.8">Snapshot Archive</text>
+  <line x1="48" y1="471" x2="136" y2="471" stroke="#DBEAFE" stroke-width="1"/>
+  <text x="92" y="486" text-anchor="middle" class="sans-m" font-size="8.8" fill="#1E40AF">607 Offers</text>
+  <text x="92" y="499" text-anchor="middle" class="sans-s" font-size="8.4">974 Reviews</text>
+  <text x="92" y="512" text-anchor="middle" class="sans-s" font-size="8.4">SHA-256 Verified</text>
+  <text x="92" y="530" text-anchor="middle" class="sans-s" font-size="8" fill="#64748B">(+watches, mice,</text>
+  <text x="92" y="539" text-anchor="middle" class="sans-s" font-size="8" fill="#64748B">monitors)</text>
+
+  <!-- Arrow GCS -> GCE -->
+  <line x1="148" y1="454" x2="164" y2="454" stroke="#475569" stroke-width="1.1" stroke-dasharray="3,2.5" marker-end="url(#arrDash)"/>
+
+  <!-- GCE e2-micro VM -->
+  <rect x="167" y="370" width="143" height="172" rx="6" fill="#F8FAFC" stroke="#94A3B8" stroke-width="1"/>
+  <!-- Server rack icon -->
+  <g transform="translate(222, 381)" fill="none" stroke="#0F766E" stroke-width="1.4" stroke-linejoin="round">
+    <rect x="2" y="2" width="28" height="9" rx="2" fill="#E6F4F1"/>
+    <rect x="2" y="14" width="28" height="9" rx="2" fill="#E6F4F1"/>
+    <circle cx="7" cy="6.5" r="1.2" fill="#0F766E" stroke="none"/>
+    <circle cx="7" cy="18.5" r="1.2" fill="#0F766E" stroke="none"/>
+    <line x1="13" y1="6.5" x2="25" y2="6.5"/>
+    <line x1="13" y1="18.5" x2="25" y2="18.5"/>
+  </g>
+  <text x="238" y="423" text-anchor="middle" class="sans-t" font-size="10.5">GCE <tspan class="mono" font-size="9.6">e2-micro</tspan> VM</text>
+  <text x="238" y="437" text-anchor="middle" class="sans-s" font-size="8.4">Free-Tier Public Host</text>
+  <line x1="178" y1="446" x2="299" y2="446" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="178" y="461" class="sans-b" font-size="8.8">• Backend &amp; Rate Limits</text>
+  <text x="178" y="476" class="sans-b" font-size="8.8">• Agent + Budget Validator</text>
+  <text x="178" y="491" class="sans-b" font-size="8.8">• SQLite Checkpoints</text>
+  <text x="178" y="506" class="sans-b" font-size="8.8">• Live SerpApi Fallback</text>
+  <text x="178" y="521" class="sans-b" font-size="8.8">• Handover Service Keeper</text>
+
+
+  <!-- ========================================================================= -->
+  <!-- COLUMN 2: CORE AGENT & TACC 2-GPU SERVING (x=372..820, w=448)             -->
+  <!-- ========================================================================= -->
+  <g clip-path="url(#clipC2)">
+    <rect x="372" y="12" width="448" height="556" fill="#F4F8FC"/>
+    <rect x="372" y="12" width="448" height="40" fill="#D5E4F5"/>
+    <line x1="372" y1="52" x2="820" y2="52" stroke="#9DBCE0" stroke-width="1"/>
+  </g>
+  <rect x="372" y="12" width="448" height="556" rx="10" fill="none" stroke="#9DBCE0" stroke-width="1.2"/>
+  <text x="596" y="38" text-anchor="middle" class="serif-h" font-size="16" fill="#133257">2. Core Agent &amp; TACC 2-GPU Serving</text>
+
+  <!-- TACC 2-GPU Slurm Job inner container -->
+  <rect x="385" y="66" width="422" height="406" rx="8" fill="#FFFFFF" stroke="#8FB0D6" stroke-width="1.2" filter="url(#cardShadow)"/>
+  <text x="399" y="87" class="serif-sh" font-size="12.5" fill="#163A63">TACC 2-GPU Slurm Job</text>
+  <rect x="599" y="73" width="196" height="20" rx="10" fill="#EBF3FC" stroke="#B6CFE9" stroke-width="0.8"/>
+  <text x="697" y="86.5" text-anchor="middle" class="sans-m" font-size="9.2" fill="#1D4778">1-hr wall limit · hourly handover</text>
+
+  <!-- CARD 2A: LangGraph Agent Harness (CORE CONTRIBUTION - Teal highlight) -->
+  <rect x="398" y="106" width="190" height="148" rx="7" fill="#F2FAF9" stroke="#14746F" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="542" y="113" width="40" height="15" rx="3" fill="#D5F1EE"/>
+  <text x="562" y="123.5" text-anchor="middle" class="pill-t" font-size="7.5" fill="#0F5A56">AGENT</text>
+  <!-- Crisp Robot/Agent vector icon -->
+  <g transform="translate(408, 114)" fill="none" stroke="#0F6B66" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="12" y1="1" x2="12" y2="5"/>
+    <circle cx="12" cy="1" r="1.3" fill="#0F6B66"/>
+    <rect x="3" y="5" width="18" height="14" rx="3.5" fill="#FFFFFF"/>
+    <circle cx="9" cy="11.5" r="1.4" fill="#0F6B66" stroke="none"/>
+    <circle cx="15" cy="11.5" r="1.4" fill="#0F6B66" stroke="none"/>
+    <line x1="9" y1="15.5" x2="15" y2="15.5"/>
+    <line x1="0.5" y1="10" x2="3" y2="10"/>
+    <line x1="21" y1="10" x2="23.5" y2="10"/>
+  </g>
+  <text x="437" y="126.5" class="sans-t" font-size="11.2" fill="#0D4F4B">Agent Harness</text>
+  <text x="409" y="146" class="mono" font-size="9.1" fill="#1F5F5B">app/harness_service.py</text>
+  <line x1="409" y1="155" x2="576" y2="155" stroke="#CBE9E5" stroke-width="1"/>
+  <text x="409" y="171" class="sans-m" font-size="9.4" fill="#134E4A">LangGraph Loop:</text>
+  <text x="409" y="185" class="sans-b" font-size="9.3">tool  |  ask  |  propose</text>
+  <text x="409" y="203" class="sans-b" font-size="9.1">• Schema-constrained JSON</text>
+  <text x="409" y="218" class="sans-b" font-size="9.1">• 8-call cap · 36K char context</text>
+  <text x="409" y="233" class="sans-b" font-size="9.1">• Grounded explanation check</text>
+
+  <!-- CARD 2B: Frozen Knowledge Snapshot -->
+  <rect x="622" y="106" width="174" height="148" rx="7" fill="#F6FAFE" stroke="#2D669B" stroke-width="1.2" filter="url(#cardShadow)"/>
+  <rect x="756" y="113" width="34" height="15" rx="3" fill="#DDEBF8"/>
+  <text x="773" y="123.5" text-anchor="middle" class="pill-t" font-size="7.5" fill="#1E4B78">DATA</text>
+  <!-- Database vector icon -->
+  <g transform="translate(632, 114)" fill="none" stroke="#1E4E8C" stroke-width="1.4">
+    <ellipse cx="10.5" cy="4.5" rx="9" ry="3.1" fill="#DBEAFE"/>
+    <path d="M 1.5 4.5 V 18.5 C 1.5 20.2 5.5 21.6 10.5 21.6 C 15.5 21.6 19.5 20.2 19.5 18.5 V 4.5" fill="#FFFFFF"/>
+    <path d="M 1.5 11.5 C 1.5 13.2 5.5 14.6 10.5 14.6 C 15.5 14.6 19.5 13.2 19.5 11.5"/>
+  </g>
+  <text x="658" y="126.5" class="sans-t" font-size="10.6" fill="#163A63">Frozen Snapshot</text>
+  <text x="633" y="146" class="mono" font-size="9.1" fill="#2B527A">snapshot_5bcd…</text>
+  <line x1="633" y1="155" x2="784" y2="155" stroke="#D7E6F5" stroke-width="1"/>
+  <text x="633" y="171" class="sans-b" font-size="9.2">• SQLite + FTS5 index</text>
+  <text x="633" y="186" class="sans-b" font-size="9.2">• 5 read-only tools</text>
+  <text x="633" y="201" class="sans-b" font-size="9.2">• 4 categories · 251 offers</text>
+  <text x="633" y="216" class="sans-b" font-size="9.2">• 3,525 evidence records</text>
+  <text x="633" y="231" class="sans-b" font-size="9.2">• Unknown fields stay null</text>
+
+  <!-- CARD 2C: vLLM Serving Engine (SHARED BY BOTH BRANCHES) -->
+  <rect x="398" y="302" width="190" height="156" rx="7" fill="#F7F5FD" stroke="#534696" stroke-width="1.3" filter="url(#cardShadow)"/>
+  <rect x="538" y="309" width="44" height="15" rx="3" fill="#E6E1F9"/>
+  <text x="560" y="319.5" text-anchor="middle" class="pill-t" font-size="7.5" fill="#3D3178">2 GPUs</text>
+  <!-- GPU Chip vector icon -->
+  <g transform="translate(408, 310)" fill="none" stroke="#4C3D91" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="5" y="5" width="14" height="14" rx="2" fill="#FFFFFF"/>
+    <rect x="8.5" y="8.5" width="7" height="7" rx="1" fill="#EDE9FE"/>
+    <line x1="8" y1="1" x2="8" y2="5"/><line x1="12" y1="1" x2="12" y2="5"/><line x1="16" y1="1" x2="16" y2="5"/>
+    <line x1="8" y1="19" x2="8" y2="23"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="16" y1="19" x2="16" y2="23"/>
+    <line x1="1" y1="8" x2="5" y2="8"/><line x1="1" y1="12" x2="5" y2="12"/><line x1="1" y1="16" x2="5" y2="16"/>
+    <line x1="19" y1="8" x2="23" y2="8"/><line x1="19" y1="12" x2="23" y2="12"/><line x1="19" y1="16" x2="23" y2="16"/>
+  </g>
+  <text x="437" y="322.5" class="sans-t" font-size="11.2" fill="#35296B">vLLM Engine</text>
+  <text x="409" y="342" class="sans-m" font-size="9.4" fill="#433878">Qwen3.8-27B AWQ INT4</text>
+  <line x1="409" y1="351" x2="576" y2="351" stroke="#E0DAFA" stroke-width="1"/>
+  <text x="409" y="367" class="sans-b" font-size="9.2">• Tensor Parallelism = 2</text>
+  <text x="409" y="382" class="sans-b" font-size="9.2">• 16,384 token context</text>
+  <text x="409" y="397" class="sans-b" font-size="9.2">• CUDA graphs + prefix cache</text>
+  <text x="409" y="412" class="sans-b" font-size="9.2">• Shared by Branches A &amp; B</text>
+  <rect x="409" y="425" width="168" height="22" rx="4" fill="#EFEBF9" stroke="#CFC4F0" stroke-width="0.7"/>
+  <text x="493" y="439.5" text-anchor="middle" class="sans-m" font-size="8.8" fill="#3D3178">Zero-drop hourly handover</text>
+
+  <!-- CARD 2D: Deterministic Budget Validator (CORE CONTRIBUTION - Green/Teal check) -->
+  <rect x="622" y="302" width="174" height="156" rx="7" fill="#F2FBF6" stroke="#1A7A54" stroke-width="1.4" filter="url(#cardShadow)"/>
+  <rect x="752" y="309" width="38" height="15" rx="3" fill="#D4F2E3"/>
+  <text x="771" y="319.5" text-anchor="middle" class="pill-t" font-size="7.5" fill="#145C3F">CHECK</text>
+  <!-- Shield checkmark vector icon -->
+  <g transform="translate(631, 309)" fill="none" stroke="#15734E" stroke-width="1.45" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M 10.5 1.5 L 19.5 5.2 V 11.2 C 19.5 16.6 15.5 20.1 10.5 22.2 C 5.5 20.1 1.5 16.6 1.5 11.2 V 5.2 Z" fill="#FFFFFF"/>
+    <path d="M 6.8 11.7 L 9.5 14.4 L 14.6 9.1" stroke="#15734E" stroke-width="1.6"/>
+  </g>
+  <text x="657" y="322.5" class="sans-t" font-size="10.4" fill="#105338">Budget Validator</text>
+  <text x="633" y="342" class="mono" font-size="9.1" fill="#1C6447">agent/budget.py</text>
+  <line x1="633" y1="351" x2="784" y2="351" stroke="#CBEAD9" stroke-width="1"/>
+  <text x="633" y="367" class="sans-b" font-size="9.2">• Exact minor-unit Decimal</text>
+  <text x="633" y="382" class="sans-b" font-size="9.2">• Cap &amp; reserve check</text>
+  <text x="633" y="397" class="sans-b" font-size="9.2">• Unknown fees ≠ 0</text>
+  <text x="633" y="412" class="sans-b" font-size="9.2">• Blocks unverified plans</text>
+  <rect x="633" y="425" width="152" height="22" rx="4" fill="#DCF5E8" stroke="#A7DFC3" stroke-width="0.7"/>
+  <text x="709" y="439.5" text-anchor="middle" class="sans-t" font-size="9" fill="#0F5A3D">0% Budget Violation Rate</text>
+
+  <!-- Internal TACC orthogonal arrows -->
+  <!-- Harness -> Snapshot -->
+  <line x1="588" y1="176" x2="619" y2="176" stroke="#334155" stroke-width="1.3" marker-end="url(#arrDark)"/>
+  <rect x="589" y="156" width="32" height="14" rx="2" fill="#FFFFFF"/>
+  <text x="605" y="166" text-anchor="middle" class="sans-s" font-size="8.0">Tools</text>
+
+  <!-- Harness <-> vLLM -->
+  <line x1="484" y1="254" x2="484" y2="299" stroke="#334155" stroke-width="1.3" marker-end="url(#arrDark)"/>
+  <line x1="500" y1="299" x2="500" y2="254" stroke="#334155" stroke-width="1.3" marker-end="url(#arrDark)"/>
+  <text x="477" y="280" text-anchor="end" class="sans-s" font-size="8.4">Prompt</text>
+  <text x="507" y="280" text-anchor="start" class="sans-s" font-size="8.4">Action</text>
+
+  <!-- Harness -> Validator (clean orthogonal L-path) -->
+  <path d="M 556 254 L 556 278 L 672 278 L 672 299" fill="none" stroke="#0F6B66" stroke-width="1.35" marker-end="url(#arrTeal)"/>
+  <rect x="572" y="270" width="76" height="15" rx="2.5" fill="#FFFFFF"/>
+  <text x="610" y="280.5" text-anchor="middle" class="sans-m" font-size="8.3" fill="#0F6B66">Proposed Plan</text>
+
+  <!-- Snapshot -> Validator (offer facts) -->
+  <line x1="726" y1="254" x2="726" y2="299" stroke="#334155" stroke-width="1.25" marker-end="url(#arrDark)"/>
+  <text x="733" y="280.5" text-anchor="start" class="sans-s" font-size="8.2">Offer Facts</text>
+
+  <!-- Verified Case Study strip at bottom of Column 2 -->
+  <rect x="385" y="484" width="422" height="72" rx="8" fill="#FFFFFF" stroke="#B7D9C8" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <text x="399" y="502" class="serif-sh" font-size="11" fill="#134E4A">Verified End-to-End Example (Live TACC Run)</text>
+  <rect x="399" y="512" width="110" height="32" rx="6" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="0.9"/>
+  <text x="454" y="526" text-anchor="middle" class="sans-m" font-size="9.2" fill="#1E3A8A">“Bali trip, $200”</text>
+  <text x="454" y="538" text-anchor="middle" class="sans-s" font-size="8.2">User request</text>
+  <line x1="511" y1="528" x2="531" y2="528" stroke="#15734E" stroke-width="1.3" marker-end="url(#arrTeal)"/>
+  <rect x="534" y="512" width="260" height="32" rx="6" fill="#ECFDF5" stroke="#A7F3D0" stroke-width="0.9"/>
+  <text x="664" y="525.5" text-anchor="middle" class="sans-m" font-size="9.1" fill="#065F46">Backpack $32.99 + Earbuds $39.99 + Power Bank $14.36</text>
+  <text x="664" y="538.5" text-anchor="middle" class="sans-t" font-size="9.1" fill="#047857">= $87.34 pre-tax · $112.66 remaining  ✓</text>
+
+
+  <!-- ========================================================================= -->
+  <!-- COLUMN 3: OFFLINE DATA, EVALUATION & EXPERIMENTS (x=858..1128, w=270)     -->
+  <!-- ========================================================================= -->
+  <g clip-path="url(#clipC3)">
+    <rect x="858" y="12" width="270" height="556" fill="#F4F9F6"/>
+    <rect x="858" y="12" width="270" height="40" fill="#D4E8DF"/>
+    <line x1="858" y1="52" x2="1128" y2="52" stroke="#99C2B1" stroke-width="1"/>
+  </g>
+  <rect x="858" y="12" width="270" height="556" rx="10" fill="none" stroke="#99C2B1" stroke-width="1.2"/>
+  <text x="993" y="38" text-anchor="middle" class="serif-h" font-size="15.5" fill="#18493A">3. Offline Pipeline &amp; Eval</text>
+
+  <!-- Card 3A: Offline Data Pipeline -->
+  <rect x="870" y="66" width="246" height="148" rx="8" fill="#FFFFFF" stroke="#BBD6C9" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <text x="884" y="86" class="serif-sh" font-size="12" fill="#1B4D3E">Offline Data Pipeline</text>
+
+  <!-- SerpApi box -->
+  <rect x="882" y="98" width="98" height="102" rx="6" fill="#F8FAFC" stroke="#CBD5E1" stroke-width="0.9"/>
+  <g transform="translate(918, 108)" fill="none" stroke="#1D4ED8" stroke-width="1.5" stroke-linecap="round">
+    <circle cx="10" cy="10" r="7.5" fill="#EFF6FF"/>
+    <line x1="15.8" y1="15.8" x2="21.5" y2="21.5" stroke-width="1.9"/>
+  </g>
+  <text x="931" y="147" text-anchor="middle" class="sans-t" font-size="10">SerpApi</text>
+  <text x="931" y="159" text-anchor="middle" class="sans-t" font-size="10">Collection</text>
+  <text x="931" y="174" text-anchor="middle" class="sans-s" font-size="8.3">Shopping &amp;</text>
+  <text x="931" y="185" text-anchor="middle" class="sans-s" font-size="8.3">Product JSON</text>
+
+  <line x1="982" y1="149" x2="1001" y2="149" stroke="#334155" stroke-width="1.2" marker-end="url(#arrDark)"/>
+
+  <!-- Snapshot Builder box -->
+  <rect x="1004" y="98" width="100" height="102" rx="6" fill="#F4FBF8" stroke="#A7D4C3" stroke-width="0.9"/>
+  <g transform="translate(1041, 107)" fill="none" stroke="#15734E" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="4" y="11" width="18" height="13" rx="2.5" fill="#DCFCE7"/>
+    <path d="M 8 11 V 7.5 A 5 5 0 0 1 18 7.5 V 11"/>
+    <circle cx="13" cy="17.5" r="1.4" fill="#15734E" stroke="none"/>
+  </g>
+  <text x="1054" y="147" text-anchor="middle" class="sans-t" font-size="10">Immutable</text>
+  <text x="1054" y="159" text-anchor="middle" class="sans-t" font-size="10">Builder</text>
+  <text x="1054" y="174" text-anchor="middle" class="sans-s" font-size="8.3">Normalize &amp;</text>
+  <text x="1054" y="185" text-anchor="middle" class="sans-s" font-size="8.3">SHA-256 Freeze</text>
+
+  <!-- Card 3B: Frozen Evaluation (C1–C3, C7) -->
+  <rect x="870" y="228" width="246" height="156" rx="8" fill="#FFFFFF" stroke="#D5BEC4" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <text x="884" y="248" class="serif-sh" font-size="12" fill="#6E2334">Frozen Evaluation (C1–C3, C7)</text>
+  <!-- Scale vector icon -->
+  <g transform="translate(884, 261)" fill="none" stroke="#8C2D42" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="15" y1="3" x2="15" y2="27"/>
+    <line x1="7" y1="27" x2="23" y2="27"/>
+    <line x1="4" y1="8" x2="26" y2="8"/>
+    <path d="M 4 8 L 0.5 17 H 7.5 Z" fill="#FDF2F4"/>
+    <path d="M 26 8 L 22.5 17 H 29.5 Z" fill="#FDF2F4"/>
+  </g>
+  <text x="924" y="271" class="sans-t" font-size="10.3">Independent SQLite Oracle</text>
+  <text x="924" y="286" class="sans-b" font-size="9.1">42 Cases (32 Held-out × 3)</text>
+  <text x="924" y="300" class="sans-b" font-size="9.1">5 Configs: B0, B1, B2, B3, B3v</text>
+  <line x1="884" y1="312" x2="1102" y2="312" stroke="#F1E4E7" stroke-width="1"/>
+  <text x="884" y="328" class="sans-b" font-size="9.1">• Plan cases: <tspan class="sans-t" fill="#111827">B3v 33/60</tspan> vs. ≤21/60</text>
+  <text x="884" y="343" class="sans-b" font-size="9.1">• Post-freeze fix: 3 calls on dev-07</text>
+  <rect x="884" y="353" width="218" height="21" rx="4" fill="#FDF2F4" stroke="#EBC9D0" stroke-width="0.7"/>
+  <text x="993" y="366.8" text-anchor="middle" class="sans-t" font-size="9" fill="#7D2437">Validator Gain: +0.10 TSR · 0% BVR</text>
+
+  <!-- Card 3C: Serving & SFT Experiments (C4–C6) -->
+  <rect x="870" y="398" width="246" height="158" rx="8" fill="#FFFFFF" stroke="#C4CEDD" stroke-width="1.1" filter="url(#cardShadow)"/>
+  <text x="884" y="418" class="serif-sh" font-size="12" fill="#1E3A5F">Serving &amp; SFT Studies (C4–C6)</text>
+  <!-- Crisp mini vector bar chart -->
+  <g transform="translate(884, 434)">
+    <line x1="0" y1="34" x2="48" y2="34" stroke="#64748B" stroke-width="1.1"/>
+    <line x1="0" y1="2" x2="0" y2="34" stroke="#64748B" stroke-width="1.1"/>
+    <rect x="5" y="23" width="8" height="11" rx="1" fill="#94A3B8"/>
+    <rect x="17" y="16" width="8" height="18" rx="1" fill="#2A7B76"/>
+    <rect x="29" y="5" width="8" height="29" rx="1" fill="#1B365D"/>
+    <rect x="40" y="11" width="7" height="23" rx="1" fill="#C0622D"/>
+  </g>
+  <text x="942" y="445" class="sans-t" font-size="9.6" fill="#1B365D">CUDA Graphs  +202%</text>
+  <text x="942" y="458" class="sans-s" font-size="8.4">67.4 → 203.9 tok/s (c=8)</text>
+  <text x="942" y="475" class="sans-t" font-size="9.6" fill="#0F6B66">Prefix Cache  −71% TTFT</text>
+  <line x1="884" y1="487" x2="1102" y2="487" stroke="#E2E8F0" stroke-width="1"/>
+  <text x="884" y="503" class="sans-b" font-size="9.1">• <tspan class="sans-t" fill="#111827">MTP Patch (C5):</tspan> +42% tok/s (c=1)</text>
+  <text x="884" y="519" class="sans-b" font-size="9.1">• <tspan class="sans-t" fill="#111827">LoRA SFT Pilot (C6):</tspan> 8/8 first-step</text>
+  <text x="892" y="535" class="sans-s" font-size="8.5">category accuracy on INT4 weights</text>
+
+
+  <!-- ========================================================================= -->
+  <!-- INTER-COLUMN BRIDGING ARROWS (Clean orthogonal corridors)                 -->
+  <!-- ========================================================================= -->
+  <!-- Branch A Local Backend -> TACC LangGraph Harness (SSH Tunnel) -->
+  <path d="M 310 162 L 395 162" fill="none" stroke="#1E3A5F" stroke-width="1.5" marker-end="url(#arrDark)"/>
+  <rect x="336" y="138" width="34" height="22" rx="3" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.6"/>
+  <text x="353" y="148" text-anchor="middle" class="sans-m" font-size="8.2" fill="#1E3A5F">SSH</text>
+  <text x="353" y="157" text-anchor="middle" class="sans-m" font-size="8.2" fill="#1E3A5F">Tunnel</text>
+
+  <!-- Branch B GCE VM -> TACC vLLM Serving Engine (Auto-Rotating SSH Tunnel) -->
+  <path d="M 310 426 L 395 426" fill="none" stroke="#0F6B66" stroke-width="1.5" marker-end="url(#arrTeal)"/>
+  <rect x="330" y="388" width="46" height="34" rx="3" fill="#FFFFFF" stroke="#A7D4CC" stroke-width="0.7"/>
+  <text x="353" y="399" text-anchor="middle" class="sans-m" font-size="7.6" fill="#0F5A56">Rotating</text>
+  <text x="353" y="408.5" text-anchor="middle" class="sans-m" font-size="7.6" fill="#0F5A56">SSH &amp;</text>
+  <text x="353" y="418" text-anchor="middle" class="sans-m" font-size="7.6" fill="#0F5A56">Keeper</text>
+
+  <!-- Offline Data Pipeline -> Frozen Knowledge Snapshot (Pinned SHA-256 ID) -->
+  <path d="M 870 148 L 799 148" fill="none" stroke="#475569" stroke-width="1.35" stroke-dasharray="4,3" marker-end="url(#arrDash)"/>
+  <rect x="815" y="123" width="48" height="22" rx="3" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="0.6"/>
+  <text x="839" y="133" text-anchor="middle" class="sans-m" font-size="7.8" fill="#334155">Pinned</text>
+  <text x="839" y="142" text-anchor="middle" class="sans-m" font-size="7.8" fill="#334155">SHA-256</text>
+
+  <!-- Frozen Evaluation -> TACC Job (runs B0-B3v) -->
+  <path d="M 870 326 L 810 326" fill="none" stroke="#8C2D42" stroke-width="1.3" stroke-dasharray="4,3" marker-end="url(#arrDash)"/>
+  <rect x="817" y="302" width="46" height="21" rx="3" fill="#FFFFFF" stroke="#E5C5CC" stroke-width="0.6"/>
+  <text x="840" y="311.5" text-anchor="middle" class="sans-m" font-size="7.7" fill="#7D2437">Evaluates</text>
+  <text x="840" y="320.5" text-anchor="middle" class="sans-m" font-size="7.7" fill="#7D2437">B0–B3v</text>
+</svg>
+</body>
+</html>

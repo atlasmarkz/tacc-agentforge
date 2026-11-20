@@ -207,7 +207,7 @@ rerun with it.
 
 \begin{figure*}[t]
 \centering
-\includegraphics[width=0.91\textwidth]{report/figures/architecture-dual-branch.png}
+\includegraphics[width=\textwidth]{report/figures/architecture-dual-branch.pdf}
 \caption{Dual-branch architecture of TACC AgentForge. \textbf{Branch A (\texttt{main}, evaluated):} local backend tunnels over SSH to a 2-GPU TACC job running the LangGraph harness, budget validator, frozen 4-category SQLite/FTS5 snapshot, and vLLM (\texttt{Qwen3.8-27B} AWQ INT4, TP=2). \textbf{Branch B (\texttt{feat/cloud-agent-service}, extension):} Cloudflare Pages, Tailscale Funnel, and GCE \texttt{e2-micro} host the public app, agent, checkpoints, and 7-category GCS snapshot while sharing the same TACC vLLM server via an auto-rotating SSH tunnel. Right: offline data pipeline, frozen evaluation (\textbf{C1--C3}, \textbf{C7}), and serving/SFT experiments (\textbf{C4--C6}).}\label{fig:arch}
 \end{figure*}
 
