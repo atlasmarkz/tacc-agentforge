@@ -273,6 +273,8 @@ def make_handler(backend: Backend):
                     return self.cancel(session, body)
                 if self.path == "/api/lookup":
                     return self.lookup(session, body)
+                if self.path == "/api/narrative":
+                    return self.narrative(session, body)
             except (HarnessError, OSError) as exc:
                 return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
@@ -311,6 +313,17 @@ def make_handler(backend: Backend):
             if not backend.owned(session, run_id):
                 return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
             self._json(200, backend.client.post(f"/runs/{run_id}/cancel", {}))
+
+        def narrative(self, session, body):
+            """The streamed "why this pick" paragraph for one of this session's finished runs."""
+            run_id = body.get("run_id")
+            if not backend.owned(session, run_id):
+                return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
+            details = body.get("details")
+            payload = {"goal": body.get("goal") if isinstance(body.get("goal"), str) else "",
+                       "details": details if isinstance(details, dict) else {},
+                       "lang": "zh" if body.get("lang") == "zh" else "en"}
+            self.relay(session, run_id, f"/runs/{run_id}/narrative", payload, kind="narrative")
 
         def lookup(self, session, body):
             run_id = body.get("run_id")

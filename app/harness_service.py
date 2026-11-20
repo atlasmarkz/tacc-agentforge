@@ -10,6 +10,8 @@ address with mode 600, so only this account can read it):
   POST /runs                           {run_id, conversation_id, message, constraints, explain?} -> SSE events
   POST /runs/<run_id>/resume           {question_id, answer} -> SSE events (answer to a pending question)
   POST /runs/<run_id>/cancel           stop a running run
+  POST /runs/<run_id>/narrative        {goal, details?, lang} -> SSE: the "why this pick" paragraph for a finished run,
+                                       one sentence per `narrative` event, then `narrative_done`
   POST /lookup                         {offer_ids, evidence_ids} -> offer facts and evidence (source links), plus
                                        a product photo per variant and the shop link per offer for the page
 SSE: `event: agent` carries one AgentEvent (its `result` is set on the final or waiting event), `event: error`
@@ -40,6 +42,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 from agent import AgentDependencies, AgentRequest, AgentRuntime, RunStateError
+from agent.contracts import CallContext
 from agent.budget import BudgetPlanValidator
 from knowledge.agent_tools import build_knowledge_tools
 from knowledge.budget_source import KnowledgeOfferCostSource
@@ -116,6 +119,9 @@ class HarnessService:
     def __init__(self, *, model, kb, snapshot_id: str, policy, token: str, info: dict, explain_default: bool):
         tools = build_knowledge_tools(kb)
         self.tools, self.kb, self.snapshot_id, self.token, self.info = tools, kb, snapshot_id, token, info
+        self.model = model
+        self.plans: dict[str, object] = {}                   # run_id -> its verified plan (for the narrative), newest last
+        self.narrating: set[str] = set()
         self.explain_default = explain_default
         deps = AgentDependencies(model, tools, BudgetPlanValidator(KnowledgeOfferCostSource(kb)),
                                  evidence_resolver=KnowledgeEvidenceResolver(kb))
@@ -171,6 +177,8 @@ class HarnessService:
             return await self.start_run(payload, writer)
         if len(parts) == 3 and parts[0] == "runs" and parts[2] == "resume":
             return await self.resume_run(parts[1], payload, writer)
+        if len(parts) == 3 and parts[0] == "runs" and parts[2] == "narrative":
+            return await self.narrative(parts[1], payload, writer)
         if len(parts) == 3 and parts[0] == "runs" and parts[2] == "cancel":
             event = self.cancels.get(parts[1])
             if event is not None:
@@ -248,6 +256,11 @@ class HarnessService:
                 async for ev in make_events(cancel):
                     if ev.result is not None:
                         outcome["status"] = ev.result.status
+                        if ev.result.verified_plan is not None:
+                            self.plans.pop(run_id, None)
+                            self.plans[run_id] = ev.result.verified_plan
+                            while len(self.plans) > 300:
+                                self.plans.pop(next(iter(self.plans)))
                     await queue.put(sse("agent", ev.model_dump(mode="json")))
             except RunStateError as exc:
                 await queue.put(sse("error", {"code": exc.code, "message": str(exc)}))
@@ -283,6 +296,65 @@ class HarnessService:
                 self.waiting[run_id] = time.time()
             elif outcome["status"] is not None:          # finished; a failed resume leaves the run waiting
                 self.waiting.pop(run_id, None)
+
+    async def narrative(self, run_id, payload, writer):
+        """Stream the "why this pick" paragraph for a run that ended with a verified plan (see app/narrative.py)."""
+        from app import narrative as nar
+        plan = self.plans.get(run_id)
+        if plan is None:
+            raise HttpError(404, "run_not_found", "This run has no verified plan to explain.")
+        if run_id in self.narrating:
+            raise HttpError(409, "run_busy", "The explanation is already being written.")
+        look = await self.lookup({"offer_ids": sorted({i.offer_id for i in plan.items}),
+                                  "evidence_ids": sorted({e for i in plan.items for e in i.evidence_ids})[:50]})
+        request, allowed = nar.build_request(plan, look, payload.get("goal"), payload.get("details"), payload.get("lang"))
+        self.narrating.add(run_id)
+        writer.write(b"HTTP/1.1 200 OK\r\nContent-Type: text/event-stream; charset=utf-8\r\n"
+                     b"Cache-Control: no-cache\r\nConnection: close\r\nX-Accel-Buffering: no\r\n\r\n")
+        queue: asyncio.Queue = asyncio.Queue()
+        gate, cancel, seen = nar.SentenceGate(allowed), asyncio.Event(), {"deltas": False}
+
+        def on_delta(kind, text):
+            if kind == "content" and text:
+                seen["deltas"] = True
+                for sentence in gate.feed(text):
+                    queue.put_nowait(sse("narrative", {"text": sentence}))
+
+        async def produce():
+            try:
+                context = CallContext(run_id=run_id, snapshot_id=self.snapshot_id, operation_id=f"{run_id}:narrative:1",
+                                      timeout_s=90.0, cancellation=cancel, on_delta=on_delta)
+                reply = await self.model.generate(request, context)
+                if not seen["deltas"] and getattr(reply, "content", None):       # a port that does not stream
+                    for sentence in gate.feed(reply.content):
+                        queue.put_nowait(sse("narrative", {"text": sentence}))
+                for sentence in gate.flush():
+                    queue.put_nowait(sse("narrative", {"text": sentence}))
+                queue.put_nowait(sse("narrative_done", {"sentences": gate.sent, "dropped": gate.dropped}))
+            except Exception as exc:
+                log(f"narrative {run_id} failed: {type(exc).__name__}: {str(exc)[:200]}")
+                queue.put_nowait(sse("error", {"code": "narrative_failed", "message": "The explanation could not be written."}))
+            finally:
+                queue.put_nowait(None)
+
+        task = asyncio.create_task(produce())
+        try:
+            while True:
+                try:
+                    chunk = await asyncio.wait_for(queue.get(), PING_S)
+                except asyncio.TimeoutError:
+                    chunk = b": ping\n\n"
+                if chunk is None:
+                    writer.write(sse("end", {"run_id": run_id}))
+                    await writer.drain()
+                    break
+                writer.write(chunk)
+                await writer.drain()
+        except (ConnectionError, OSError):
+            cancel.set()
+        finally:
+            await asyncio.gather(task, return_exceptions=True)
+            self.narrating.discard(run_id)
 
     def pending(self) -> str:
         ids = ", ".join(sorted(self.waiting)[:20])
