@@ -42,7 +42,7 @@ In the evaluated deployment, the browser talks to a local Python backend (`app/`
 | `scripts/check_artifact.py` | **One command that runs every stage below that needs no GPU** and prints `SUCCESS`/`FAILED` per stage |
 | `scripts/reproduce_results.py` | One command that recomputes the reported numbers from the committed raw data |
 | `docs/experiments/` | Experiment reports (baseline, private vLLM, LoRA feasibility, data collection) |
-| `tests/`, `agent/tests/` | About 690 automated tests that run offline |
+| `tests/`, `agent/tests/` | About 700 automated tests that run offline |
 
 No model weights, adapters or credentials are in the repository. The base model is the course-provided checkpoint on TACC. The trained LoRA adapter (about 218 MB) stays on the cluster.
 
@@ -108,7 +108,7 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 ```text
 [1/7] environment          SUCCESS (0 s): Python 3.12.x, dependencies import
 [2/7] catalog snapshot     SUCCESS (1 s): snapshot_5bcd00723fb0b7589cbe50c8 installed and verified (FTS5: True)
-[3/7] automated tests      SUCCESS (85 s): 686 passed, 2 skipped, 14 subtests passed in ...
+[3/7] automated tests      SUCCESS (85 s): 697 passed, 2 skipped, 14 subtests passed in ...
 [4/7] harness self-test    SUCCESS (1 s): SELFTEST OK (10/10 checks true)
 [5/7] end-to-end request   SUCCESS (3 s): verified plan offer_640a303bc366430cfd53139e: total 16.87 USD, 83.13 left; without a budget the run asks for one
 [6/7] main results         SUCCESS (1 s): ALL MATCH (6 comparisons: C1-C7 recomputed from the committed raw data)
@@ -125,7 +125,7 @@ A failed stage prints the reason and the end of the failing command's output, an
 .venv/bin/python -m pytest tests agent/tests -q
 ```
 
-**Expected:** `686 passed, 2 skipped` and no failures. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC). Without `python-dotenv` (part of the Setup command), six more tests are skipped.
+**Expected:** `697 passed, 2 skipped` and no failures. The two skips are expected: `test_quantization.py` because quantization is not implemented, and one `test_sft.py` test because PyTorch is not installed (training runs on TACC). Without `python-dotenv` (part of the Setup command), six more tests are skipped.
 
 ## Example 2: end-to-end request without a GPU (about 1 minute)
 
@@ -270,6 +270,8 @@ unzip -oq assets/knowledge/pilot-snapshot.zip -d /tmp/agentforge-snapshot
 
 ```bash
 git checkout cc6059d
+# Keep the portable Miniconda path from main so any TACC account can install harness deps (not part of freeze.json)
+git checkout main -- deploy/tacc/service/agent-e2e/job.sh deploy/tacc/service/app-service/harness-lib.sh
 .venv/bin/python -m evaluations.freeze check      # expected: "matches the freeze"
 ```
 

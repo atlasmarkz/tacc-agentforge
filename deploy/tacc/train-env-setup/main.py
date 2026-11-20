@@ -16,7 +16,7 @@ env = {**os.environ, "SSL_CERT_FILE": "/etc/ssl/certs/ca-certificates.crt",
        "PIP_DISABLE_PIP_VERSION_CHECK": "1"}
 report = {"job": os.environ.get("SLURM_JOB_ID"), "pylib": str(PYLIB), "installs": {}}
 
-pip_python = os.environ.get("CONDA_PYTHON_EXE", "/mnt/home/markzhang/.Miniconda3/bin/python")
+pip_python = os.environ.get("CONDA_PYTHON_EXE", str(USERDIR.parent / ".Miniconda3/bin/python"))
 report["pip_python"] = pip_python
 PYLIB.mkdir(parents=True, exist_ok=True)
 for pkg in PACKAGES:
