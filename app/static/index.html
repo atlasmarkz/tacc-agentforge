@@ -158,7 +158,29 @@ ol.logl .bad { color: var(--bad); }
 /* question */
 .ask { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); padding: 20px 22px; margin: 0 0 24px; animation: rise .4s ease both; }
 .ask h2 { font-size: 18px; margin: 0 0 6px; }
-.ask .qtext { margin: 0 0 16px; color: var(--ink-2); font-size: 16px; }
+.ask .qtext { margin: 0 0 6px; color: var(--ink); font-size: 19px; font-weight: 600; line-height: 1.4; }
+.ask .qhint { margin: 0 0 16px; color: var(--muted); font-size: 14px; min-height: 0; }
+.ask .qhint:empty { display: none; }
+.qhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.qstep { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.qbar { height: 4px; border-radius: 4px; background: var(--line); margin: 6px 0 14px; overflow: hidden; }
+.qbar i { display: block; height: 100%; width: 0; background: var(--ink); border-radius: 4px; transition: width .3s ease; }
+.qdone { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.qdone:empty { display: none; }
+.qdone button { border: 0; background: var(--ok-bg); color: var(--ok); border-radius: 999px; padding: 4px 12px; font-size: 13px; }
+.qdone button:hover { background: #DCEBE0; }
+.qnav { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.qnav .btn-line.hidden { visibility: hidden; display: inline-flex; }
+.qprep { display: flex; flex-direction: column; gap: 10px; padding: 4px 0 10px; }
+.qprep i { display: block; height: 14px; border-radius: 8px; background: linear-gradient(90deg, var(--line) 25%, var(--paper) 50%, var(--line) 75%); background-size: 200% 100%; animation: shimmer 1.2s linear infinite; }
+.qprep i:nth-child(2) { width: 70%; } .qprep i:nth-child(3) { width: 45%; }
+.qprep span { font-size: 14px; color: var(--muted); }
+@keyframes shimmer { to { background-position: -200% 0; } }
+.ask .qchip { padding: 10px 18px; font-size: 15px; }
+.amt { display: flex; align-items: center; gap: 10px; }
+.amt .sym { font-size: 22px; font-weight: 600; color: var(--muted); }
+.amt .input.big { font-size: 24px; font-weight: 600; padding: 12px 14px; width: 180px; }
+.amt select.input { width: auto; }
 .fields { display: flex; flex-direction: column; gap: 18px; margin-bottom: 18px; }
 .fgroup { display: flex; flex-direction: column; gap: 8px; }
 .flabel { font-size: 14px; font-weight: 600; }
@@ -365,12 +387,15 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 28
     </details>
 
     <section class="ask hidden" id="question">
-      <h2 data-i="askTitle"></h2>
+      <div class="qhead"><h2 data-i="askTitle"></h2><span class="qstep" id="qStep"></span></div>
+      <div class="qbar hidden" id="qProg"><i id="qBar"></i></div>
+      <div class="qdone" id="qDone"></div>
       <p class="qtext" id="qText"></p>
+      <p class="qhint" id="qHint"></p>
       <div id="qNotice"></div>
       <form id="qForm" autocomplete="off">
         <div class="fields" id="qFields"></div>
-        <button class="primary" id="qSend" type="submit" data-i="continue"></button>
+        <div class="qnav"><button class="btn-line" id="qBack" type="button"></button><button class="primary" id="qSend" type="submit"></button></div>
       </form>
     </section>
 
@@ -444,7 +469,10 @@ const I18N = {
     rSourceMany: (date) => `Prices and shipping come from the shop listings${date ? ` (read ${date})` : ""}, and the total was calculated exactly.`,
     rTax: "Tax is not included.", rStale: "Prices may have changed since.",
     capCatalog: "In our catalog", capOther: "Other ideas (may not be in the catalog)",
-    noBudget: "no budget yet", askTitle: "One quick question", continue: "Continue",
+    noBudget: "no budget yet", askTitle: "A few quick questions", continue: "Continue",
+    stepOf: (i, n) => `Question ${i} of ${n}`, back: "Back", next: "Next", send: "Start searching", preparing: "Getting a few quick questions ready…",
+    pickOne: "Pick one, or type your own", pickMany: "Pick any that apply, or type your own", needAnswer: "Choose an option or type an answer to continue",
+    askBudget: "What is your budget?", budgetHint: "We only recommend offers that fit it.", askBasis: "Should the budget include tax?", askAmount: (l) => `${l}?`,
     budgetQ: "How much would you like to spend? We only recommend offers that fit this budget.",
     whyTitle: "Why this pick", payTitle: "What you'll pay", sourcesTitle: "Sources", refineTitle: "Want to adjust?",
     newBudget: "New budget", revPlaceholder: "Say what should change, e.g. needs noise cancelling",
@@ -502,7 +530,10 @@ const I18N = {
     rSourceMany: (date) => `价格和运费来自各家商品页${date ? `（${date}读取）` : ""}，总价经精确计算。`,
     rTax: "不含税费。", rStale: "价格可能已有变化。",
     capCatalog: "目录里有的商品", capOther: "其他想法（目录里不一定有）",
-    noBudget: "还没给预算", askTitle: "先确认一下", continue: "继续",
+    noBudget: "还没给预算", askTitle: "先确认几个小问题", continue: "继续",
+    stepOf: (i, n) => `第 ${i} / ${n} 个问题`, back: "上一步", next: "下一步", send: "开始搜索", preparing: "正在准备几个小问题…",
+    pickOne: "选一个，或者自己输入", pickMany: "可以多选，也可以自己输入", needAnswer: "请选择一项或输入答案后再继续",
+    askBudget: "你的预算是多少？", budgetHint: "我们只推荐在这个预算内的商品。", askBasis: "预算要包含税费吗？", askAmount: (l) => `${l}是多少？`,
     budgetQ: "你打算花多少钱？我们只推荐在这个预算内的商品。",
     whyTitle: "为什么推荐它", payTitle: "费用明细", sourcesTitle: "参考来源", refineTitle: "还想调整？",
     newBudget: "新预算", revPlaceholder: "说说要改什么，比如：要降噪的",
@@ -679,7 +710,7 @@ const sameThing = (example, cat) => {
 function suggestionPlan(question, fields) {
   const T = L(), ex = examplesFrom(question), plan = {}, cats = catalogChips();
   const yesNo = (f) => /simultan|together|both|same_time|at_once|waterproof|required$|urgent|gift|include/i.test(f);
-  const listy = (f) => /item|categor|product|thing|needs?$|needed|type/i.test(f);
+  const listy = (f) => /item|categor|product|thing|needs?$|needed/i.test(f);
   const pref = (f) => /prefer|requirement|feature|brand|note|detail|wish/i.test(f);
   const qty = (f) => /quantit|count|number|how_many/i.test(f);
   let used = false;
@@ -723,6 +754,143 @@ function chipsFor(s, input) {
   input.addEventListener("input", sync); sync();
   return wrap;
 }
+// ---- the question wizard -----------------------------------------------------------------------------------------
+// One question at a time with Back / Next. The model words each question for the goal in the shopper's language
+// (POST /api/form); until that comes back, or when it cannot, the page's own wording and options are used. The answer
+// sent to the agent is still the {field: text} object it asked for.
+const BUDGET_FIELDS = new Set([...AMOUNT_FIELDS, "currency", "budget_basis"]);
+const QUICK_AMOUNTS = ["50", "100", "200", "500"];
+let wiz = null;
+
+function baseSteps(q, spec) {
+  const T = L(), fields = q.required_fields, plan = suggestionPlan(q.question, fields), steps = [];
+  const others = fields.filter((f) => !BUDGET_FIELDS.has(f));
+  const said = Object.fromEntries((spec || []).map((x) => [x.field, x]));
+  for (const f of fields) {
+    if (f === "currency" && fields.includes("purchase_cap")) continue;                 // asked together with the amount
+    if (f === "purchase_cap") {
+      steps.push({ kind: "budget", fields: fields.includes("currency") ? ["purchase_cap", "currency"] : ["purchase_cap"],
+                   label: T.fields.purchase_cap, ask: others.length || fields.length > 2 ? T.askBudget : T.budgetQ, hint: others.length || fields.length > 2 ? T.budgetHint : "" });
+    } else if (f === "currency") {
+      steps.push({ kind: "currency", fields: [f], label: T.fields.currency, ask: T.fields.currency + (LANG === "zh" ? "？" : "?") });
+    } else if (f === "budget_basis") {
+      steps.push({ kind: "basis", fields: [f], label: T.fields.budget_basis, ask: T.askBasis });
+    } else if (AMOUNT_FIELDS.has(f)) {
+      steps.push({ kind: "amount", fields: [f], label: fieldLabel(f), ask: T.askAmount(fieldLabel(f)) });
+    } else {
+      const p = plan[f] || { rows: [], multi: false }, m = said[f];
+      let rows = p.rows, multi = p.multi, label = fieldLabel(f), ask = others.length === 1 ? q.question : label + (LANG === "zh" ? "？" : "?");
+      if (m) {
+        label = m.label; ask = m.ask;
+        if (m.kind === "yesno") { rows = [{ opts: [T.yes, T.no] }]; multi = false; }
+        else if (m.kind === "choice" || m.kind === "multi") {
+          multi = m.kind === "multi";
+          const cat = p.rows.filter((r) => r.cls === "cat");                           // what the catalog has comes first
+          const own = m.options.filter((o) => !cat.some((r) => r.opts.some((c) => sameThing(o, c))));
+          rows = [...cat, { cap: cat.length && own.length ? T.capOther : "", opts: own }];
+        }
+      }
+      steps.push({ kind: rows.length ? (multi ? "multi" : "choice") : "text", fields: [f], label, ask, rows, multi,
+                   hint: rows.length ? (multi ? T.pickMany : T.pickOne) : "" });
+    }
+  }
+  return steps;
+}
+
+async function fetchSpec(q) {
+  const others = q.required_fields.filter((f) => !BUDGET_FIELDS.has(f));
+  if (!others.length || !state.runId) return [];
+  const ctl = new AbortController(), timer = setTimeout(() => ctl.abort(), 9000);
+  try {
+    const resp = await fetch("/api/form", { method: "POST", headers: { "Content-Type": "application/json" }, signal: ctl.signal,
+      body: JSON.stringify({ session_id: session, run_id: state.runId, goal: goalOf(), question: q.question, fields: others, lang: LANG,
+                             details: (state.original && state.original.constraints) || {} }) });
+    if (!resp.ok) return [];
+    const steps = (await resp.json()).steps;
+    return Array.isArray(steps) ? steps.filter((x) => x && typeof x.field === "string" && typeof x.label === "string" && typeof x.ask === "string"
+      && ["choice", "multi", "yesno", "text"].includes(x.kind) && Array.isArray(x.options) && x.options.every((o) => typeof o === "string")) : [];
+  } catch (e) { return []; } finally { clearTimeout(timer); }
+}
+
+async function openWizard(q, again) {
+  const T = L(), same = wiz && wiz.qid === q.question_id;
+  if (!same) {
+    const rejected = !!state.rejectedAnswer && state.lastAnswer;
+    wiz = { qid: q.question_id, steps: [], i: 0, values: rejected ? { ...state.lastAnswer } : {}, spec: null, specLang: LANG, rejected: !!rejected };
+  }
+  const mine = wiz;
+  $("qNotice").replaceChildren();
+  if (mine.spec === null) {
+    $("qStep").textContent = ""; show("qProg", false); $("qDone").replaceChildren(); $("qText").textContent = ""; $("qHint").textContent = "";
+    $("qFields").replaceChildren(el("div", { class: "qprep" }, el("i"), el("i"), el("i"), el("span", {}, T.preparing)));
+    $("qBack").classList.add("hidden"); $("qSend").disabled = true;
+    mine.spec = await fetchSpec(q); mine.specLang = LANG;
+    if (wiz !== mine || state.pending !== q) return;                                    // a newer question has taken over
+  }
+  if (mine.specLang !== LANG) { mine.spec = []; mine.specLang = LANG; }                 // the model's words are in the other language
+  mine.steps = baseSteps(q, mine.spec);
+  if (!same || mine.rejected) mine.i = mine.rejected ? mine.steps.length - 1 : 0;
+  mine.rejected = false;
+  mine.i = Math.min(mine.i, mine.steps.length - 1);
+  if (state.rejectedAnswer && !again) notice("qNotice", "warn", T.answerRejected + state.rejectedAnswer);
+  showStep(!again);
+}
+
+function stepValue(step) { return step.fields.map((f) => wiz.values[f]).filter(Boolean).join(" · "); }
+
+function showStep(focus) {
+  const T = L(), step = wiz.steps[wiz.i], n = wiz.steps.length, box = $("qFields");
+  $("qSend").disabled = false;
+  $("qStep").textContent = n > 1 ? T.stepOf(wiz.i + 1, n) : "";
+  show("qProg", n > 1); $("qBar").style.width = ((wiz.i + 1) / n * 100) + "%";
+  $("qDone").replaceChildren(...wiz.steps.slice(0, wiz.i).map((s, k) => {
+    const b = el("button", { type: "button", title: s.label }, "✓ " + s.label + (stepValue(s) ? ": " + (stepValue(s).length > 28 ? stepValue(s).slice(0, 27) + "…" : stepValue(s)) : ""));
+    b.onclick = () => { if (collect(false)) { wiz.i = k; showStep(true); } };
+    return b;
+  }));
+  $("qText").textContent = step.ask; $("qHint").textContent = step.hint || "";
+  $("qBack").textContent = T.back; $("qBack").classList.toggle("hidden", wiz.i === 0);
+  $("qSend").textContent = wiz.i === n - 1 ? T.send : T.next;
+  const group = el("div", { class: "fgroup" });
+  const field = (f, input) => { input.id = "q_" + f; if (wiz.values[f]) input.value = wiz.values[f]; return input; };
+  if (step.kind === "budget") {
+    const amount = field("purchase_cap", el("input", { class: "input big", inputmode: "decimal", placeholder: "100" }));
+    const row = el("div", { class: "amt" }, el("span", { class: "sym" }, "$"), amount);
+    if (step.fields.includes("currency")) { const cur = field("currency", el("select", { class: "input" }, el("option", {}, "USD"))); row.append(cur); }
+    group.append(row, chipsFor({ multi: false, rows: [{ opts: QUICK_AMOUNTS.map((a) => ({ l: "$" + a, v: a })) }] }, amount));
+  } else if (step.kind === "currency") {
+    group.append(field("currency", el("select", { class: "input" }, el("option", {}, "USD"))));
+  } else if (step.kind === "basis") {
+    const hidden = field("budget_basis", el("input", { type: "hidden" }));
+    if (!hidden.value) hidden.value = "pre_tax";
+    group.append(chipsFor({ multi: false, rows: [{ opts: [{ l: T.basis.pre_tax, v: "pre_tax" }, { l: T.basis.all_in, v: "all_in" }] }] }, hidden), hidden);
+  } else if (step.kind === "amount") {
+    group.append(el("div", { class: "amt" }, field(step.fields[0], el("input", { class: "input big", inputmode: "decimal", placeholder: "0" }))));
+  } else {
+    const input = field(step.fields[0], el("input", { class: "input", maxlength: "200", placeholder: T.typeOwn }));
+    if (step.rows.length) group.append(chipsFor({ multi: step.multi, rows: step.rows }, input));
+    group.append(input);
+  }
+  box.replaceChildren(group);
+  if (focus) { const first = box.querySelector("input:not([type=hidden])"); if (first) first.focus(); }
+}
+
+// Keep what is typed on this step; with `check`, say what is missing instead of moving on.
+function collect(check) {
+  const T = L(), step = wiz.steps[wiz.i];
+  for (const f of step.fields) {
+    const n = $("q_" + f); if (!n) continue;
+    const v = n.value.trim();
+    if (check && !v) { notice("qNotice", "warn", step.kind === "budget" || step.kind === "amount" ? T.fill(step.label) : T.needAnswer); n.focus && n.focus(); return false; }
+    if (check && AMOUNT_FIELDS.has(f) && !money(v)) { notice("qNotice", "warn", T.number(step.label)); n.focus(); return false; }
+    wiz.values[f] = v;
+  }
+  notice("qNotice");
+  return true;
+}
+
+$("qBack").onclick = () => { if (wiz && wiz.i > 0 && collect(false)) { wiz.i--; showStep(true); } };
+
 const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ""); } catch (e) { return ""; } };
 const favicon = (u) => { const h = hostOf(u); return h ? "https://www.google.com/s2/favicons?domain=" + encodeURIComponent(h) + "&sz=64" : null; };
 const day = (iso) => { try { return new Date(iso).toLocaleDateString(LANG === "zh" ? "zh-CN" : "en-US", { month: "short", day: "numeric", year: "numeric" }); } catch (e) { return ""; } };
@@ -742,6 +910,7 @@ function applyLang() {
   $("refineChips").replaceChildren(...L().chips.map((c) => { const b = el("button", { class: "fchip", type: "button" }, c); b.onclick = () => { $("revMsg").value = c; $("revMsg").focus(); }; return b; }));
   renderHealth(); renderHistory();
   if (state.result) render(state.result, true);
+  else if (state.pending && wiz && !$("question").classList.contains("hidden")) { if (wiz.steps.length) collect(false); openWizard(state.pending, true); }
   else if (!$("thread").classList.contains("hidden")) setTitle();
 }
 document.querySelectorAll("[data-lang]").forEach((b) => (b.onclick = () => { LANG = b.dataset.lang; try { localStorage.setItem("lang", LANG); } catch (e) {} applyLang(); }));
@@ -948,34 +1117,8 @@ function render(r, again) {
       state.answered = false; state.pending = r.pending_question;
       stage("understand", "done"); logStep(L().waitingLog); setTitle("waiting");
     }
-    notice("qNotice", "warn", state.rejectedAnswer ? L().answerRejected + state.rejectedAnswer : "");
     show("question", true);
-    // A question about budget fields only (the validator's pre-search check) gets plain wording; the harness text
-    // names raw field names. Questions the model writes about anything else are shown as written.
-    const budgetOnly = r.pending_question.required_fields.every((f) => AMOUNT_FIELDS.has(f) || f === "currency" || f === "budget_basis");
-    $("qText").textContent = budgetOnly ? L().budgetQ : r.pending_question.question;
-    $("qText").title = budgetOnly ? r.pending_question.question : "";
-    const box = $("qFields"), kept = {};
-    box.querySelectorAll("[id^=q_]").forEach((n) => (kept[n.id] = n.value));
-    box.replaceChildren();
-    const fields = r.pending_question.required_fields, plan = suggestionPlan(r.pending_question.question, fields);
-    for (const f of fields) {
-      const id = "q_" + f;
-      const input = f === "currency"
-        ? el("select", { class: "input", id }, el("option", {}, "USD"))
-        : f === "budget_basis"
-        ? el("select", { class: "input", id }, el("option", { value: "pre_tax" }, L().basis.pre_tax), el("option", { value: "all_in" }, L().basis.all_in))
-        : AMOUNT_FIELDS.has(f)
-        ? el("input", { class: "input", id, inputmode: "decimal", placeholder: f === "purchase_cap" ? "100" : "" })
-        : el("input", { class: "input", id, maxlength: "200", placeholder: L().typeOwn });
-      if (kept[id]) input.value = kept[id];
-      const group = el("div", { class: "fgroup" }, el("label", { class: "flabel", for: id }, fieldLabel(f)));
-      const s = plan[f];
-      if (s && input.tagName === "INPUT") group.append(chipsFor(s, input));
-      group.append(input);
-      box.append(group);
-    }
-    if (!again) { const first = box.querySelector("input"); if (first) first.focus(); }
+    openWizard(r.pending_question, again);
     return;
   }
   state.result = r;
@@ -1432,16 +1575,17 @@ $("searchForm").onsubmit = (e) => { e.preventDefault(); if (!state.busy) ask($("
 
 $("qForm").onsubmit = (e) => {
   e.preventDefault();
-  const q = state.pending; if (!q || state.busy) return;
+  const q = state.pending; if (!q || state.busy || !wiz || !wiz.steps.length || wiz.qid !== q.question_id) return;
+  if (!collect(true)) return;
+  if (wiz.i < wiz.steps.length - 1) { wiz.i++; showStep(true); return; }
   const answer = {};
   for (const f of q.required_fields) {
-    const v = $("q_" + f).value.trim();
-    if (!v) { notice("qNotice", "warn", L().fill(fieldLabel(f))); return; }
-    if (AMOUNT_FIELDS.has(f) && !money(v)) { notice("qNotice", "warn", L().number(fieldLabel(f))); return; }
+    const v = (wiz.values[f] || (f === "currency" ? "USD" : f === "budget_basis" ? "pre_tax" : "")).trim();
+    if (!v) { const k = wiz.steps.findIndex((s) => s.fields.includes(f)); wiz.i = Math.max(0, k); showStep(true); notice("qNotice", "warn", L().needAnswer); return; }
     answer[f] = v;
   }
   notice("qNotice");
-  state.answered = true;
+  state.answered = true; state.lastAnswer = answer;
   if (state.original) state.original.constraints = { ...state.original.constraints, ...answer };
   show("question", false); show("skel", true); setTitle("working"); $("trace").open = true;
   run("/api/answer", { run_id: state.runId, question_id: q.question_id, answer });

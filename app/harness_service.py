@@ -12,6 +12,9 @@ address with mode 600, so only this account can read it):
   POST /runs/<run_id>/cancel           stop a running run
   POST /runs/<run_id>/narrative        {goal, details?, lang} -> SSE: the "why this pick" paragraph for a finished run,
                                        one sentence per `narrative` event, then `narrative_done`
+  POST /runs/<run_id>/form             {goal, question, fields, lang, details?} -> JSON {steps}: the follow-up question
+                                       written for a shopper (label, question, options in their language); [] when the
+                                       model could not, and the page uses its own wording
   POST /lookup                         {offer_ids, evidence_ids} -> offer facts and evidence (source links), plus
                                        a product photo per variant and the shop link per offer for the page
 SSE: `event: agent` carries one AgentEvent (its `result` is set on the final or waiting event), `event: error`
@@ -32,6 +35,7 @@ import argparse
 import asyncio
 import json
 import os
+import re
 import secrets
 import socket
 import sqlite3
@@ -191,6 +195,8 @@ class HarnessService:
             return await self.resume_run(parts[1], payload, writer)
         if len(parts) == 3 and parts[0] == "runs" and parts[2] == "narrative":
             return await self.narrative(parts[1], payload, writer)
+        if len(parts) == 3 and parts[0] == "runs" and parts[2] == "form":
+            return await self.form(parts[1], payload, writer)
         if len(parts) == 3 and parts[0] == "runs" and parts[2] == "cancel":
             event = self.cancels.get(parts[1])
             if event is not None:
@@ -369,6 +375,28 @@ class HarnessService:
         finally:
             await asyncio.gather(task, return_exceptions=True)
             self.narrating.discard(run_id)
+
+    async def form(self, run_id, payload, writer):
+        """The follow-up question of a run that is waiting for an answer, put the way a shopper can answer it."""
+        from app import formspec
+        if run_id not in self.waiting:
+            raise HttpError(404, "run_not_found", "This run is not waiting for an answer.")
+        fields = payload.get("fields")
+        if (not isinstance(fields, list) or not 0 < len(fields) <= formspec.MAX_FIELDS
+                or not all(isinstance(f, str) and re.fullmatch(r"[A-Za-z0-9_]{1,64}", f) for f in fields)):
+            raise HttpError(400, "invalid_request", "fields must be a short list of field names.")
+        details = payload.get("details")
+        request = formspec.build_request(payload.get("goal"), payload.get("question"), fields, payload.get("lang"),
+                                         self.catalog_categories(), details if isinstance(details, dict) else None)
+        steps = []
+        try:
+            context = CallContext(run_id=run_id, snapshot_id=self.snapshot_id, operation_id=f"{run_id}:form:{int(time.time())}",
+                                  timeout_s=25.0, cancellation=asyncio.Event(), on_delta=None)
+            reply = await asyncio.wait_for(self.model.generate(request, context), 30)
+            steps = formspec.parse_steps(getattr(reply, "content", None), fields)
+        except Exception as exc:                                  # the page falls back to its own wording
+            log(f"form {run_id} failed: {type(exc).__name__}: {str(exc)[:200]}")
+        json_response(writer, 200, {"steps": steps})
 
     def pending(self) -> str:
         ids = ", ".join(sorted(self.waiting)[:20])

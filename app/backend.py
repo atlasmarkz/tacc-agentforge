@@ -94,8 +94,8 @@ class HarnessClient:
         finally:
             conn.close()
 
-    def post(self, path, payload):
-        conn, resp = self._open("POST", path, payload)
+    def post(self, path, payload, timeout=None):
+        conn, resp = self._open("POST", path, payload, timeout=timeout)
         try:
             return json.loads(resp.read())
         finally:
@@ -351,6 +351,8 @@ def make_handler(backend: Backend, auth=None):
                     return self.lookup(owner, body)
                 if self.path == "/api/narrative":
                     return self.narrative(session, owner, body, limit)
+                if self.path == "/api/form":
+                    return self.form(owner, body, limit)
             except (HarnessError, OSError) as exc:
                 return self.harness_error(exc)
             self._json(404, {"error": {"code": "not_found", "message": "No such endpoint."}})
@@ -425,6 +427,25 @@ def make_handler(backend: Backend, auth=None):
                            "details": details if isinstance(details, dict) else {},
                            "lang": "zh" if body.get("lang") == "zh" else "en"}
                 self.relay(session, owner, run_id, f"/runs/{run_id}/narrative", payload, kind="narrative")
+            finally:
+                backend.release(limit)
+
+        def form(self, owner, body, limit):
+            """The follow-up question of one of this visitor's waiting runs, worded for the shopper. A model call, so it
+            counts against the same limits; when it is refused or fails, the page uses its own wording."""
+            run_id = body.get("run_id")
+            if not backend.owned(owner, run_id):
+                return self._json(403, {"error": {"code": "not_your_run", "message": "Unknown run."}})
+            if not self.reserve(limit, new_run=False):
+                return
+            try:
+                details = body.get("details")
+                payload = {"goal": body.get("goal") if isinstance(body.get("goal"), str) else "",
+                           "question": body.get("question") if isinstance(body.get("question"), str) else "",
+                           "fields": body.get("fields") if isinstance(body.get("fields"), list) else [],
+                           "details": details if isinstance(details, dict) else {},
+                           "lang": "zh" if body.get("lang") == "zh" else "en"}
+                self._json(200, backend.client.post(f"/runs/{run_id}/form", payload, timeout=40))
             finally:
                 backend.release(limit)
 
