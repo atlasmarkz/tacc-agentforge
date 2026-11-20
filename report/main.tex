@@ -107,7 +107,20 @@
   boxrule=0.35pt,
   arc=1.5pt,
   left=7pt, right=7pt, top=3.5pt, bottom=3.5pt,
+  before skip=5pt, after skip=5pt,
   fontupper=\footnotesize\color{SlateInk}
+}
+
+% Sleek breakable code block container for Appendix A (ICML/NeurIPS artifact appendix style)
+\newtcolorbox{codebox}{
+  enhanced,
+  breakable,
+  colback=BoxBg,
+  colframe=BorderGray,
+  boxrule=0.45pt,
+  arc=2pt,
+  left=7pt, right=7pt, top=4.5pt, bottom=4.5pt,
+  before skip=5pt, after skip=6pt
 }
 
 % Hairline frame helper for crisp UI screenshots
@@ -624,20 +637,47 @@ Table~\ref{tab:contrib} summarizes each team member's contributions across the p
 \end{tabularx}
 \end{table}
 
-% ---- Appendix A: Full Repository README (clean single-column for wide tables & code blocks) ---------------------
+% ---- Appendix A: Full Repository README (ICML/NeurIPS Supplementary Material format) ----------------------------
 \clearpage
 \onecolumn
 \appendix
-\setcounter{secnumdepth}{2}
-\titleformat{\section}{\normalfont\fontsize{13}{15}\selectfont\bfseries}{Appendix~\thesection.}{0.55em}{}[\vspace{2pt}\color{BorderGray}\titlerule]
-\titleformat{\subsection}{\normalfont\fontsize{11}{13}\selectfont\bfseries}{\thesubsection}{0.5em}{}
-\titleformat{\subsubsection}{\normalfont\fontsize{10}{12}\selectfont\bfseries}{}{0pt}{}
-\titlespacing*{\subsubsection}{0pt}{6pt plus 1.5pt}{2pt plus 0.5pt}
-\titleformat{\paragraph}[runin]{\normalfont\normalsize\bfseries}{}{0pt}{}[.]
+\fancyhead[C]{\small\itshape\color{SlateInk} TACC AgentForge --- Appendix: Repository README \& Artifact Evaluation Guide}
+\setcounter{secnumdepth}{3}
+\renewcommand{\thesection}{\Alph{section}}
+\renewcommand{\thesubsection}{\thesection.\arabic{subsection}}
+\renewcommand{\thesubsubsection}{\thesubsection.\arabic{subsubsection}}
 
-\section{Repository README}\label{app:readme}
-{\small\color{SlateInk} Full contents of \texttt{README.md} at the submitted repository state, formatted for print. All relative links point to the corresponding files on GitHub. To avoid duplicating images already presented in Section~\ref{sec:system}, the two inline figures are cross-referenced to Figures~\ref{fig:arch} and~\ref{fig:ui}.}\par\medskip
+% ICML-style double-rule Supplementary / Appendix banner
+\vspace*{-6pt}
+\noindent\rule{\textwidth}{1.2pt}\par
+\vspace{5pt}
+\begin{center}
+  {\fontsize{13.5}{16}\selectfont\bfseries Appendix: Repository README and Artifact Evaluation Guide}\par
+\end{center}
+\vspace{2pt}
+\noindent\rule{\textwidth}{1.2pt}\par
+\vspace{6pt}
+\begin{center}
+  {\footnotesize\color{SlateInk} Full verbatim text, tables, and commands of \texttt{README.md} at the submitted repository state (\repo).\\
+  All relative paths resolve to GitHub. Inline figures already shown in Section~\ref{sec:system} are cross-referenced to Figures~\ref{fig:arch} and~\ref{fig:ui}.}
+\end{center}
+\vspace{4pt}
 
+% Clean hierarchical pure-black academic appendix headings
+\titleformat{\section}{\normalfont\fontsize{11.5}{13.5}\selectfont\bfseries}{Appendix~\thesection.}{0.55em}{}
+\titleformat{\subsection}{\normalfont\fontsize{10.8}{12.8}\selectfont\bfseries}{\thesubsection.}{0.5em}{}[\vspace{1.5pt}\color{BorderGray}\titlerule]
+\titleformat{\subsubsection}{\normalfont\fontsize{9.8}{11.5}\selectfont\bfseries}{\thesubsubsection.}{0.45em}{}
+\titleformat{\paragraph}[runin]{\normalfont\fontsize{9.5}{11}\selectfont\bfseries}{}{0pt}{}[.]
+\titlespacing*{\section}{0pt}{4pt}{3pt}
+\titlespacing*{\subsection}{0pt}{12pt plus 2pt minus 1pt}{5pt plus 1pt}
+\titlespacing*{\subsubsection}{0pt}{8pt plus 1.5pt minus 1pt}{3pt plus 0.5pt}
+\titlespacing*{\paragraph}{0pt}{5pt plus 1pt}{0.5em}
+
+\begingroup
+\fontsize{9.5}{11.6}\selectfont
+\setlength{\parskip}{3.5pt plus 1pt minus 0.5pt}
+\refstepcounter{section}\label{app:readme}
 \input{build/readme.tex}
+\endgroup
 
 \end{document}
