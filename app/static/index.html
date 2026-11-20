@@ -227,6 +227,31 @@ ol.logl .bad { color: var(--bad); }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
 .panel h3 { margin: 0 0 12px; font-size: 16px; }
 .whytext { color: var(--ink-2); }
+.rcard { display: grid; grid-template-columns: 40px 1fr; gap: 14px; padding: 14px 0; border-top: 1px solid var(--line); }
+.rcard:first-of-type { border-top: 0; padding-top: 4px; }
+.rico { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: var(--soft); color: var(--accent); }
+.rico.ok { background: var(--ok-bg); color: var(--ok); }
+.rico svg { width: 20px; height: 20px; }
+.rt { font-weight: 600; font-size: 15px; margin-bottom: 3px; }
+.rb { color: var(--ink-2); font-size: 15px; }
+.rb b { color: var(--ink); font-weight: 600; }
+.rb q { quotes: "“" "”"; color: var(--ink); }
+.rb .hit { background: var(--ok-bg); color: var(--ok); border-radius: 6px; padding: 0 6px; font-weight: 500; white-space: nowrap; }
+.hl { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+.hl span { background: var(--soft); border-radius: 999px; padding: 3px 10px; font-size: 13px; color: var(--ink-2); }
+.ritems { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; margin: 10px 0 6px; }
+.ritem { display: flex; flex-direction: column; gap: 6px; border: 1px solid var(--line); border-radius: 16px; padding: 12px; background: var(--paper); }
+.ritem .rp { font-weight: 600; font-size: 18px; font-variant-numeric: tabular-nums; }
+.ritem .th { width: 100%; height: 128px; border-radius: 12px; background: #fff; border: 1px solid #EFE8DD; display: grid; place-items: center; overflow: hidden; position: relative; margin-bottom: 4px; }
+.rrow { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; border-top: 1px solid var(--line); margin-top: 8px; }
+.rrow .rcard { border-top: 0; }
+.ritem .th img { width: 88%; height: 88%; object-fit: contain; }
+.ritem .th b { position: absolute; top: 8px; left: 8px; width: 22px; height: 22px; border-radius: 50%; background: var(--ink); color: var(--paper); font-size: 12px; display: grid; place-items: center; }
+.ritem .tt { font-weight: 600; font-size: 15px; line-height: 1.35; }
+.ritem .tag2 { display: inline-block; background: var(--ok-bg); color: var(--ok); font-size: 12px; font-weight: 500; border-radius: 999px; padding: 1px 9px; margin-right: 6px; vertical-align: 1px; }
+.whymodel { margin-top: 6px; border-top: 1px solid var(--line); padding-top: 14px; }
+.mlabel { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+.mlabel .mk { width: 20px; height: 20px; border-radius: 6px; background: var(--ink); color: var(--paper); display: grid; place-items: center; font-size: 11px; font-weight: 700; }
 .whytext p { margin: 0 0 10px; }
 .whytext ul { margin: 0 0 10px; padding: 0; list-style: none; }
 .whytext li { position: relative; padding-left: 18px; margin-bottom: 7px; }
@@ -350,7 +375,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 28
       <p class="lead-line hidden" id="lead"></p>
       <div id="products"></div>
       <div class="cols" id="cols">
-        <section class="panel hidden" id="why"><h3 data-i="whyTitle"></h3><div class="whytext" id="whyText"></div><div class="whynote" id="whyNote"></div></section>
+        <section class="panel hidden" id="why"><h3 data-i="whyTitle"></h3><div id="whyCards"></div><div class="whymodel hidden" id="whyModel"><div class="mlabel"><span class="mk">AI</span><span data-i="modelSays"></span></div><div class="whytext" id="whyText"></div></div><div class="whynote" id="whyNote"></div></section>
         <section class="panel receipt hidden" id="summary"><h3 data-i="payTitle"></h3><div id="sumTable"></div><div class="bar" id="meter"><i></i></div><div class="left" id="meterText"></div></section>
       </div>
       <section class="hidden" id="sourcesCard"><h4 class="sec" id="sourcesAnchor" data-i="sourcesTitle"></h4><ol class="sources" id="sources"></ol></section>
@@ -401,6 +426,16 @@ const I18N = {
     sUnderstand: "Understanding your request", sSearch: "Searching the catalog", sCompare: "Comparing offers",
     sCheck: "Checking the budget", sExplain: "Writing the explanation", log: "Activity log",
     typeOwn: "Or type your own", yes: "Yes", no: "No", noPref: "No preference",
+    modelSays: "Notes from the AI",
+    rFit: "Fits what you asked for", rBudget: "Within your budget", rChecked: "Prices you can trace",
+    rGoal: (g) => `You asked for <q>${g}</q>.`, rChange: (c) => ` You then changed it: <q>${c}</q>.`,
+    rIs: (cat) => ` This is ${/^[aeiou]/i.test(cat) ? "an" : "a"} <b>${cat}</b>`, rHits: (h) => `, and it mentions ${h}`, rCat: ", in the category you wanted",
+    rPriceOne: (price, pct, extra) => `<b>${price}</b>, about ${pct}% of your budget${extra}.`,
+    rPriceMany: (n, total, pct) => `Together the ${n} items come to <b>${total}</b>, about ${pct}% of your budget.`,
+    rLeft: (v) => ` You keep <b>${v}</b>.`, rFreeShip: ", with free shipping", rShip: (v) => `, plus ${v} shipping`,
+    rSource: (who, date) => `Price and shipping come from ${who}'s listing${date ? ` (read ${date})` : ""}, and the total was calculated exactly.`,
+    rSourceMany: (date) => `Prices and shipping come from the shop listings${date ? ` (read ${date})` : ""}, and the total was calculated exactly.`,
+    rTax: "Tax is not included.", rStale: "Prices may have changed since.",
     capCatalog: "In our catalog", capOther: "Other ideas (may not be in the catalog)",
     noBudget: "no budget yet", askTitle: "One quick question", continue: "Continue",
     budgetQ: "How much would you like to spend? We only recommend offers that fit this budget.",
@@ -412,9 +447,7 @@ const I18N = {
     shipFree: "Free shipping", ship: (v) => `Shipping ${v}`, shipUnknown: "Shipping unknown", tax: (v) => `Tax ${v}`, taxNo: "Tax not included", stale: "Price may have changed",
     items: "Items", shipping: "Shipping", taxL: "Tax", notIncl: "not included", free: "Free", total: "Total", totalPre: "Total before tax",
     budgetOf: (v) => `Your budget ${v}`, leftOf: (v) => ["left ", v],
-    checked: "Checked: every number and source above comes from the budget-checked plan and its evidence.",
-    fallbackNote: "The model's draft quoted figures we could not verify, so this shows the checked facts instead.",
-    fallbackWhy: "It matches what you asked for, its price and shipping come from the shop listing, and it passed the exact budget check.",
+    checked: "Every number and source here comes from the budget-checked plan and its evidence.",
     draft: "Writing… numbers and sources are checked when it finishes.",
     lead: (what, from, total, pre, ship, left) => `We picked <b>${what}</b>${from}. It comes to <b>${total}</b>${pre}${ship}, leaving <b>${left}</b> of your budget.`,
     leadMulti: (n, total, pre, left) => `We put together <b>${n} items</b> for you. Together they come to <b>${total}</b>${pre}, leaving <b>${left}</b> of your budget.`,
@@ -451,6 +484,16 @@ const I18N = {
     working: "正在帮你找…", waiting: "等你回答", done: (s) => `找好了，用时 ${s} 秒`, failed: "已停止",
     sUnderstand: "理解你的需求", sSearch: "搜索商品目录", sCompare: "比较报价", sCheck: "核对预算", sExplain: "撰写推荐理由", log: "详细记录",
     typeOwn: "也可以自己输入", yes: "是", no: "否", noPref: "没有特别要求",
+    modelSays: "AI 的补充说明",
+    rFit: "贴合你的需求", rBudget: "在预算之内", rChecked: "价格有出处",
+    rGoal: (g) => `你想要<q>${g}</q>。`, rChange: (c) => `之后你调整为<q>${c}</q>。`,
+    rIs: (cat) => `这是一款<b>${cat}</b>`, rHits: (h) => `，商品信息里提到了 ${h}`, rCat: "，属于你想买的品类",
+    rPriceOne: (price, pct, extra) => `<b>${price}</b>，约占预算的 ${pct}%${extra}。`,
+    rPriceMany: (n, total, pct) => `${n} 件合计 <b>${total}</b>，约占预算的 ${pct}%。`,
+    rLeft: (v) => `还剩 <b>${v}</b>。`, rFreeShip: "，包邮", rShip: (v) => `，另付运费 ${v}`,
+    rSource: (who, date) => `价格和运费来自 ${who} 的商品页${date ? `（${date}读取）` : ""}，总价经精确计算。`,
+    rSourceMany: (date) => `价格和运费来自各家商品页${date ? `（${date}读取）` : ""}，总价经精确计算。`,
+    rTax: "不含税费。", rStale: "价格可能已有变化。",
     capCatalog: "目录里有的商品", capOther: "其他想法（目录里不一定有）",
     noBudget: "还没给预算", askTitle: "先确认一下", continue: "继续",
     budgetQ: "你打算花多少钱？我们只推荐在这个预算内的商品。",
@@ -462,9 +505,7 @@ const I18N = {
     shipFree: "包邮", ship: (v) => `运费 ${v}`, shipUnknown: "运费未知", tax: (v) => `税 ${v}`, taxNo: "不含税", stale: "价格可能已变化",
     items: "商品", shipping: "运费", taxL: "税费", notIncl: "未计入", free: "免费", total: "合计", totalPre: "合计（不含税）",
     budgetOf: (v) => `你的预算 ${v}`, leftOf: (v) => ["还剩 ", v],
-    checked: "已核对：上面的每个数字和来源都来自通过预算校验的方案及其证据。",
-    fallbackNote: "模型草稿里有无法核实的数字，这里改为展示已核对的信息。",
-    fallbackWhy: "它符合你的需求，价格和运费来自商家页面，并通过了精确的预算核对。",
+    checked: "这里的每个数字和来源，都来自通过预算校验的方案及其证据。",
     draft: "正在撰写…完成后会核对其中的数字和来源。",
     lead: (what, from, total, pre, ship, left) => `推荐 <b>${what}</b>${from}。合计 <b>${total}</b>${pre}${ship}，预算还剩 <b>${left}</b>。`,
     leadMulti: (n, total, pre, left) => `为你挑了 <b>${n} 件商品</b>，合计 <b>${total}</b>${pre}，预算还剩 <b>${left}</b>。`,
@@ -831,7 +872,7 @@ function handle(event, data) {
   if (data.type === "explain_delta") {
     state.explain += (data.data && data.data.text) || "";
     show("result", true); show("why", true); show("skel", false);
-    renderExplanation(state.explain); $("whyText").classList.add("caret");
+    show("whyModel", true); renderExplanation(state.explain); $("whyText").classList.add("caret");
     $("whyNote").textContent = L().draft;
     return;
   }
@@ -908,15 +949,14 @@ function render(r, again) {
     const p = r.verified_plan;
     $("products").replaceChildren(p.items.length === 1 ? heroCard(p.items[0], p.currency)
       : el("div", { class: "grid" }, ...p.items.map((it, idx) => gridCard(it, idx))));
-    if (r.explanation) {
-      show("why", true);
-      state.fallback = !!r.explanation.fallback;
-      $("whyText").classList.remove("caret");
-      // The harness's own fallback template is not in English; build the summary from the checked plan instead.
-      if (state.fallback) fallbackWhy(state.look); else renderExplanation(r.explanation.text);
-      $("whyNote").replaceChildren(el("span", {}, "✓"), el("span", {}, state.fallback ? L().fallbackNote : L().checked));
-    } else show("why", false);
-    $("cols").style.gridTemplateColumns = r.explanation ? "" : "1fr";
+    state.fallback = !!(r.explanation && r.explanation.fallback);
+    $("whyText").classList.remove("caret");
+    // The reasons are built from the checked plan and its evidence once the offer details have loaded (fillLookup);
+    // the model's own text is shown only when it passed the harness's checks (the harness's fallback template is not).
+    const hasModelText = !!(r.explanation && !r.explanation.fallback && r.explanation.text);
+    show("whyModel", hasModelText);
+    if (hasModelText) renderExplanation(r.explanation.text);
+    $("whyNote").replaceChildren(el("span", {}, "✓"), el("span", {}, L().checked));
     summary(p);
     renderLead(p);
     if (again && state.look) fillLookup(p, state.look); else lookup(p);
@@ -974,18 +1014,95 @@ function renderExplanation(text) {
     : Array.isArray(b) ? "<ul>" + b.map((x) => "<li>" + inline(x) + "</li>").join("") + "</ul>"
     : /^(note|注意|说明)\s*[:：]/i.test(b) ? `<p class="mnote">${inline(b.replace(/^(note|注意|说明)\s*[:：]\s*/i, ""))}</p>` : "<p>" + inline(b) + "</p>").join("");
 }
-// When the model's draft is rejected, show what was checked instead: short product facts from the plan's own
-// evidence (e.g. "Connectivity: Wireless, Bluetooth"), with the plain reason underneath.
-function fallbackWhy(look) {
-  const box = $("whyText"), facts = [];
-  for (const e of (look && look.evidence) || [])
-    if (e.kind === "attribute" && e.text && e.text.length <= 70 && !facts.includes(e.text)) facts.push(e.text);
-  box.replaceChildren(
-    facts.length ? el("div", { class: "feats" }, ...facts.slice(0, 6).map((f) => el("span", { class: "feat" }, "✓ " + f))) : "",
-    el("p", {}, L().fallbackWhy));
+// ---- "Why this pick": built only from the checked plan, the offers' own data and the user's request -----------------
+const ICON = {
+  goal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg>',
+  wallet: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="3"/><path d="M3 10h18M16.5 14.5h.01"/><path d="M6 6l9-2.5"/></svg>',
+  shield: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5.5c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5V6l7-3z"/><path d="m8.8 12.2 2.2 2.2 4.2-4.4"/></svg>',
+};
+const STOPWORDS = new Set("a an the for my me i to of in on and or with that this is are be can will want need looking recommend recommended give some good best new your you it at by from what which should buy get find trip please".split(" "));
+const CAT_KEYS = { earbuds: ["耳机"], chargers: ["充电"], keyboards: ["键盘"], backpacks: ["背包", "双肩包", "书包"], smartwatches: ["手表"], monitors: ["显示器"], mice: ["鼠标"] };
+const catName = (slug) => (CAT_LABELS[slug] || [humanize(slug), humanize(slug)])[LANG === "zh" ? 1 : 0];
+function goalOf() {
+  const parts = ((state.original && state.original.message) || "").split("\nChange: ");
+  return { text: parts[0].trim().replace(/[.。!！]+$/, ""), change: parts.length > 1 ? parts[parts.length - 1].trim() : "" };
 }
+// The request's own words that the product's title or attributes also contain (English words), or the Chinese
+// keyword of its category; nothing is guessed beyond that.
+function goalHits(goal, productText, slug) {
+  const hay = productText.toLowerCase(), hits = [];
+  for (const w of new Set((goal.toLowerCase().match(/[a-z][a-z0-9+-]{2,}/g) || []).filter((x) => !STOPWORDS.has(x)))) {
+    const stem = w.replace(/(es|s)$/, "");
+    if (hay.includes(w) || (stem.length >= 3 && hay.includes(stem))) hits.push(w);
+  }
+  for (const k of CAT_KEYS[slug] || []) if (goal.includes(k) && !hits.includes(k)) hits.push(k);
+  return hits.slice(0, 4);
+}
+function highlightsFor(o, evidence) {
+  const out = [], seen = new Set();
+  const add = (t) => { t = t.trim(); const k = t.toLowerCase(); if (t && !seen.has(k)) { seen.add(k); out.push(t.charAt(0).toUpperCase() + t.slice(1)); } };
+  for (const e of evidence) if (e.variant_id === o.variant_id && e.kind === "attribute" && e.text && e.text.length <= 56) add(e.text);
+  for (const part of (o.store_title || "").split(/\s*[,，|;；]\s*|\s+[-–—]\s+|\s*[()]\s*|\s+(?:with|featuring|includes?)\s+/i).slice(1)) {
+    const t = part.trim();
+    if (t.length >= 4 && t.length <= 34 && /[A-Za-z一-鿿]/.test(t) && !/^\d+$/.test(t)) add(t);
+  }
+  return out.slice(0, 5);
+}
+function renderWhy(plan, look) {
+  const T = L(), cur = plan.currency, goal = goalOf(), cb = plan.cost_breakdown || {}, zh = LANG === "zh", sp = zh ? "" : " ";
+  const total = Number(plan.total_cost), left = Number(plan.remaining_funds), budget = total + left;
+  const pct = budget > 0 ? Math.max(1, Math.round(total / budget * 100)) : 0;
+  const rows = plan.items.map((it, idx) => {
+    const o = look.offers.find((x) => x.offer_id === it.offer_id) || {};
+    const slug = (look.categories || {})[o.variant_id] || "";
+    const hl = highlightsFor(o, look.evidence);
+    return { it, o, idx, slug, hl, hits: goalHits(goal.text, (o.store_title || "") + " " + hl.join(" "), slug),
+             photo: (look.photos || {})[o.variant_id], shop: (look.shops || {})[it.offer_id] || {} };
+  });
+  const hitHtml = (h) => h.map((x) => `<span class="hit">${esc(x)}</span>`).join(" ");
+  const goalHtml = T.rGoal(esc(goal.text)) + (goal.change ? T.rChange(esc(goal.change)) : "");
+  const card = (ico, cls, title, body, extra) => el("div", { class: "rcard" }, el("div", { class: "rico " + cls, html: ICON[ico] }),
+    el("div", {}, el("div", { class: "rt" }, title), el("div", { class: "rb", html: body }), extra || ""));
+  const cards = [];
+  if (rows.length === 1) {
+    const r = rows[0];
+    const what = r.slug ? T.rIs(catName(r.slug)) : T.rIs(T.thisOffer);
+    const body = goalHtml + sp + what + (r.hits.length ? T.rHits(hitHtml(r.hits)) : (r.slug ? T.rCat : "")) + (zh ? "。" : ".");
+    cards.push(card("goal", "", T.rFit, body, r.hl.length ? el("div", { class: "hl" }, ...r.hl.map((h) => el("span", {}, h))) : ""));
+  } else {
+    const list = el("div", { class: "ritems" }, ...rows.map((r) => {
+      const price = r.o.price_minor != null ? fmt(r.o.price_minor * r.it.quantity / 100, r.o.currency) : "";
+      const note = r.hits.length ? el("span", { html: (zh ? "对应你提到的 " : "Matches ") + hitHtml(r.hits) })
+                                 : (r.slug ? (zh ? "属于你想买的品类" : "In a category you wanted") : "");
+      return el("div", { class: "ritem" },
+        el("div", { class: "th" }, el("b", {}, String(r.idx + 1)),
+          r.photo && /^https?:\/\//.test(r.photo) ? el("img", { src: r.photo, alt: "", referrerpolicy: "no-referrer", loading: "lazy" }) : el("span", { html: ICONS.bag })),
+        el("div", { class: "tt" }, r.slug ? el("span", { class: "tag2" }, catName(r.slug)) : "", shortTitle(r.o.store_title) || r.o.offer_id),
+        price ? el("div", { class: "rp" }, price) : "",
+        el("div", { class: "rb" }, note),
+        r.hl.length ? el("div", { class: "hl" }, ...r.hl.slice(0, 3).map((h) => el("span", {}, h))) : "");
+    }));
+    cards.push(el("div", { class: "rcard" }, el("div", { class: "rico", html: ICON.goal }),
+      el("div", {}, el("div", { class: "rt" }, T.rFit), el("div", { class: "rb", html: goalHtml }))), list);
+  }
+  const ship = "shipping" in cb ? (Number(cb.shipping) === 0 ? T.rFreeShip : T.rShip(fmt(cb.shipping, cur))) : "";
+  const money = rows.length === 1 ? T.rPriceOne(fmt(total, cur), pct, ship)
+                                  : T.rPriceMany(rows.reduce((n, r) => n + r.it.quantity, 0), fmt(total, cur), pct);
+  const tail = [card("wallet", "ok", T.rBudget, money + sp + T.rLeft(fmt(left, cur)))];
+  const dates = look.offers.map((o) => o.observed_at).filter(Boolean).sort(), date = dates.length ? day(dates[dates.length - 1]) : "";
+  const who = rows.length === 1 ? (rows[0].shop.merchant || (rows[0].shop.url ? hostOf(rows[0].shop.url) : "")) : "";
+  const stale = look.offers.some((o) => o.price_stale);
+  tail.push(card("shield", "ok", T.rChecked, (rows.length === 1 && who ? T.rSource(esc(who), date) : T.rSourceMany(date))
+                 + ("tax" in cb ? "" : sp + T.rTax) + (stale ? sp + T.rStale : "")));
+  const many = rows.length > 1;
+  $("whyCards").replaceChildren(...cards, ...(many ? [el("div", { class: "rrow" }, ...tail)] : tail));
+  show("why", true);
+  // A set of products gets the full width (cards side by side); one product keeps the reasons beside the receipt.
+  $("cols").style.gridTemplateColumns = many ? "1fr" : "";
+  $("summary").style.maxWidth = many ? "560px" : "";
+}
+
 const shortTitle = (t) => !t || t.length <= 64 ? t : t.slice(0, Math.max(t.lastIndexOf(" ", 62), 40)).replace(/[\s,\-–]+$/, "") + "…";
-function planSummaryText(p) { const d = document.createElement("div"); d.innerHTML = leadHtml(p); return d.textContent; }
 function leadHtml(p) {
   const T = L(), info = offerInfo(p), it = p.items[0];
   if (p.items.length > 1) {
@@ -1114,7 +1231,7 @@ function fillLookup(plan, r) {
     }));
   }
   renderLead(plan);
-  if (state.fallback) fallbackWhy(r);
+  renderWhy(plan, r);
   const box = $("sources"); box.replaceChildren();
   r.evidence.forEach((e, i) => {
     const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;

@@ -314,26 +314,30 @@ class HarnessService:
             evidence, unknown_evidence = _all_pages(
                 lambda ids, cur: self.kb.resolve_evidence(self.snapshot_id, ids, cur),
                 evidence_ids, "evidence", "next_cursor") if evidence_ids else ([], [])
-            photos, shops = self.presentation({o["variant_id"] for o in offers}, {o["offer_id"] for o in offers})
+            photos, shops, categories = self.presentation({o["variant_id"] for o in offers}, {o["offer_id"] for o in offers})
             return {"snapshot_id": self.snapshot_id, "offers": offers, "evidence": evidence,
                     "unknown_offer_ids": sorted(set(unknown_offers)), "unknown_evidence_ids": sorted(set(unknown_evidence)),
-                    "photos": photos, "shops": shops}
+                    "photos": photos, "shops": shops, "categories": categories}
         try:
             return await asyncio.to_thread(work)
         except Exception as exc:
             raise HttpError(400, getattr(exc, "code", "lookup_failed"), str(exc)[:300]) from None
 
     def presentation(self, variant_ids, offer_ids):
-        """For the page only (nothing here reaches the agent or the validator): a product photo per variant and the
-        merchant name and link per offer. The photo is the Google Shopping thumbnail in the archived raw result that
+        """For the page only (nothing here reaches the agent or the validator): a product photo and category per
+        variant and the merchant name and link per offer. The photo is the Google Shopping thumbnail in the archived raw result that
         one of the variant's own evidence records points at; a missing or unreadable record just means no photo."""
         folder = Path(self.kb.snapshots_root) / self.snapshot_id
         try:
             con = sqlite3.connect(f"file:{(folder / 'catalog.sqlite').as_posix()}?mode=ro", uri=True)
         except sqlite3.Error:
-            return {}, {}
+            return {}, {}, {}
         try:
-            shops = {}
+            shops, categories = {}, {}
+            if variant_ids:
+                marks = ",".join("?" * len(variant_ids))
+                categories = {v: c for v, c in con.execute(
+                    f"SELECT variant_id, category FROM variants WHERE variant_id IN ({marks})", sorted(variant_ids)) if c}
             if offer_ids:
                 marks = ",".join("?" * len(offer_ids))
                 for offer_id, merchant, url in con.execute(
@@ -361,10 +365,10 @@ class HarnessService:
                 for variant_id in todo:
                     self.photos.setdefault(variant_id, None)
         except sqlite3.Error:
-            return {}, {}
+            return {}, {}, {}
         finally:
             con.close()
-        return {v: self.photos.get(v) for v in variant_ids}, shops
+        return {v: self.photos.get(v) for v in variant_ids}, shops, categories
 
 
 def _web_url(value) -> bool:
