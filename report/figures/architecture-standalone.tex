@@ -1,10 +1,12 @@
-% Standalone build of figures/architecture.tex for the README (PNG via pdftoppm).
-\documentclass[border=6pt]{standalone}
+% Standalone build of figures/architecture.tex (vector PDF used by report/main.tex).
+\documentclass[border=4pt]{standalone}
 \usepackage[T1]{fontenc}
 \usepackage{newtxtext}
 \usepackage{newtxmath}
+\usepackage[scaled=0.90]{inconsolata}
+\usepackage{xcolor}
 \usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning,fit,calc}
+\usetikzlibrary{arrows.meta,positioning,fit,calc,backgrounds,shadows.blur}
 \begin{document}
 \input{architecture.tex}
 \end{document}

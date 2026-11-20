@@ -1,36 +1,209 @@
-% Evaluated deployment of TACC AgentForge (used by report/main.tex and, as a PNG, by README.md).
+% Evaluated deployment architecture of TACC AgentForge (ICML/Systems-paper vector TikZ style).
+\definecolor{ZoneClientBg}{HTML}{FDF8F3}
+\definecolor{ZoneClientBd}{HTML}{D49A6A}
+\definecolor{ZoneClientTx}{HTML}{8C4A1C}
+
+\definecolor{ZoneTaccBg}{HTML}{F2F6FB}
+\definecolor{ZoneTaccBd}{HTML}{5C85B2}
+\definecolor{ZoneTaccTx}{HTML}{1B3D66}
+
+\definecolor{ZoneOffBg}{HTML}{F3F8F6}
+\definecolor{ZoneOffBd}{HTML}{6BA195}
+\definecolor{ZoneOffTx}{HTML}{235B50}
+
+\definecolor{AccentClient}{HTML}{C0622D}
+\definecolor{AccentAgent}{HTML}{1F726D}
+\definecolor{AccentModel}{HTML}{4A3E8F}
+\definecolor{AccentData}{HTML}{265C8F}
+\definecolor{AccentEval}{HTML}{9E3B4E}
+\definecolor{AccentPipe}{HTML}{2E6F62}
+
+\definecolor{InkDark}{HTML}{1B2430}
+\definecolor{InkMuted}{HTML}{4E5D6C}
+\definecolor{EdgeColor}{HTML}{334155}
+\definecolor{DashColor}{HTML}{5B6B7C}
+
 \begin{tikzpicture}[
-  font=\small, >=Latex,
-  box/.style={draw, rounded corners=1.5pt, align=center, inner sep=3pt, minimum height=10mm, fill=white,
-    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}},
-  lab/.style={font=\footnotesize\itshape, inner sep=1.5pt},
-  flow/.style={->, thick},
-  aux/.style={->, densely dashed}]
+  >=Latex,
+  font=\sffamily,
+  card/.style 2 args={
+    draw=#1!65!black,
+    line width=0.65pt,
+    rounded corners=3pt,
+    fill=white,
+    align=left,
+    text=InkDark,
+    text width=#2,
+    inner xsep=6pt,
+    inner ysep=5pt,
+    minimum height=14.2mm,
+    blur shadow={shadow xshift=0.4pt, shadow yshift=-0.8pt, shadow blur steps=4, shadow opacity=11},
+    execute at begin node={\hyphenpenalty=10000\exhyphenpenalty=10000}
+  },
+  tag/.style={
+    fill=#1!13,
+    text=#1!90!black,
+    font=\sffamily\bfseries\fontsize{5.6}{6.4}\selectfont,
+    inner xsep=3pt,
+    inner ysep=1.2pt,
+    rounded corners=1.5pt,
+    anchor=north east
+  },
+  zonetitle/.style={
+    font=\sffamily\bfseries\fontsize{7.5}{8.5}\selectfont,
+    text=#1,
+    anchor=north west,
+    inner sep=0pt
+  },
+  zonepill/.style={
+    fill=#1!11,
+    draw=#1!32,
+    line width=0.4pt,
+    text=#1,
+    font=\sffamily\fontsize{6.5}{7.4}\selectfont,
+    inner xsep=4.5pt,
+    inner ysep=1.5pt,
+    rounded corners=2pt,
+    anchor=north east
+  },
+  flow/.style={->, line width=0.85pt, draw=EdgeColor, rounded corners=3pt},
+  biflow/.style={<->, line width=0.85pt, draw=EdgeColor, rounded corners=3pt},
+  aux/.style={->, line width=0.75pt, densely dashed, draw=DashColor, rounded corners=3pt},
+  edgelab/.style={
+    fill=white,
+    text=InkMuted,
+    font=\sffamily\fontsize{6.6}{7.5}\selectfont,
+    inner xsep=2.6pt,
+    inner ysep=1.1pt,
+    rounded corners=1.5pt
+  }
+]
 
-% ---- user side (left)
-\node[box, text width=24mm] (page) at (0,0) {\textbf{Browser page}\\\texttt{app/static}};
-\node[box, text width=27mm] (backend) at (0,-2.0) {\textbf{Local backend}\\\texttt{app/backend.py}};
-\draw[flow, <->] (page) -- node[lab, right] {HTTP, event stream} (backend);
+% ---- 1. Local Client column (left) ------------------------------------------------------------------------------
+\node[card={AccentClient}{34mm}] (page) at (0, 0) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Browser Page}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} app/static/index.html}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} Form, live progress, receipt}
+};
+\node[tag=AccentClient] at ($(page.north east)+(-2.8pt,-2.8pt)$) {UI};
 
-% ---- TACC GPU job (right): two columns
-\node[box, text width=46mm] (harness) at (6.6,0) {\textbf{Agent harness}\\\texttt{app/harness\_service.py}\\LangGraph loop: \emph{tool} $\mid$ \emph{ask} $\mid$ \emph{propose}};
-\node[box, text width=46mm] (validator) at (6.6,-2.3) {\textbf{Budget validator} \texttt{agent/budget.py}\\exact minor-unit amounts;\\unknown fees stay unknown};
-\node[box, text width=40mm] (vllm) at (12.3,0) {\textbf{vLLM} (2 GPUs, TP=2)\\Qwen3.8-27B AWQ INT4\\CUDA graphs, prefix cache};
-\node[box, text width=40mm] (kb) at (12.3,-2.3) {\textbf{Knowledge snapshot}\\SQLite + FTS5, 5 read-only tools\\\texttt{snapshot\_5bcd\ldots}};
-\draw[rounded corners=3pt] ($(harness.north west)+(-0.35,0.75)$) rectangle ($(kb.south east)+(0.3,-0.35)$);
-\node[lab, anchor=north west] at ($(harness.north west)+(-0.30,0.70)$) {TACC GPU job (1-hour limit; a successor job takes over every hour)};
+\node[card={AccentClient}{34mm}] (backend) at (0, -2.65) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Local Backend}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} app/backend.py}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} SSE relay, session log}
+};
+\node[tag=AccentClient] at ($(backend.north east)+(-2.8pt,-2.8pt)$) {PROXY};
 
-\draw[flow] (backend.east) -- node[lab, above, sloped] {SSH tunnel via gateway} (harness.west);
-\draw[flow, <->] (harness) -- node[lab, above] {prompt} node[lab, below] {action} (vllm);
-\draw[flow] (harness) -- node[lab, right] {proposed plan} (validator);
-\draw[flow] ($(harness.east)+(0,-0.35)$) -- node[lab, above, sloped, pos=0.55] {tool calls} ($(kb.north west)+(0.3,0)$);
-\draw[flow] (validator) -- node[lab, above] {offer facts} (kb);
+% ---- 2. TACC GPU Job (right, 2x2 grid) --------------------------------------------------------------------------
+\node[card={AccentAgent}{45mm}] (harness) at (7.0, 0) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Agent Harness}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} app/harness\_service.py}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} LangGraph: \textit{tool} $|$ \textit{ask} $|$ \textit{propose}}
+};
+\node[tag=AccentAgent] at ($(harness.north east)+(-2.8pt,-2.8pt)$) {AGENT};
 
-% ---- offline side (bottom): evaluation on the left, data pipeline under the knowledge base
-\node[box, text width=50mm] (eval) at (2.2,-4.7) {\textbf{Evaluation runner}\\\texttt{evaluations/}: B0--B3v,\\independent ground-truth enumerator};
-\node[box, text width=28mm] (collect) at (8.4,-4.7) {\textbf{SerpApi collection}\\archived responses};
-\node[box, text width=28mm] (export) at (12.3,-4.7) {\textbf{Ingest + export}\\immutable snapshot};
-\draw[flow] (collect) -- (export);
-\draw[aux] (export.north) -- node[lab, right] {pinned snapshot ID} (kb.south);
-\draw[aux] (eval.east) -| node[lab, right, pos=0.75] {runs the agent} (validator.south);
+\node[card={AccentModel}{43mm}] (vllm) at (13.35, 0) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries vLLM Serving}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\color{InkMuted} Qwen3.8-27B AWQ INT4 (TP=2)}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} CUDA graphs, prefix caching}
+};
+\node[tag=AccentModel] at ($(vllm.north east)+(-2.8pt,-2.8pt)$) {2 GPUs};
+
+\node[card={AccentAgent}{45mm}] (validator) at (7.0, -2.65) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Budget Validator}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} agent/budget.py}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} Exact minor units; unknown $\neq 0$}
+};
+\node[tag=AccentAgent] at ($(validator.north east)+(-2.8pt,-2.8pt)$) {CHECK};
+
+\node[card={AccentData}{43mm}] (kb) at (13.35, -2.65) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Knowledge Snapshot}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} snapshot\_5bcd\ldots}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} SQLite + FTS5, 5 read-only tools}
+};
+\node[tag=AccentData] at ($(kb.north east)+(-2.8pt,-2.8pt)$) {DATA};
+
+% ---- 3. Offline Evaluation & Data Pipeline (bottom, clean vertical separation) ----------------------------------
+\node[card={AccentEval}{44mm}] (eval) at (2.8, -5.85) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Evaluation Runner}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\color{InkMuted}\texttt{evaluations/}: B0--B3v}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} Independent SQLite oracle}
+};
+\node[tag=AccentEval] at ($(eval.north east)+(-2.8pt,-2.8pt)$) {EVAL};
+
+\node[card={AccentPipe}{40mm}] (collect) at (8.35, -5.85) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries SerpApi Collection}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} knowledge/serpapi.py}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} Archived JSON + hashes}
+};
+\node[tag=AccentPipe] at ($(collect.north east)+(-2.8pt,-2.8pt)$) {INGEST};
+
+\node[card={AccentPipe}{41mm}] (export) at (13.45, -5.85) {%
+  {\fontsize{7.9}{9.2}\selectfont\bfseries Snapshot Builder}\\[1.6pt]
+  {\fontsize{6.8}{8.0}\selectfont\ttfamily\color{InkMuted} knowledge/store.py}\\[1.2pt]
+  {\fontsize{6.7}{8.0}\selectfont\color{InkMuted} Normalized immutable DB}
+};
+\node[tag=AccentPipe] at ($(export.north east)+(-2.8pt,-2.8pt)$) {FREEZE};
+
+% ---- Zone Background Containers (strictly non-overlapping) ------------------------------------------------------
+\begin{scope}[on background layer]
+  % Local Client zone
+  \path let \p1=(page.north west), \p2=(backend.south east) in
+    node[draw=ZoneClientBd, line width=0.75pt, rounded corners=4.5pt, fill=ZoneClientBg,
+         fit={(\x1-0.32cm, \y1+0.78cm) (\x2+0.32cm, \y2-0.32cm)}] (zclient) {};
+  \node[zonetitle=ZoneClientTx] at ($(zclient.north west)+(0.26cm,-0.22cm)$) {Local Machine};
+
+  % TACC GPU Job zone
+  \path let \p1=(harness.north west), \p2=(kb.south east) in
+    node[draw=ZoneTaccBd, line width=0.8pt, rounded corners=4.5pt, fill=ZoneTaccBg,
+         fit={(\x1-0.38cm, \y1+0.78cm) (\x2+0.38cm, \y2-0.32cm)}] (ztacc) {};
+  \node[zonetitle=ZoneTaccTx] at ($(ztacc.north west)+(0.30cm,-0.22cm)$) {TACC Cluster — Single 2-GPU Slurm Job};
+  \node[zonepill=ZoneTaccTx] at ($(ztacc.north east)+(-0.28cm,-0.17cm)$) {1-hr limit $\cdot$ hourly successor handover};
+
+  % Offline Pipeline zone
+  \path let \p1=(eval.north west), \p2=(export.south east) in
+    node[draw=ZoneOffBd, line width=0.75pt, densely dashed, rounded corners=4.5pt, fill=ZoneOffBg,
+         fit={(\x1-0.32cm, \y1+0.68cm) (\x2+0.32cm, \y2-0.30cm)}] (zoff) {};
+  \node[zonetitle=ZoneOffTx] at ($(zoff.north west)+(0.28cm,-0.20cm)$) {Offline Evaluation \& Data Pipeline};
+\end{scope}
+
+% ---- Orthogonal Arrows & Crisp Labels ---------------------------------------------------------------------------
+% Client internal
+\draw[biflow] (page.south) -- node[edgelab, fill=ZoneClientBg] {HTTP / SSE} (backend.north);
+
+% Client -> TACC via orthogonal step
+\coordinate (midssh) at ($(zclient.east)!0.5!(ztacc.west)$);
+\draw[biflow] (backend.east) -- (midssh |- backend.east) -- node[edgelab, align=center] {SSH tunnel\\via gateway} (midssh |- harness.west) -- (harness.west);
+
+% Harness <-> vLLM
+\draw[biflow] (harness.east) -- node[edgelab, fill=ZoneTaccBg, align=center] {prompt /\\JSON action} (vllm.west);
+
+% Harness -> Validator
+\draw[flow] (harness.south) -- node[edgelab, fill=ZoneTaccBg] {proposed plan} (validator.north);
+
+% Harness -> KB (clean orthogonal corridor with label on horizontal segment)
+\coordinate (midrow) at ($(harness.south)!0.48!(validator.north)$);
+\coordinate (hkb) at ($(harness.south)+(1.45cm,0)$);
+\draw[flow] (hkb) -- (hkb |- midrow) -- node[edgelab, fill=ZoneTaccBg, pos=0.45] {tool calls} (kb.north |- midrow) -- (kb.north);
+
+% Validator -> KB
+\draw[flow] (validator.east) -- node[edgelab, fill=ZoneTaccBg] {offer facts} (kb.west);
+
+% Offline: Collect -> Export
+\draw[flow] (collect.east) -- (export.west);
+
+% Export -> KB (pinned snapshot)
+\coordinate (midgap) at ($(ztacc.south)!0.5!(zoff.north)$);
+\draw[aux] ($(export.north)+(-0.10cm,0)$) -- (kb.south) node[edgelab, pos=0.50] {pinned snapshot ID};
+
+% Eval -> Agent (routed cleanly through the inter-zone corridor)
+\coordinate (evtop) at ($(eval.north)+(1.5cm,0)$);
+\coordinate (valbot) at ($(validator.south)+(-1.0cm,0)$);
+\draw[aux] (evtop) -- (evtop |- midgap) -- node[edgelab, pos=0.48] {runs B0--B3v} (valbot |- midgap) -- (valbot);
+
+% ---- Compact Legend ---------------------------------------------------------------------------------------------
+\node[anchor=north west, inner sep=0pt, font=\sffamily\fontsize{6.8}{8}\selectfont, text=InkMuted] at ($(zoff.south west)+(0.05cm,-0.22cm)$) {%
+  \tikz[baseline=-0.5ex]\draw[flow] (0,0)--(0.55,0);~Live request \& tool path \qquad
+  \tikz[baseline=-0.5ex]\draw[aux] (0,0)--(0.55,0);~Offline snapshot provenance \& evaluation harness%
+};
 \end{tikzpicture}

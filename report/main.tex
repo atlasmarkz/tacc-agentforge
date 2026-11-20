@@ -1,11 +1,12 @@
-\documentclass[11pt,letterpaper]{article}
+\documentclass[10pt,letterpaper,twocolumn]{article}
 
-% ---- fonts and page ---------------------------------------------------------------------------------------------
+% ---- ICML-style page geometry: US Letter, 6.75 in x 9.0 in text area, 0.25 in column gap ------------------------
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{newtxtext}
 \usepackage{newtxmath}
-\usepackage[letterpaper,top=0.60in,left=0.65in,right=0.65in,bottom=0.65in]{geometry}
+\usepackage[scaled=0.88]{inconsolata}
+\usepackage[letterpaper,textwidth=6.75in,textheight=9.0in,columnsep=0.25in,top=0.95in]{geometry}
 \usepackage{microtype}
 \usepackage{newunicodechar}
 \newunicodechar{→}{\ensuremath{\rightarrow}}
@@ -14,452 +15,630 @@
 \newunicodechar{·}{\textperiodcentered}
 \newunicodechar{…}{\ldots}
 
-% ---- paragraphs and headings: justified, no indent, ~3 pt between paragraphs, compact headings --------------------
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{3pt plus 1pt}
-\usepackage{titlesec}
-\titleformat{\section}{\normalfont\large\bfseries}{\thesection}{0.6em}{}
-\titleformat{\subsection}{\normalfont\normalsize\bfseries}{\thesubsection}{0.6em}{}
-\titleformat{\subsubsection}[runin]{\normalfont\normalsize\bfseries}{}{0pt}{}[.]
-\titlespacing*{\section}{0pt}{8pt plus 2pt minus 1pt}{3pt plus 1pt}
-\titlespacing*{\subsection}{0pt}{6pt plus 2pt minus 1pt}{2pt plus 1pt}
-\titlespacing*{\subsubsection}{0pt}{4pt plus 1pt}{0.6em}
-\widowpenalty=10000 \clubpenalty=10000 \displaywidowpenalty=10000
-\setlength{\emergencystretch}{3em}
+% ---- Academic color palette (muted, cohesive, print-safe) -------------------------------------------------------
+\usepackage[table]{xcolor}
+\definecolor{NavyInk}{HTML}{1B365D}
+\definecolor{TealInk}{HTML}{1F726D}
+\definecolor{AmberInk}{HTML}{C0622D}
+\definecolor{SlateInk}{HTML}{4B5563}
+\definecolor{RowTint}{HTML}{F2F6FA}
+\definecolor{BoxBg}{HTML}{F6F8FB}
+\definecolor{BorderGray}{HTML}{CBD5E1}
+\definecolor{RuleGray}{HTML}{94A3B8}
 
-% ---- tables, figures, lists -------------------------------------------------------------------------------------
+% ---- ICML-style running header & page numbers -------------------------------------------------------------------
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\small\itshape\color{SlateInk} TACC AgentForge: A Budget-Verified Shopping Agent on a Quantized 27B Model}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{13pt}
+\setlength{\headsep}{16pt}
+\fancypagestyle{firstpage}{%
+  \fancyhf{}
+  \fancyfoot[C]{\small\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ---- Section & paragraph typography (classic ICML hierarchy) ----------------------------------------------------
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt plus 1pt minus 0.5pt}
+\usepackage{titlesec}
+\titleformat{\section}{\normalfont\fontsize{11.5}{13}\selectfont\bfseries\color{InkHeading}}{\thesection.}{0.55em}{}
+\titleformat{\subsection}{\normalfont\fontsize{10}{11.5}\selectfont\bfseries}{\thesubsection.}{0.5em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\normalsize\bfseries}{}{0pt}{}[.]
+\titlespacing*{\section}{0pt}{10pt plus 2pt minus 1pt}{4pt plus 1pt}
+\titlespacing*{\subsection}{0pt}{7pt plus 1.5pt minus 1pt}{2.5pt plus 0.5pt}
+\titlespacing*{\subsubsection}{0pt}{4pt plus 1pt}{0.5em}
+\colorlet{InkHeading}{NavyInk}
+\widowpenalty=10000 \clubpenalty=10000 \displaywidowpenalty=10000
+\setlength{\emergencystretch}{2.5em}
+
+% ---- Tables, figures, boxes, lists ------------------------------------------------------------------------------
 \usepackage{booktabs}
 \usepackage{array}
 \usepackage{calc}
 \usepackage{tabularx}
 \usepackage{multirow}
 \usepackage{graphicx}
+\usepackage{subcaption}
 \usepackage{float}
-\usepackage[font=small,labelfont=bf,skip=3pt]{caption}
-\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
-\setlength{\floatsep}{6pt plus 2pt minus 2pt}
-\setlength{\intextsep}{6pt plus 2pt minus 2pt}
+\usepackage{stfloats}
+\usepackage[font=small,labelfont={bf,color=NavyInk},labelsep=period,skip=4pt]{caption}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\dbltextfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
 \usepackage{enumitem}
-\setlist{nosep,leftmargin=1.2em}
-\usepackage{xcolor}
+\setlist{nosep,leftmargin=1.25em}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 \usetikzlibrary{patterns,arrows.meta,positioning,fit,calc}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
 \usepackage{fvextra}
-\usepackage{needspace}
 \usepackage{xurl}
-\usepackage[hidelinks]{hyperref}
+\usepackage[colorlinks=true,linkcolor=NavyInk,urlcolor=NavyInk,citecolor=NavyInk]{hyperref}
+
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
-\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\tightlist}{\setlength{\itemsep}{1pt}\setlength{\parskip}{0pt}}
 \newcommand{\repo}{\url{https://github.com/atlasmarkz/tacc-agentforge}}
-\newcommand{\keybox}[1]{\par\noindent\fbox{\parbox{\dimexpr\linewidth-2\fboxsep-2\fboxrule}{#1}}\par}
 \graphicspath{{../}{build/}}
 
+% Refined ICML-style callout box for Main Finding
+\newtcolorbox{findingbox}{
+  enhanced,
+  colback=BoxBg,
+  colframe=BorderGray,
+  borderline west={2.5pt}{0pt}{NavyInk},
+  boxrule=0.4pt,
+  arc=2pt,
+  left=7pt, right=7pt, top=5pt, bottom=5pt,
+  fontupper=\small
+}
+
+% Subtle cross-reference note box used in Appendix A for images shown in Section 2
+\newtcolorbox{readmeNote}{
+  enhanced,
+  colback=BoxBg,
+  colframe=BorderGray,
+  borderline west={2pt}{0pt}{TealInk},
+  boxrule=0.35pt,
+  arc=1.5pt,
+  left=7pt, right=7pt, top=3.5pt, bottom=3.5pt,
+  fontupper=\footnotesize\color{SlateInk}
+}
+
+% Hairline frame helper for crisp UI screenshots
+\newcommand{\uiframe}[2]{%
+  {\setlength{\fboxsep}{0pt}\setlength{\fboxrule}{0.45pt}\fcolorbox{BorderGray}{white}{\includegraphics[width=#1]{#2}}}%
+}
+
 \begin{document}
+\thispagestyle{firstpage}
 
-% ---- title ------------------------------------------------------------------------------------------------------
+% ---- ICML-style full-width double-rule title block --------------------------------------------------------------
+\twocolumn[{%
+\vspace*{-6pt}
+\noindent\rule{\textwidth}{1.2pt}\par
+\vspace{6pt}
 \begin{center}
-{\LARGE\bfseries TACC AgentForge: A Budget-Verified Shopping Agent\\[2pt] on a Quantized 27B Model}\\[6pt]
-{\large CSIT6000V Advanced AI Computing and Systems --- Course Project Report and Repository Submission}\\[4pt]
-Hechuan Zhang \quad Berlin Chen \quad Jieming Chen\\[3pt]
-\textbf{Repository:} \repo\\[1pt]
-{\small Evaluated system: commit \texttt{cc6059d} (freeze digest \texttt{03b0cdea}); repository README: Appendix~\ref{app:readme}}
+  {\fontsize{14.5}{17.5}\selectfont\bfseries TACC AgentForge: A Budget-Verified Shopping Agent\\[2pt] on a Quantized 27B Model}\par
 \end{center}
+\vspace{3pt}
+\noindent\rule{\textwidth}{1.2pt}\par
+\vspace{7pt}
+\begin{center}
+  {\fontsize{10.5}{12}\selectfont\bfseries Hechuan Zhang \qquad Berlin Chen \qquad Jieming Chen}\\[3pt]
+  {\small\color{SlateInk} CSIT6000V Advanced AI Computing and Systems --- Course Project Report \& Artifact Submission}\\[3pt]
+  {\footnotesize \textbf{Repository:} \repo \enspace$\cdot$\enspace \textbf{Evaluated:} \texttt{cc6059d} (freeze \texttt{03b0cdea}) \enspace$\cdot$\enspace \textbf{README:} Appendix~\ref{app:readme}}
+\end{center}
+\vspace{8pt}
+}]
 
+% ---- ICML-style Abstract ----------------------------------------------------------------------------------------
+\begin{center}
+  {\fontsize{11}{12}\selectfont\bfseries Abstract}
+\end{center}
+\vspace{-4pt}
+\begin{list}{}{\leftmargin=0.14in\rightmargin=0.14in\topsep=0pt\parsep=0pt}
+\item\small\setlength{\baselineskip}{10.8pt}
+We present \textbf{TACC AgentForge}, an end-to-end shopping and budget advisor hosted on the TACC cluster using the
+course-provided Qwen3.8-27B AWQ INT4 checkpoint served by vLLM on two GPUs. Given a user's needs and spending limit, a
+LangGraph agent searches a versioned SQLite/FTS5 product catalog, compares source-linked merchant offers, validates
+candidate plans with exact minor-unit decimal arithmetic, and streams grounded explanations with citations. Across a
+frozen held-out benchmark (32 cases $\times$ 3 repeats, 480 attempts), deterministic budget validation delivers a
+paired task-success gain of \textbf{+0.10} (95\% CI +0.02 to +0.20) with \textbf{zero} budget violations across all five
+configurations, and the multi-step agent outperforms single-call baselines on planning tasks (33/60 vs.\ $\le$21/60), yet
+trails overall (42/96 vs.\ 57/96) because 48/96 runs exhaust the 8-call budget on infeasible queries---a failure removed
+in targeted post-freeze replays. Controlled serving ablations further demonstrate \textbf{+202\%} output throughput from
+CUDA graphs, \textbf{71\%} lower TTFT from prefix caching, a one-line vLLM fix unlocking \textbf{+42\%} single-request
+MTP speculative decoding, and an end-to-end LoRA SFT pilot on the INT4 weights. All raw logs, snapshots, and a
+one-command reproduction suite are publicly archived.
+\end{list}
+\vspace{4pt}
+
+% ---- 1. Introduction --------------------------------------------------------------------------------------------
 \section{Introduction}\label{sec:intro}
 
-TACC AgentForge is a shopping and budget advisor. A user states what they need and how much they can spend; an agent
-searches a source-linked product catalog, compares offers, checks the plan against the budget with exact decimal
-arithmetic, and explains the recommendation with citations. The model is the course-provided Qwen3.8-27B AWQ INT4
-checkpoint, served by vLLM on two GPUs on the TACC cluster. The project covers the whole stack: data collection and a
-versioned knowledge base, the agent and its budget validator, model serving with hourly job handover, a browser
-application, an evaluation with independent ground truth, serving optimizations, and a post-training pilot.
+Shopping decisions combine unstructured product discovery with strict numerical constraints: a plausible recommendation
+is invalid if shipping pushes the total past the user's cap, if required specifications are inferred rather than
+observed, or if prices cannot be traced to a merchant offer. Large language models excel at synthesizing trade-offs but
+frequently miscalculate totals, invent missing attributes, or cite stale information.
 
-Table~\ref{tab:claims} lists the results this report makes. Every number is recomputed from committed raw data by one
-command (Section~\ref{sec:artifact}); the repository README (Appendix~\ref{app:readme}) uses the same IDs C1--C7.
+TACC AgentForge addresses this problem end to end on the TACC cluster with the course-provided Qwen3.8-27B AWQ INT4
+checkpoint. The system spans data acquisition and immutable knowledge snapshots, a constrained LangGraph agent paired
+with a deterministic budget validator, two-GPU vLLM serving with automatic hourly job handover, a streaming browser
+application, independent ground-truth evaluation, controlled serving optimizations, and a post-training LoRA pilot.
 
-\begin{table}[H]
+Table~\ref{tab:claims} summarizes our seven empirical claims (\textbf{C1--C7}). Every figure in this report is
+recomputed deterministically from committed raw outputs by a single command (Section~\ref{sec:artifact}); Appendix~\ref{app:readme}
+embeds the full repository \texttt{README.md} using the same identifiers.
+
+\begin{findingbox}
+\textbf{Main Finding.} Exact deterministic budget validation works---no over-budget plan was ever delivered---yet a
+multi-step agent capped at 8 model calls loses to a single well-prompted call overall because it keeps paging when no
+feasible offer exists. A targeted post-freeze fix removes this failure in replays; the held-out split has not been
+rerun with it.
+\end{findingbox}
+
+\begin{table*}[t]
 \centering\small
-\caption{Main results. Section and table numbers refer to this report.}\label{tab:claims}
-\begin{tabularx}{\linewidth}{@{}l Y l@{}}
+\caption{Summary of empirical claims (\textbf{C1--C7}). Section, table, and figure references point to this report; all numbers are verified offline by \texttt{scripts/reproduce\_results.py}.}\label{tab:claims}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}l Y l@{}}
 \toprule
-ID & Result & Where \\
+\textbf{ID} & \textbf{Measured Result} & \textbf{Where} \\
 \midrule
-C1 & On 32 held-out cases $\times$ 3 repeats the full agent (B3v) succeeds in \textbf{42/96} attempts; single-call baselines reach 54--57/96. & \S\ref{sec:agent-results}, Table~\ref{tab:heldout} \\
-C2 & The budget validator helps: B3$\rightarrow$B3v paired difference \textbf{+0.10} (95\% CI +0.02 to +0.20); no configuration delivers an over-budget plan. & \S\ref{sec:agent-results}, Table~\ref{tab:heldout} \\
-C3 & The agent wins where searching is needed (plan cases 33/60 vs.\ at most 21/60) but \textbf{48/96} runs stop at the 8-call limit. & \S\ref{sec:agent-results}, Fig.~\ref{fig:outcome}, Table~\ref{tab:failures} \\
-C4 & CUDA graphs give \textbf{+202\%} output throughput over eager mode; prefix caching cuts TTFT by 71\% on shared prefixes. & \S\ref{sec:serving}, Table~\ref{tab:serving}, Fig.~\ref{fig:serving} \\
-C5 & A one-line vLLM fix makes MTP speculative decoding work with CUDA graphs: \textbf{+42\%} single-request throughput. & \S\ref{sec:mtp}, Table~\ref{tab:mtp} \\
-C6 & SFT pilot: a LoRA adapter picks the correct category in \textbf{8/8} first steps vs.\ 2/8 (pipeline check only). & \S\ref{sec:sft}, Table~\ref{tab:sft} \\
-C7 & Post-freeze fix of the call limit: no-plan case ends in 3 calls instead of 8, in all 9 targeted replays. & \S\ref{sec:fix}, Table~\ref{tab:replay} \\
+\textbf{C1} & On 32 held-out cases $\times$ 3 repeats, the full agent (B3v) succeeds in \textbf{42/96} attempts; single-call baselines reach 54--57/96. & \S\ref{sec:agent-results}, Table~\ref{tab:heldout} \\
+\textbf{C2} & Exact budget validation helps: B3$\rightarrow$B3v paired difference \textbf{+0.10} (95\% CI +0.02 to +0.20); zero budget violations across all five configs. & \S\ref{sec:agent-results}, Table~\ref{tab:heldout} \\
+\textbf{C3} & The agent wins where searching is needed (plan cases \textbf{33/60} vs.\ $\le$21/60), but \textbf{48/96} runs stop at the 8-call model limit. & \S\ref{sec:agent-results}, Fig.~\ref{fig:outcome}, Table~\ref{tab:failures} \\
+\textbf{C4} & CUDA graphs deliver \textbf{+202\%} output throughput over eager mode; prefix caching cuts TTFT p50 by \textbf{71\%} on shared prefixes. & \S\ref{sec:serving}, Table~\ref{tab:serving}, Fig.~\ref{fig:serving} \\
+\textbf{C5} & A one-line vLLM fix resolves MTP CUDA-graph capture crash, yielding \textbf{+42\%} single-request throughput ($k{=}3$). & \S\ref{sec:mtp}, Table~\ref{tab:mtp} \\
+\textbf{C6} & SFT pipeline pilot: a LoRA adapter on INT4 weights picks the right category in \textbf{8/8} first steps vs.\ 2/8 (pipeline check only). & \S\ref{sec:sft}, Table~\ref{tab:sft} \\
+\textbf{C7} & Post-freeze convergence fix: the infeasible dev-07 case ends in \textbf{3 calls} (\texttt{no\_feasible\_plan}) instead of 8, across all 9 targeted replays. & \S\ref{sec:fix}, Table~\ref{tab:replay} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+% ---- 2. System --------------------------------------------------------------------------------------------------
+\section{System Architecture}\label{sec:system}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=0.96\textwidth]{report/figures/architecture-standalone.pdf}
+\caption{Evaluated deployment architecture of TACC AgentForge. The browser communicates with a local Python backend that tunnels over SSH to a single two-GPU TACC Slurm job hosting the LangGraph agent harness, deterministic budget validator, vLLM server, and pinned SQLite/FTS5 knowledge snapshot. Dashed components run offline for SerpApi ingestion and frozen evaluation.}\label{fig:arch}
+\end{figure*}
+
+Figure~\ref{fig:arch} depicts the evaluated deployment across four subsystems.
+
+\textbf{Knowledge Base.} SerpApi Google Shopping and Google Product responses are archived verbatim with request
+parameters and content hashes, normalized into SQLite with FTS5 full-text indexing, and exported as content-addressed
+immutable snapshots. The evaluated snapshot \texttt{snapshot\_5bcd00723fb0b7589cbe50c8} covers four categories
+(earbuds, chargers, keyboards, backpacks), containing 315 discovered product groups, 80 detailed products, 251 merchant
+offers, 380 reviews, 2{,}507 structured attributes, and 3{,}525 source-linked evidence records. Attributes are recorded
+only when explicitly stated by the source; missing, ranged, or conflicting fields remain unknown rather than guessed.
+The agent queries the snapshot via five read-only, size-bounded, paginated tools: \texttt{describe\_filters},
+\texttt{search\_products}, \texttt{retrieve\_evidence}, \texttt{get\_offer\_facts}, and \texttt{resolve\_evidence}.
+
+\textbf{Agent Loop and Budget Validator.} Execution runs as a bounded LangGraph loop. At each turn, schema-constrained
+decoding forces one JSON action---\emph{call a tool}, \emph{ask the user}, or \emph{propose a plan}---within hard
+limits of 8 model calls, 8 tool calls, 2 invalid-action repairs, 120\,s wall time, and 36{,}000 context characters.
+A proposed plan is never surfaced unless approved by the \emph{budget validator} (\texttt{agent/budget.py}), which
+recomputes every line item in exact minor currency units from snapshot offer facts, enforces the stricter of the
+purchase cap and remaining periodic budget (after spending and reserves), compares pre-tax by default (stating so
+explicitly), and refuses to coerce unknown shipping or tax to zero. Missing required budget fields pause execution via
+SQLite checkpoints until the user answers. Once validated, the model streams a brief explanation whose numbers are
+checked against the verified plan and cited evidence; any ungrounded figure triggers a safe deterministic fallback.
+
+\textbf{Two-GPU Serving on TACC.} vLLM serves Qwen3.8-27B AWQ INT4 with tensor parallelism 2, a 16{,}384-token window,
+prefix caching, and CUDA graphs. Because TACC jobs have a strict 1-hour wall-time limit, each running service submits a
+successor 15 minutes before expiry and retires its published endpoint only after the successor passes health checks; in
+a 30-minute soak test (one request every 30\,s), 0/60 requests failed across handover. Startup requires 5--8.5 minutes.
+Job scripts automatically exclude nodes with unmanaged GPU processes and remap mismatched Slurm \texttt{CUDA\_VISIBLE\_DEVICES}
+indices.
+
+\textbf{Web Application.} A browser UI connects to \texttt{app/backend.py}, which relays Server-Sent Events (SSE) over
+an SSH tunnel from the cluster so users observe live search, offer comparison, budget verification, and explanation
+streaming. A single-item request with a budget completes in 18\,s end to end (first event at 0.4\,s). Figure~\ref{fig:ui}
+shows a live multi-item Bali travel recommendation on TACC with the current interface.
+
+\begin{figure*}[t]
+\centering
+\begin{subfigure}[t]{0.488\textwidth}
+  \centering
+  \uiframe{\linewidth}{build/browser-demo-cards.png}
+  \caption{Multi-item product recommendations with live merchant links, price freshness dates, and tax/shipping disclosures.}
+\end{subfigure}\hfill
+\begin{subfigure}[t]{0.488\textwidth}
+  \centering
+  \uiframe{\linewidth}{build/browser-demo-receipt.png}
+  \caption{Verified pre-tax receipt (\$87.34 total, \$112.66 remaining of \$200), verified attribute badges, and cited sources.}
+\end{subfigure}
+\caption{Live TACC browser interface (\texttt{qwen3.8-27b}) recommending a backpack, earbuds, and power bank for a \$200 Bali trip (frames from \texttt{docs/images/browser-demo.gif}).}\label{fig:ui}
+\end{figure*}
+
+% ---- 3. Evaluation Method ---------------------------------------------------------------------------------------
+\section{Evaluation Methodology}\label{sec:method}
+
+\textbf{Test Cases and Independent Oracle.} We evaluate 42 English and Chinese shopping cases across the four frozen
+categories: 10 development cases and 32 held-out cases (8 per category). By expected outcome, the held-out split
+contains 20 feasible-plan cases, 8 infeasible (no-plan) cases, and 4 budget-clarification cases. Rather than hand-labeling
+answers, an independent enumerator (\texttt{evaluations/catalog.py}) reads the SQLite snapshot directly---sharing no
+code with the agent tools or validator---to compute exact ground-truth feasibility.
+
+\textbf{Configurations.} Table~\ref{tab:configs} lists the five evaluated configurations. All use temperature 0,
+thinking disabled, and JSON output; each case runs all five configurations in rotated order across three repeats.
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{Evaluated system configurations.}\label{tab:configs}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\columnwidth}{@{}l Y@{}}
+\toprule
+\textbf{Config} & \textbf{Description} \\
+\midrule
+B0 & Single call with top 10 cheapest in-budget candidates \\
+B1 / B2 & B0 + top 5 evidence records (keyword / filtered FTS5) \\
+B3 & Multi-step agent with real tools; validator replaced by recorder (ablation) \\
+\rowcolor{RowTint}\textbf{B3v} & \textbf{Full system}: B3 + real budget validator (only approved plans delivered) \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\keybox{\textbf{Main finding.} Exact budget validation works --- no over-budget plan was ever delivered --- but a
-multi-step agent with an 8-call budget loses to a single well-prompted call overall, because it does not stop
-searching when no feasible offer exists. A targeted fix after the freeze removes this failure in replays; the
-held-out split has not been rerun with it.}
+\textbf{Metrics and Freeze Controls.} \emph{Task success rate (TSR)} measures whether the final outcome matches ground
+truth (feasible verified plan, correct ``no feasible plan'', or budget clarification). \emph{Budget violation rate (BVR)}
+is the fraction of delivered plans exceeding the budget. We also track hard-constraint violations, unverifiable claims
+(a required attribute of the chosen offer is unknown), and fabricated IDs. Uncertainty is reported via per-case
+bootstrap 95\% confidence intervals and paired per-case differences. The runner refuses to score the held-out split
+unless every evaluated file matches \texttt{evaluations/freeze.json} (commit \texttt{cc6059d}, digest \texttt{03b0cdea}).
 
-\section{System}\label{sec:system}
+% ---- 4. Results -------------------------------------------------------------------------------------------------
+\section{Experimental Results}\label{sec:results}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.94\linewidth]{report/figures/architecture-standalone.pdf}
-\caption{The evaluated deployment. The browser reaches the agent on the cluster through a local backend and an SSH tunnel; one TACC GPU job runs the agent harness, the budget validator, vLLM and the pinned knowledge snapshot. Dashed: offline data pipeline and evaluation.}\label{fig:arch}
-\end{figure}
+\subsection{Agent Evaluation (C1--C3)}\label{sec:agent-results}
 
-\textbf{Knowledge base.} SerpApi Google Shopping and Google Product responses are archived verbatim with their
-request parameters and hashes, normalized into SQLite with FTS5 full-text search, and exported as an immutable
-snapshot whose ID is a hash of its content. The evaluated snapshot \texttt{snapshot\_5bcd00723fb0b7589cbe50c8} holds
-four categories (earbuds, chargers, keyboards, backpacks), 315 discovered product groups, 80 with full details, 251
-offers, 380 reviews, 2{,}507 attributes and 3{,}525 source-linked evidence records. Attributes are stored only when the
-source states them; unknown, range and conflicting values stay unknown instead of being guessed. The agent reaches
-the snapshot through five tools: \texttt{describe\_filters}, \texttt{search\_products}, \texttt{retrieve\_evidence},
-\texttt{get\_offer\_facts} and \texttt{resolve\_evidence}; results are size-bounded and paginated.
+Table~\ref{tab:heldout} reports held-out performance across 480 attempts (96 per configuration).
 
-\textbf{Agent and budget validator.} The agent is a LangGraph loop. At each step the model must emit one JSON action
---- call a tool, ask the user, or propose a plan --- and decoding is constrained to the action schema. Runs are bounded
-by 8 model calls, 8 tool calls, two repairs of invalid actions, a 120-second budget and a 36{,}000-character context.
-A proposed plan is only delivered after the \emph{budget validator} approves it: it recomputes every line in minor
-currency units from the snapshot's offer facts, takes the smaller of the purchase cap and the periodic budget after
-spending and reserves, compares before tax by default and says so, and treats unknown shipping or tax as unknown
-rather than zero. If a required budget field is missing the run pauses with a question; checkpoints let the user's
-answer resume it. After approval the model streams a short explanation; numbers in it must come from the verified plan
-or the cited evidence, otherwise a template answer replaces it.
-
-\textbf{Serving on TACC.} vLLM runs with tensor parallelism 2, a 16{,}384-token context, prefix caching and CUDA
-graphs. Jobs are limited to one hour, so a running service submits its successor 15 minutes before its limit and
-withdraws its address only after the successor is ready; in a 30-minute soak with one request every 30 seconds, none
-of the 60 requests failed because of the handover. Startup takes 5 to 8.5 minutes. The job scripts handle two cluster quirks: GPUs
-held by processes outside Slurm, and nodes whose allocated GPU IDs do not match the IDs visible inside the job.
-
-\textbf{Application.} A browser page talks to a local backend, which reaches the agent service on the cluster through
-an SSH tunnel and relays its event stream, so the user sees each step (search, comparison, budget check,
-explanation). A request with a budget took 18\,s end to end, with the first event after 0.4\,s; Fig.~\ref{fig:ui}
-shows the result page.
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.72\linewidth]{build/browser-demo.png}
-\caption{Result page with the real model on TACC (frame from \texttt{docs/images/browser-demo.gif}): a Bali trip recommendation (backpack, earbuds and power bank) at \$87.34 before tax, \$112.66 left of a \$200 budget, with itemised totals and source links.}\label{fig:ui}
-\end{figure}
-
-\section{Evaluation Method}\label{sec:method}
-
-\textbf{Cases.} 42 cases in English and Chinese over the four categories: 10 development and 32 held-out (8 per
-category). By expected outcome the held-out split has 20 cases that need a plan, 8 with no feasible plan and 4 that
-must ask for the budget. Ground truth is computed, not written by hand: an independent enumerator reads the snapshot's
-SQLite file directly and does not use the agent's tools or validator.
-
-\textbf{Configurations.} All use temperature 0, thinking off and JSON output; each case runs every configuration in a
-rotated order, three times.
-
-\begin{table}[H]
+\begin{table*}[t]
 \centering\small
-\caption{Configurations.}\label{tab:configs}
-\begin{tabularx}{\linewidth}{@{}l Y@{}}
-\toprule
-Name & Description \\
-\midrule
-B0 & One model call with the 10 cheapest in-budget candidates of the category \\
-B1 / B2 & B0 plus the top 5 evidence records from keyword / filtered retrieval \\
-B3 & Multi-step agent with the real tools; the validator is replaced by a recorder (ablation) \\
-B3v & \textbf{Full system}: B3 plus the real budget validator; only approved plans count as delivered \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\textbf{Metrics.} Task success rate (TSR): the outcome matches the ground truth (a feasible plan, the correct ``no
-feasible plan'', or asking for the budget). Budget violation rate (BVR): delivered plans over budget. We also count
-constraint violations, unverifiable claims (a required attribute of the chosen offer is unknown) and made-up IDs.
-Confidence intervals are per-case bootstrap 95\% intervals; paired differences compare configurations case by case.
-The evaluated system is frozen: the runner refuses the held-out split unless every evaluated file matches the freeze
-manifest.
-
-\section{Results}\label{sec:results}
-
-\subsection{Agent evaluation (C1--C3)}\label{sec:agent-results}
-
-\begin{table}[H]
-\centering\small
-\caption{Held-out results: 32 cases $\times$ 3 repeats = 96 attempts per configuration. Expected-outcome columns give successes per outcome type. Paired per-case differences (95\% CI): B0$\rightarrow$B1 +0.03 (0.00 to 0.09); B1$\rightarrow$B2 0.00; B2$\rightarrow$B3 $-$0.26 ($-$0.47 to $-$0.05); \textbf{B3$\rightarrow$B3v +0.10 (+0.02 to +0.20)}.}\label{tab:heldout}
-\setlength{\tabcolsep}{5pt}
+\caption{Held-out evaluation (32 cases $\times$ 3 repeats = 96 attempts per configuration). Paired per-case differences (95\% CI): B0$\rightarrow$B1 $+0.03$ ($0.00$ to $+0.09$); B1$\rightarrow$B2 $0.00$; B2$\rightarrow$B3 $-0.26$ ($-0.47$ to $-0.05$); \textbf{B3$\rightarrow$B3v $+0.10$ ($+0.02$ to $+0.20$)}.}\label{tab:heldout}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{7pt}
 \begin{tabular}{@{}l r c r r r r r@{}}
 \toprule
-& & Per-case mean & \multicolumn{3}{c}{By expected outcome} & & \\
+& & \textbf{Per-case mean} & \multicolumn{3}{c}{\textbf{By expected outcome}} & & \\
 \cmidrule(lr){4-6}
-Config & TSR & (95\% CI) & Plan & No plan & Ask & BVR & Unverif. \\
+\textbf{Config} & \textbf{TSR} & \textbf{(95\% CI)} & \textbf{Plan} & \textbf{No plan} & \textbf{Ask} & \textbf{BVR} & \textbf{Unverif.} \\
 \midrule
 B0 & 54/96 & 0.56 (0.38--0.72) & 18/60 & 24/24 & 12/12 & 0/25 & 7/25 \\
 B1 & 57/96 & 0.59 (0.44--0.75) & 21/60 & 24/24 & 12/12 & 0/27 & 6/27 \\
 B2 & 57/96 & 0.59 (0.44--0.75) & 21/60 & 24/24 & 12/12 & 0/26 & 5/26 \\
 B3 & 32/96 & 0.33 (0.19--0.50) & 29/60 & 0/24 & 3/12 & 0/42 & 7/42 \\
-\textbf{B3v} & \textbf{42/96} & \textbf{0.44 (0.28--0.60)} & \textbf{33/60} & 0/24 & 9/12 & 0/36 & 3/36 \\
+\rowcolor{RowTint}\textbf{B3v} & \textbf{42/96} & \textbf{0.44 (0.28--0.60)} & \textbf{33/60} & 0/24 & \textbf{9/12} & \textbf{0/36} & \textbf{3/36} \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-\textbf{C1.} The full agent succeeds in 42 of 96 attempts; adding retrieval to a single call gives 57/96. No
-configuration violated a hard constraint or invented an ID. \textbf{C2.} Adding the validator to the agent raises TSR
-by 0.10 per case, and its interval excludes zero. Most of the gain is on cases that must ask for the budget (3/12
-$\rightarrow$ 9/12): without the validator the agent proposed plans without knowing the budget six times. No
-configuration delivered an over-budget plan (BVR 0 everywhere).
+\textbf{C1 \& C2 (Overall Accuracy and Validator Gain).} The full agent (B3v) succeeds in 42/96 attempts, trailing the
+retrieval-augmented single-call baselines B1/B2 (57/96). No configuration violated a hard constraint or fabricated an
+offer ID. Enabling the budget validator (B3$\rightarrow$B3v) yields a statistically significant paired gain of
+\textbf{+0.10} per case (95\% CI +0.02 to +0.20), primarily by blocking premature plans when the budget is missing
+(budget-ask accuracy rises from 3/12 to 9/12). Every configuration achieves \textbf{0\% BVR}.
 
-\begin{figure}[H]
+\textbf{C3 (Outcome Breakdown and Call-Limit Bottleneck).} Decomposing results by expected outcome (Figure~\ref{fig:outcome}
+and Table~\ref{tab:failures}) exposes a sharp dichotomy. On tasks requiring active search to locate a qualifying product
+(\emph{Plan expected}), B3v outperforms every single-call baseline (\textbf{33/60} vs.\ at most 21/60), because single
+calls inspect only the 10 cheapest offers and issue unnecessary clarification questions 33--35 times. Conversely, B3v
+fails every infeasible case (\textbf{0/24}): exactly \textbf{48/96} B3v runs terminate at the 8-call model limit
+(22/24 on infeasible cases).
+
+\begin{figure}[t]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  ybar, width=0.80\linewidth, height=4.3cm, bar width=7pt, ymin=0, ymax=130, ytick={0,25,50,75,100},
-  ylabel={Success (\%)}, ylabel style={font=\small}, tick label style={font=\small},
-  symbolic x coords={B0,B1,B2,B3,B3v}, xtick=data, enlarge x limits=0.14,
-  legend style={font=\small, at={(0.5,-0.22)}, anchor=north, legend columns=3, draw=none, /tikz/every even column/.append style={column sep=8pt}},
-  nodes near coords, every node near coord/.append style={font=\scriptsize, rotate=90, anchor=west, inner sep=1pt},
-  ymajorgrids, grid style={gray!25}]
-\addplot[fill=black!80, draw=black] coordinates {(B0,30) (B1,35) (B2,35) (B3,48) (B3v,55)};
-\addplot[fill=black!35, draw=black] coordinates {(B0,100) (B1,100) (B2,100) (B3,0) (B3v,0)};
-\addplot[fill=white, draw=black, postaction={pattern=north east lines}] coordinates {(B0,100) (B1,100) (B2,100) (B3,25) (B3v,75)};
-\legend{Plan expected (60), No feasible plan (24), Must ask for budget (12)}
+  ybar,
+  width=\columnwidth,
+  height=4.5cm,
+  bar width=5.2pt,
+  ymin=0, ymax=126,
+  ytick={0,25,50,75,100},
+  ylabel={Success (\%)},
+  ylabel style={font=\footnotesize, color=SlateInk},
+  tick label style={font=\footnotesize, color=SlateInk},
+  symbolic x coords={B0,B1,B2,B3,B3v},
+  xtick=data,
+  enlarge x limits=0.14,
+  axis line style={draw=RuleGray},
+  tick style={draw=RuleGray},
+  legend style={
+    font=\scriptsize,
+    at={(0.5,-0.22)},
+    anchor=north,
+    legend columns=2,
+    draw=none,
+    /tikz/every even column/.append style={column sep=6pt}
+  },
+  nodes near coords,
+  every node near coord/.append style={font=\fontsize{6}{6.5}\selectfont, rotate=90, anchor=west, inner sep=1.2pt, color=InkHeading},
+  ymajorgrids,
+  grid style={draw=BorderGray, densely dotted}
+]
+\addplot[fill=NavyInk, draw=NavyInk!85!black, rounded corners=0.6pt] coordinates {(B0,30) (B1,35) (B2,35) (B3,48) (B3v,55)};
+\addplot[fill=TealInk!80, draw=TealInk, rounded corners=0.6pt] coordinates {(B0,100) (B1,100) (B2,100) (B3,0) (B3v,0)};
+\addplot[fill=AmberInk!75, draw=AmberInk, rounded corners=0.6pt] coordinates {(B0,100) (B1,100) (B2,100) (B3,25) (B3v,75)};
+\legend{Plan expected (60), No feasible plan (24), Must ask budget (12)}
 \end{axis}
 \end{tikzpicture}
-\caption{Held-out success by expected outcome (percent of attempts). The agent wins where a plan must be found by searching, and fails every case without a feasible plan.}\label{fig:outcome}
+\caption{Held-out success by expected outcome. B3v excels on search-dependent plan tasks but stalls on infeasible queries.}\label{fig:outcome}
 \end{figure}
 
-\textbf{C3.} The agent is better where a plan has to be found (33/60 vs.\ at most 21/60): single calls only see the 10
-cheapest candidates and asked unnecessary questions 33--35 times. It loses overall because half of its runs end at
-the model-call limit, including 22 of 24 runs on cases without a feasible plan (Table~\ref{tab:failures}).
-
-\begin{table}[H]
+\begin{table*}[t]
 \centering\small
-\caption{Failure reasons on the held-out split (attempts out of 96 per configuration).}\label{tab:failures}
+\caption{Failure taxonomy on the held-out split (attempts out of 96 per configuration).}\label{tab:failures}
+\renewcommand{\arraystretch}{1.10}
+\setlength{\tabcolsep}{9pt}
 \begin{tabular}{@{}l r r r r r@{}}
 \toprule
-Reason & B0 & B1 & B2 & B3 & B3v \\
+\textbf{Failure Reason} & \textbf{B0} & \textbf{B1} & \textbf{B2} & \textbf{B3} & \textbf{B3v} \\
 \midrule
-Stopped at the 8-call model limit & -- & -- & -- & 48 & \textbf{48} \\
+\rowcolor{RowTint}Stopped at the 8-call model limit & -- & -- & -- & 48 & \textbf{48} \\
 Unnecessary clarification question & 35 & 33 & 34 & -- & -- \\
 Unverifiable claim (required attribute unknown) & 7 & 6 & 5 & 4 & 1 \\
-Plan proposed although the budget was missing & -- & -- & -- & 6 & -- \\
-Asked, but not for the budget & -- & -- & -- & 3 & 3 \\
+Plan proposed although budget was missing & -- & -- & -- & 6 & -- \\
+Asked clarification, but not for the budget & -- & -- & -- & 3 & 3 \\
 Plan proposed although none is feasible & -- & -- & -- & 3 & 2 \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-Traces show the mechanism. Searches include items whose price or attributes are unknown, so a query with no feasible
-offer still returns pages of candidates and a next-page cursor; the model keeps paging instead of concluding that
-nothing fits, and each page costs a model call. Every observation is about 8.5K characters, so the 36K-character
-context keeps only about three pages. The agent also has no notion of its remaining budget. Cost follows: B3v uses 6.5
-model calls and about 37K prompt tokens per request (single calls: 1 call, about 7K tokens), with a median latency of
-19\,s and p95 of 37\,s versus 3--4\,s for single calls.
+Trace analysis (\texttt{frozen-trace-dev/traces.jsonl}) pinpoints the root cause: catalog queries return items with
+unknown prices or attributes alongside a next-page cursor, so when no valid item exists the model keeps paging until
+the call budget expires. Each tool observation consumes $\sim$8.5K characters (fitting roughly three pages inside the
+36K-character window), and the frozen agent had no awareness of remaining calls. Consequently, B3v averages 6.5 calls
+and $\sim$37K prompt tokens per request (median latency 19\,s, p95 37\,s), versus 1 call, $\sim$7K tokens, and 3--4\,s
+for single-call baselines.
 
-\subsection{Post-freeze fix of the call limit (C7)}\label{sec:fix}
+\subsection{Post-Freeze Fix of the Call Limit (C7)}\label{sec:fix}
 
-After the freeze (PR \#29) the agent reserves its last two calls for finishing, finishes after two consecutive steps
-without progress, runs a repeated read-only query only once, and may end early with ``no feasible plan in this
-catalog''; the hard limit stays at 8 calls. Replays with the real model on three requests, three times each:
+After the freeze (PR~\#29), we updated the agent to reserve its final two calls for concluding, stop after two
+consecutive non-progress steps, deduplicate identical read-only calls, and allow explicit \texttt{no\_feasible\_plan}
+termination while keeping the 8-call cap. Table~\ref{tab:replay} reports 9 real-model replays on TACC (3 requests
+$\times$ 3 repeats). All three repeats were identical, and a fresh-clone TACC rerun on 2026-11-19 reproduced every call
+count and end state exactly. Because the full held-out split was not rerun after the freeze, we claim no new overall TSR.
 
-\begin{table}[H]
-\centering\small
-\caption{Targeted replays after the fix (model calls and end state; identical in all three repeats). Rerun on 2026-11-19 from a fresh clone with the same result.}\label{tab:replay}
-\begin{tabular}{@{}l l l@{}}
+\begin{table}[t]
+\centering\footnotesize
+\caption{Targeted real-model replays after the PR~\#29 convergence fix (identical across all 3 repeats and 2026-11-19 fresh-clone check).}\label{tab:replay}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\columnwidth}{@{}l Y Y@{}}
 \toprule
-Request & Frozen system & After the fix \\
+\textbf{Request} & \textbf{Frozen} & \textbf{After Fix} \\
 \midrule
-dev-07 (keyboard under 10 USD; none) & 8 calls, call limit & \textbf{3 calls, \texttt{no\_feasible\_plan}} \\
-dev-04 (plan exists, 50 USD) & 5 calls, completed & 5 calls, completed with a verified plan \\
-Issue-21 charger request (60 USD) & 12/12 runs at the call limit & 1 call, asks for the laptop's power need \\
+dev-07 (no plan) & 8 calls, limit & \textbf{3 calls}, \texttt{no\_feasible\_plan} \\
+dev-04 (\$50 plan) & 5 calls, ok & 5 calls, verified plan \\
+Issue-21 charger & 12/12 at limit & \textbf{1 call}, asks wattage \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
-These are 9 targeted runs, not a held-out rerun, so the report claims no new overall TSR.
+\subsection{Serving Optimizations (C4)}\label{sec:serving}
 
-\subsection{Serving optimizations (C4)}\label{sec:serving}
+We varied one vLLM flag at a time from an eager-mode baseline on one 2-GPU node (8 prompts $\times$ 2 repeats, 128
+output tokens; Table~\ref{tab:serving} and Figure~\ref{fig:serving}). Enabling \textbf{CUDA graphs} dominates all other
+levers, boosting concurrency-8 output throughput by \textbf{+202\%} (67.4$\rightarrow$203.9 tok/s) and cutting median
+TPOT by 75\%. In eager mode, \textbf{prefix caching} cuts median TTFT by \textbf{71\%} on shared-prefix workloads
+(2274$\rightarrow$654\,ms). Both FlashInfer attention and the FP8 KV cache fail on this hybrid checkpoint/runtime.
+Starting from CUDA graphs (203.5 tok/s), secondary flags vary throughput by $<$3\%, so our deployed service enables
+CUDA graphs plus prefix caching.
 
-Each variant changes one vLLM flag from an eager-mode baseline (one node, two GPUs; 8 prompts $\times$ 2 repeats per
-stage, 128 output tokens; concurrency 8 shown).
-
-\begin{table}[H]
+\begin{table*}[t]
 \centering\small
-\caption{Serving variants, distinct prompts, concurrency 8 (eager baseline). Changes are relative to the baseline of the same job.}\label{tab:serving}
+\caption{Controlled one-flag vLLM serving ablations (distinct prompts, concurrency 8, eager baseline; relative changes computed within the same job).}\label{tab:serving}
+\renewcommand{\arraystretch}{1.10}
+\setlength{\tabcolsep}{8pt}
 \begin{tabular}{@{}l r r r l@{}}
 \toprule
-Variant & Output tok/s & TTFT p50 (ms) & TPOT p50 (ms) & Note \\
+\textbf{Variant} & \textbf{Output tok/s} & \textbf{TTFT p50 (ms)} & \textbf{TPOT p50 (ms)} & \textbf{Observation} \\
 \midrule
-Baseline (eager) & 67.4 & 1474 & 103.3 & \\
-\textbf{CUDA graphs} & \textbf{203.9} (+202\%) & 1727 & \textbf{25.8} ($-$75\%) & largest gain \\
-Prefix caching & 71.9 (+7\%) & 1476 & 96.1 & shared prefix: TTFT 2274$\rightarrow$654\,ms \\
-No chunked prefill & 72.3 (+7\%) & 2135 & 92.7 & TTFT +45\% \\
-Triton attention & 66.1 & 1941 & 104.1 & TTFT +32\% \\
-FlashInfer attention & \multicolumn{3}{c}{failed (engine died after start)} & \\
-FP8 KV cache & \multicolumn{3}{c}{failed (HTTP 500 on every request)} & \\
+Baseline (eager) & 67.4 & 1474 & 103.3 & Reference configuration \\
+\rowcolor{RowTint}\textbf{CUDA graphs} & \textbf{203.9} (+202\%) & 1727 & \textbf{25.8} ($-$75\%) & Dominant throughput gain \\
+Prefix caching & 71.9 (+7\%) & 1476 & 96.1 & Shared-prefix TTFT: 2274$\rightarrow$654\,ms ($-$71\%) \\
+No chunked prefill & 72.3 (+7\%) & 2135 & 92.7 & TTFT degrades +45\% \\
+Triton attention & 66.1 ($-$2\%) & 1941 & 104.1 & TTFT degrades +32\% \\
+FlashInfer attention & \multicolumn{3}{c}{\textit{failed (engine died after startup)}} & Incompatible with hybrid layers \\
+FP8 KV cache & \multicolumn{3}{c}{\textit{failed (HTTP 500 on every request)}} & Runtime unsupported \\
 \bottomrule
 \end{tabular}
-\end{table}
+\end{table*}
 
-\begin{figure}[H]
+\begin{figure}[t]
 \centering
 \begin{tikzpicture}
 \begin{axis}[
-  xbar, width=0.62\linewidth, height=3.8cm, bar width=7pt, xmin=0, xmax=240,
-  xlabel={Output tokens/s (concurrency 8)}, xlabel style={font=\small}, tick label style={font=\small},
-  symbolic y coords={Triton attn,No chunked prefill,Prefix caching,Eager baseline,CUDA graphs}, ytick=data,
-  nodes near coords, nodes near coords style={font=\scriptsize}, enlarge y limits=0.15,
-  xmajorgrids, grid style={gray!25}]
-\addplot[fill=black!55, draw=black] coordinates {(66.1,Triton attn) (72.3,No chunked prefill) (71.9,Prefix caching) (67.4,Eager baseline) (203.9,CUDA graphs)};
+  xbar,
+  width=0.90\columnwidth,
+  height=3.9cm,
+  bar width=7.5pt,
+  xmin=0, xmax=248,
+  xlabel={Output tokens/s (concurrency 8)},
+  xlabel style={font=\footnotesize, color=SlateInk},
+  tick label style={font=\footnotesize, color=SlateInk},
+  symbolic y coords={Triton attn,No chunked,Prefix cache,Eager base,CUDA graphs},
+  ytick=data,
+  nodes near coords,
+  nodes near coords style={font=\scriptsize, color=InkHeading, anchor=west},
+  enlarge y limits=0.16,
+  axis line style={draw=RuleGray},
+  tick style={draw=RuleGray},
+  xmajorgrids,
+  grid style={draw=BorderGray, densely dotted}
+]
+\addplot[fill=NavyInk!78, draw=NavyInk, rounded corners=0.8pt] coordinates {
+  (66.1,Triton attn)
+  (72.3,No chunked)
+  (71.9,Prefix cache)
+  (67.4,Eager base)
+  (203.9,CUDA graphs)
+};
 \end{axis}
 \end{tikzpicture}
-\caption{Output throughput of the serving variants (distinct prompts). CUDA graphs dominate; the other flags change throughput by at most 7\%.}\label{fig:serving}
+\caption{Serving throughput across one-flag ablations (distinct prompts, $c{=}8$). CUDA graphs provide a $3\times$ speedup; all other working flags shift throughput by $\le$7\%.}\label{fig:serving}
 \end{figure}
 
-With CUDA graphs as the new baseline, the same flags change throughput by less than 3\% (203.5 tok/s baseline). The
-deployed service therefore uses CUDA graphs and prefix caching (the agent's prompts share long prefixes).
+\subsection{Speculative Decoding with MTP (C5)}\label{sec:mtp}
 
-\subsection{Speculative decoding with MTP (C5)}\label{sec:mtp}
-
-With the course's private vLLM build, multi-token prediction (MTP) speculative decoding crashed during CUDA-graph
-capture: the warm-up run built ordinary attention metadata, so a speculative-decoding Triton kernel was first compiled
-inside stream capture, which CUDA forbids. A one-line change makes the warm-up build the same metadata as the
-capture run.
-
-\begin{table}[H]
-\centering\small
-\caption{Output tok/s with CUDA graphs and the fix (one measurement per cell; change vs.\ the graphs baseline).}\label{tab:mtp}
-\begin{tabular}{@{}l r r r@{}}
-\toprule
-Workload & Baseline & MTP $k{=}1$ & MTP $k{=}3$ \\
-\midrule
-Distinct prompts, 1 request & 57.7 & 73.5 (+27\%) & \textbf{81.8 (+42\%)} \\
-Shared prefix, 1 request & 37.6 & 44.2 (+18\%) & 47.9 (+27\%) \\
-Distinct prompts, 4 requests & 139.5 & 129.0 ($-$8\%) & 136.8 ($-$2\%) \\
-Shared prefix, 4 requests & 63.9 & 67.0 (+5\%) & 69.8 (+9\%) \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-MTP reduces the latency of a lone request (mean acceptance length about 2.9 at $k{=}3$) but brings little throughput
-under concurrency, where inter-token latency roughly doubles.
-
-\subsection{Supervised fine-tuning pilot (C6)}\label{sec:sft}
-
-To test the post-training pipeline, a LoRA adapter (rank 8, 54M trainable parameters) was trained on the INT4
-checkpoint from successful development traces, with the category hint removed from the inputs, and served by vLLM next
-to the base model. Of 69 examples, 31 fit the 4{,}096-token limit (26 train, 5 validation); training took 78 steps
-(about 14 minutes), and validation loss rose after the first epoch.
-
-\begin{table}[H]
-\centering\small
-\caption{First action on development prompts (temperature 0).}\label{tab:sft}
-\begin{tabular}{@{}l c c@{}}
-\toprule
-Check & Base & LoRA adapter \\
-\midrule
-Correct catalog category on the first step (8 prompts with a budget) & 2/8 & \textbf{8/8} \\
-\quad of which not seen in training (4 prompts) & 1/4 & 4/4 \\
-Asks for a missing budget on the first step (2 prompts) & 1/2 & 0/2 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-This shows that the pipeline works end to end (traces $\rightarrow$ training on INT4 $\rightarrow$ vLLM serving) and that
-the category-name defect can be trained away. It is \textbf{not a quality result}: 10 prompts from the development
-split, first action only, and the adapter memorized a tiny dataset.
-
-\section{Public Cloud Deployment (Extension)}\label{sec:cloud}
-
-The evaluated system above serves one user from a local backend. As an extension, the branch
-\texttt{feat/\allowbreak{}cloud-agent-service} runs the same agent as a public service; it is \emph{not} part of the evaluation
-(C1--C7) and is maintained separately from \texttt{main}. TACC only serves the model; everything else runs on free
-cloud tiers.
+On the course's private vLLM build, multi-token prediction (MTP) crashed during CUDA-graph capture because warm-up
+constructed standard attention metadata, triggering forbidden Triton kernel compilation inside stream capture. A
+one-line patch (\texttt{E5c-warmup-spec-decode-metadata.patch}) aligns warm-up metadata with capture. Table~\ref{tab:mtp}
+shows single-measurement throughput with CUDA graphs enabled: MTP ($k{=}3$, mean acceptance $\approx 2.9$) accelerates
+single-request decoding by \textbf{+42\%} (57.7$\rightarrow$81.8 tok/s) but yields negligible gain at concurrency 4
+($-$2\% to +9%), where inter-token latency roughly doubles.
 
 \begin{table}[t]
-\centering\small
-\caption{Components of the cloud deployment.}\label{tab:cloud}
-\begin{tabularx}{\linewidth}{@{}l l Y@{}}
+\centering\footnotesize
+\caption{MTP throughput (output tok/s) with CUDA graphs and the E5c fix (single measurement per cell; change vs.\ graphs baseline).}\label{tab:mtp}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}l r r r@{}}
 \toprule
-Component & Where & Role \\
+\textbf{Workload} & \textbf{Base} & \textbf{MTP $k{=}1$} & \textbf{MTP $k{=}3$} \\
 \midrule
-Page & Cloudflare Pages & Static page; a same-origin Pages Function proxies \texttt{/api} with a shared secret and the visitor's IP \\
-Entry & Tailscale Funnel & Public HTTPS address of the VM; outbound connections only, no open ports \\
-Backend, agent & Google Compute Engine (e2-micro) & The backend checks the proxy secret, keeps run ownership in SQLite and limits each visitor IP to 2 streams and 6 new requests per minute (8 in total). The agent keeps SQLite checkpoints on local disk, so a paused run survives restarts \\
-Model tunnel & same VM & Follows the address the vLLM job publishes, reopens the SSH tunnel on a fresh port after each hourly handover and keeps the old one open while its streams finish \\
-Service switch & same VM & One systemd target: starting it submits the vLLM job and keeps the handover chain going; stopping it cancels the jobs, so GPUs are used only while the service is on \\
-Snapshots & Google Cloud Storage & Immutable snapshot archives; the VM downloads one by ID and checks its SHA-256 \\
-Model & TACC & vLLM job as in Section~\ref{sec:system} \\
+Distinct, $c{=}1$ & 57.7 & 73.5 (+27\%) & \textbf{81.8 (+42\%)} \\
+Shared, $c{=}1$ & 37.6 & 44.2 (+18\%) & 47.9 (+27\%) \\
+Distinct, $c{=}4$ & 139.5 & 129.0 ($-$8\%) & 136.8 ($-$2\%) \\
+Shared, $c{=}4$ & 63.9 & 67.0 (+5\%) & 69.8 (+9\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Supervised Fine-Tuning Pilot (C6)}\label{sec:sft}
+
+To validate end-to-end post-training on the INT4 checkpoint, we trained a rank-8 LoRA adapter (54M trainable parameters)
+from successful development traces with category hints removed, and served it alongside the base model in vLLM. Of 69
+extracted examples, 31 fit the 4{,}096-token training window (26 train / 5 val); 78 steps took $\sim$14\,min and
+validation loss rose after epoch 1. As Table~\ref{tab:sft} shows, the adapter selects the exact catalog category in
+\textbf{8/8} first steps (4/4 unseen dev prompts) vs.\ 2/8 for the base model, while losing budget-asking behavior on
+the 2 budget-missing prompts (0/2 vs.\ 1/2). This confirms pipeline viability on INT4 weights and is explicitly
+\textbf{not} a general quality claim.
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{SFT pipeline check: first action on 10 development prompts ($T{=}0$).}\label{tab:sft}
+\renewcommand{\arraystretch}{1.12}
+\setlength{\tabcolsep}{5pt}
+\begin{tabularx}{\columnwidth}{@{}Y c c@{}}
+\toprule
+\textbf{First-Step Check} & \textbf{Base} & \textbf{LoRA} \\
+\midrule
+\rowcolor{RowTint}Correct category (8 budgeted prompts) & 2/8 & \textbf{8/8} \\
+\quad of which unseen in training (4) & 1/4 & \textbf{4/4} \\
+Asks missing budget first (2 prompts) & 1/2 & 0/2 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\textbf{Larger catalog.} Continuing collection from the published snapshot (all 202 SerpApi searches left in the
-month) gave a 7-category snapshot for the public service: smartwatches, monitors and mice added, 221 products with
-details (from 80), 607 offers, 974 reviews and 9{,}416 evidence records. Evaluation stays on the frozen 4-category
-snapshot, and the three new categories can no longer serve as the reserved unseen category.
+% ---- 5. Cloud Extension -----------------------------------------------------------------------------------------
+\section{Public Cloud Deployment (Extension)}\label{sec:cloud}
 
-\textbf{Checks on the live service (real model, 2026-11-16).} A request through the public page completed in 37\,s
-with a verified plan (\$22.99 of \$100) and a model-written explanation that passed the evidence check; events
-streamed live through the proxy and the tunnel; a run waiting for the budget answer completed after the agent and
-backend were restarted; requests that bypass the proxy were refused. Requests in the new categories completed for a
-smartwatch (\$16.99) and a mouse (\$14.43). A monitor request first failed because the model wrote the comparison
-\texttt{>=} instead of \texttt{gte} and gave up searching; after the tools accepted comparison symbols it completed
-(\$99.00 of \$250). The deployment costs nothing to run (GCP free tier, Cloudflare and Tailscale free plans).
+Separate from the evaluated local-backend system (C1--C7), branch \texttt{feat/\allowbreak{}cloud-agent-service} deploys
+the agent as a zero-cost public web service (Table~\ref{tab:cloud}) while keeping model execution exclusively on TACC.
+Continuing SerpApi collection (202 remaining monthly searches) produced a 7-category snapshot adding smartwatches,
+monitors, and mice (221 detailed products, 607 offers, 974 reviews, 9{,}416 evidence records); all formal evaluations
+remain pinned to the frozen 4-category snapshot.
 
-\textbf{Observed problems.} The explanations for the monitor and the mouse fell back to the template, because the
-number check rejected specification numbers from the evidence (e.g.\ ``144\,Hz''). One hourly handover left the model
-unavailable for about 12 minutes: the successor's first vLLM start timed out after 20 minutes, and the keeper only
-resubmits when no job exists. The recommended monitor was a pre-owned offer, which the agent does not distinguish.
+Live checks on 2026-11-16 verified end-to-end streaming through Cloudflare Pages and Tailscale Funnel (37\,s, \$22.99
+of \$100), checkpoint persistence across VM restarts, proxy-bypass rejection, and new-category plans (smartwatch
+\$16.99, mouse \$14.43, monitor \$99.00 after adding \texttt{>=}/\texttt{<=} operator support). Observed limitations
+included template fallbacks triggered by unparsed specification units (e.g., ``144\,Hz''), a 12-minute handover gap
+after a 20-minute vLLM cold-start timeout, and pre-owned condition offers not yet distinguished.
 
+\begin{table*}[t]
+\centering\small
+\caption{Architecture of the public cloud deployment extension (branch \texttt{feat/cloud-agent-service}, outside C1--C7).}\label{tab:cloud}
+\renewcommand{\arraystretch}{1.12}
+\begin{tabularx}{\textwidth}{@{}l l Y@{}}
+\toprule
+\textbf{Component} & \textbf{Host} & \textbf{Role} \\
+\midrule
+Web UI \& Proxy & Cloudflare Pages & Static frontend; same-origin Pages Function injects shared secret and client IP on \texttt{/api} \\
+Ingress & Tailscale Funnel & Public HTTPS tunnel to VM; outbound-only, zero open firewall ports \\
+Backend \& Agent & GCE \texttt{e2-micro} & Verifies proxy secret, tracks SQLite run ownership \& per-IP rate limits (2 streams, 6 req/min); persists LangGraph checkpoints \\
+Tunnel \& Keeper & Same VM & Follows TACC \texttt{service-url.txt}, rotates SSH tunnel cleanly across hourly handovers, and starts/stops GPU jobs on demand \\
+Snapshots & GCS Bucket & Immutable snapshot archives verified by SHA-256 on startup \\
+Model Server & TACC (2 GPUs) & Same vLLM serving job as Section~\ref{sec:system} \\
+\bottomrule
+\end{tabularx}
+\end{table*}
+
+% ---- 6. Limitations ---------------------------------------------------------------------------------------------
 \section{Limitations}\label{sec:limits}
 
 \begin{itemize}
-\item \textbf{Call limit.} The frozen system's main failure (C3). The fix (C7) is supported by 9 replays only.
-\item \textbf{The validator checks money, not requirements.} It approved three plans whose required attribute was unknown.
-\item \textbf{Correctness is relative to the frozen snapshot.} All 251 offers have unknown tax, so budgets are compared before tax; known data errors carry into the ground truth.
-\item \textbf{Small samples.} 32 held-out cases; single-call repeats are identical at temperature 0, so they give 32 independent results. Serving and MTP cells are single measurements.
-\item \textbf{Not done.} The fifth unseen category, human ratings of explanations, and retrieval Recall/MRR (the relevance pool is unlabeled).
-\item \textbf{Variation.} vLLM batching is not bit-deterministic, so a TACC rerun of multi-step attempts can differ; latency depends on the node.
+\item \textbf{Call limit.} Dominates frozen B3v failures (C3); the post-freeze fix (C7) is validated by 9 replays only.
+\item \textbf{Money vs.\ requirements.} The validator guarantees arithmetic and budget caps, not attribute completeness; three B3v plans passed with an unknown required attribute.
+\item \textbf{Snapshot-relative truth.} All 251 frozen offers lack tax data, so budgets are compared pre-tax and catalog quirks propagate to the enumerator.
+\item \textbf{Sample size.} 32 held-out cases (single-call repeats are deterministic at $T{=}0$); serving and MTP cells are single runs.
+\item \textbf{Not completed.} Fifth unseen category, human explanation faithfulness ratings, and retrieval Recall/MRR (602-row relevance pool unlabeled).
+\item \textbf{Run-to-run variation.} vLLM batching is non-bit-deterministic across multi-step runs, and raw latency varies by TACC node.
 \end{itemize}
 
+% ---- 7. Artifact & Reproduction ---------------------------------------------------------------------------------
 \section{Artifact and Reproduction}\label{sec:artifact}
 
-The repository is public at \repo. Its README (Appendix~\ref{app:readme}) follows the NSDI artifact structure.
+The repository is public at \repo; its complete \texttt{README.md} (Appendix~\ref{app:readme}) follows the NSDI~'27
+Call for Artifacts structure:
 \begin{itemize}
-\item \textbf{Getting started, about 10 minutes, no GPU.} After installing the locked dependencies, one command
-(\texttt{scripts/check\_artifact.py}) runs seven stages --- environment, catalog snapshot, 697 tests, harness self-test,
-an end-to-end request through backend, agent, knowledge base and validator, recomputation of C1--C7, and the v1
-benchmark data --- and prints \texttt{SUCCESS} per stage and \texttt{ALL 7 STAGES SUCCEEDED}. Verified from fresh
-clones.
-\item \textbf{Main results.} \texttt{scripts/reproduce\_results.py} rescores all 660 recorded agent attempts against the
-frozen snapshot, regenerates the serving reports, and recounts C5--C7 from raw outputs; it prints \texttt{ALL MATCH}.
-\item \textbf{Reruns on TACC (optional).} On 2026-11-19 we followed the README on the cluster from a fresh clone. The
-quick agent rerun (frozen commit, development split) gave B0 7/10 and B3v 6/10 with three call-limit stops and BVR 0,
-consistent with the frozen development results (B0 21/30, B3v 14/30); the C7 replays reproduced exactly. The check
-also found that serving-experiment jobs failed on nodes with mismatched GPU IDs; the job scripts now renumber them.
+\item \textbf{Getting Started ($\sim$10\,min, no GPU).} After locked dependency setup, \texttt{scripts/check\_artifact.py}
+executes seven offline stages---environment, catalog snapshot, 697 automated tests, harness HTTP self-test, full
+backend-to-validator SSE request, C1--C7 recomputation, and v1 synthetic benchmark preflight---printing
+\texttt{ALL 7 STAGES SUCCEEDED}.
+\item \textbf{Main results ($<$1\,min).} \texttt{scripts/reproduce\_results.py} independently rescores all 660
+recorded agent attempts against the frozen SQLite snapshot, regenerates serving tables, and verifies C5--C7, printing
+\texttt{ALL MATCH}.
+\item \textbf{TACC Reruns (optional).} Fresh-clone cluster checks on 2026-11-19 reproduced Step~2a (dev split: B0 7/10,
+B3v 6/10, 3 call-limit stops, BVR 0) and all 9 C7 replays identically, and fixed node GPU-ID remapping and portable
+cross-account Miniconda paths in the job scripts.
 \end{itemize}
 
+% ---- 8. Group Contributions -------------------------------------------------------------------------------------
+\newpage
 \section{Group Contributions}\label{sec:contrib}
 
+Table~\ref{tab:contrib} summarizes each team member's contributions across the project.
+
 \begin{table}[H]
-\centering\small
-\begin{tabularx}{\linewidth}{@{}l Y@{}}
+\centering\footnotesize
+\caption{Summary of group member contributions.}\label{tab:contrib}
+\renewcommand{\arraystretch}{1.15}
+\setlength{\tabcolsep}{4.5pt}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.35cm} Y@{}}
 \toprule
-Member & Contributions \\
+\textbf{Member} & \textbf{Contributions} \\
 \midrule
-Hechuan Zhang & Model serving on TACC with automatic recovery, hourly handover and runbook; budget validator; evaluation cases, independent enumerator, scorer and frozen baseline; browser, backend and cluster bridge; serving and speculative-decoding experiments including the vLLM fix; SFT pilot; README, reproduction and artifact check; the public cloud deployment and the catalog expansion (Section~\ref{sec:cloud}). \\
-Berlin Chen & Agent runtime (LangGraph loop, tools, policies, checkpoints); convergence and explanation fixes; the post-freeze fix of the call limit (C7). \\
-Jieming Chen & Knowledge base: SerpApi collection, SQLite/FTS5 snapshots, retrieval tools and offline bootstrap; tool error recovery and schema discovery; persistent session memory and bounded context selection; the additional v1 benchmark and ShoppingBench track. \\
+\textbf{Hechuan Zhang} & Model serving on TACC with automatic recovery, hourly handover, and runbook; deterministic budget validator; evaluation cases, independent SQLite enumerator, scorer, and frozen baseline; browser UI, backend, and cluster bridge; serving and MTP speculative-decoding experiments including the vLLM fix; SFT pilot; README, reproduction suite, and artifact check; public cloud deployment and 7-category catalog expansion (\S\ref{sec:cloud}). \\[4pt]
+\textbf{Berlin Chen} & Agent runtime (LangGraph loop, tool dispatch, policies, SQLite checkpoints); convergence and grounded-explanation fixes; post-freeze call-limit fix (C7). \\[4pt]
+\textbf{Jieming Chen} & Knowledge base: SerpApi acquisition, SQLite/FTS5 versioned snapshots, retrieval tools, and offline bootstrap; tool error recovery and schema discovery; persistent session memory and bounded context selection; additional v1 synthetic benchmark and ShoppingBench track. \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
+% ---- Appendix A: Full Repository README (clean single-column for wide tables & code blocks) ---------------------
+\clearpage
+\onecolumn
 \appendix
 \setcounter{secnumdepth}{2}
-\titleformat{\subsubsection}{\normalfont\normalsize\bfseries}{}{0pt}{}
-\titlespacing*{\subsubsection}{0pt}{5pt plus 2pt}{2pt plus 1pt}
+\titleformat{\section}{\normalfont\fontsize{13}{15}\selectfont\bfseries\color{NavyInk}}{Appendix~\thesection.}{0.55em}{}[\vspace{2pt}\color{BorderGray}\titlerule]
+\titleformat{\subsection}{\normalfont\fontsize{11}{13}\selectfont\bfseries\color{NavyInk}}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}{\normalfont\fontsize{10}{12}\selectfont\bfseries}{}{0pt}{}
+\titlespacing*{\subsubsection}{0pt}{6pt plus 1.5pt}{2pt plus 0.5pt}
 \titleformat{\paragraph}[runin]{\normalfont\normalsize\bfseries}{}{0pt}{}[.]
+
 \section{Repository README}\label{app:readme}
-{\small Full contents of \texttt{README.md} at the submitted commit, converted to this format. The animated demo is
-shown as a single frame.}
+{\small\color{SlateInk} Full contents of \texttt{README.md} at the submitted repository state, formatted for print. All relative links point to the corresponding files on GitHub. To avoid duplicating images already presented in Section~\ref{sec:system}, the two inline figures are cross-referenced to Figures~\ref{fig:arch} and~\ref{fig:ui}.}\par\medskip
+
 \input{build/readme.tex}
 
 \end{document}
