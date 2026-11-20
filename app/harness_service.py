@@ -119,14 +119,19 @@ class HarnessService:
     persistent = False                                        # True when checkpoints are on disk (cloud host)
 
     def __init__(self, *, model, kb, snapshot_id: str, policy, token: str, info: dict, explain_default: bool,
-                 saver=None):
+                 saver=None, live=None):
         tools = build_knowledge_tools(kb)
+        cost_source = KnowledgeOfferCostSource(kb)
+        self.live = live                                     # app.live_search.LiveSearch, or None when no keys are set
+        if live is not None:
+            from app.live_search import LiveOfferCostSource, with_live_tool
+            tools, cost_source = with_live_tool(tools, live), LiveOfferCostSource(cost_source, live.store)
         self.tools, self.kb, self.snapshot_id, self.token, self.info = tools, kb, snapshot_id, token, info
         self.model = model
         self.plans: dict[str, object] = {}                   # run_id -> its verified plan (for the narrative), newest last
         self.narrating: set[str] = set()
         self.explain_default = explain_default
-        deps = AgentDependencies(model, tools, BudgetPlanValidator(KnowledgeOfferCostSource(kb)),
+        deps = AgentDependencies(model, tools, BudgetPlanValidator(cost_source),
                                  evidence_resolver=KnowledgeEvidenceResolver(kb))
         # On TACC the store is in memory (USERDIR is NFS); the cloud host passes a SQLite saver on local disk,
         # so a run waiting for an answer survives a restart (issue #8). Shared: either runtime resumes any run.
@@ -203,6 +208,7 @@ class HarnessService:
         return {"status": "ok", "snapshot_id": self.snapshot_id, "uptime_s": round(time.time() - self.started, 1),
                 "model_address": model_address, "active_runs": len(self.cancels),
                 "waiting_runs": len(self.waiting), "counts": self.counts, "categories": self.catalog_categories(),
+                "live_search": self.live.status() if self.live is not None else {"enabled": False},
                 "checkpoints": "sqlite" if self.persistent else "memory",
                 **{k: v for k, v in self.info.items() if k != "model_address_file"}}
 
@@ -380,6 +386,14 @@ class HarnessService:
                    for x in (offer_ids, evidence_ids)):
             raise HttpError(400, "invalid_request", "offer_ids and evidence_ids must be lists of at most 50 IDs.")
 
+        live_rows = None
+        if self.live is not None:                           # live offers (temporary IDs) come from the live store
+            from app.live_search import EVIDENCE_PREFIX, OFFER_PREFIX, lookup_rows
+            live_rows = lookup_rows(self.live.store, [i for i in offer_ids if i.startswith(OFFER_PREFIX)],
+                                    [i for i in evidence_ids if i.startswith(EVIDENCE_PREFIX)])
+            offer_ids = [i for i in offer_ids if not i.startswith(OFFER_PREFIX)]
+            evidence_ids = [i for i in evidence_ids if not i.startswith(EVIDENCE_PREFIX)]
+
         def work():
             offers, unknown_offers = _all_pages(lambda ids, cur: self.kb.get_offer_facts(self.snapshot_id, ids),
                                                 offer_ids, "offers", "remaining_offer_ids") if offer_ids else ([], [])
@@ -387,9 +401,17 @@ class HarnessService:
                 lambda ids, cur: self.kb.resolve_evidence(self.snapshot_id, ids, cur),
                 evidence_ids, "evidence", "next_cursor") if evidence_ids else ([], [])
             photos, shops, categories = self.presentation({o["variant_id"] for o in offers}, {o["offer_id"] for o in offers})
-            return {"snapshot_id": self.snapshot_id, "offers": offers, "evidence": evidence,
-                    "unknown_offer_ids": sorted(set(unknown_offers)), "unknown_evidence_ids": sorted(set(unknown_evidence)),
-                    "photos": photos, "shops": shops, "categories": categories}
+            result = {"snapshot_id": self.snapshot_id, "offers": offers, "evidence": evidence,
+                      "unknown_offer_ids": sorted(set(unknown_offers)), "unknown_evidence_ids": sorted(set(unknown_evidence)),
+                      "photos": photos, "shops": shops, "categories": categories}
+            if live_rows:
+                for key in ("offers", "evidence"):
+                    result[key] = result[key] + live_rows[key]
+                for key in ("photos", "shops"):
+                    result[key] = {**result[key], **live_rows[key]}
+                for key in ("unknown_offer_ids", "unknown_evidence_ids"):
+                    result[key] = sorted(set(result[key]) | set(live_rows[key]))
+            return result
         try:
             return await asyncio.to_thread(work)
         except Exception as exc:
@@ -590,9 +612,12 @@ async def run_cloud(a) -> int:
         if checkpoint.cleanup_on_start:
             removed = [d for d in await cleanup_checkpoints(saver, checkpoint.retention()) if d.action == "delete"]
             log(f"checkpoint cleanup: removed {len(removed)} expired runs")
+        from app.live_search import LiveSearch
+        live = LiveSearch.from_env(home)                      # None without SERPAPI_API_KEYS: the catalog is all there is
+        log("live search: " + (f"on ({live.status()['keys']} keys, {live.daily_limit} a day)" if live else "off (no SERPAPI_API_KEYS)"))
         service = HarnessService(model=real_model(settings.model), kb=kb, snapshot_id=kb_settings.snapshot_id,
                                  policy=settings.policy, token=token, info=info, explain_default=a.explain,
-                                 saver=saver)
+                                 saver=saver, live=live)
 
         def ready(port):
             info["address"] = f"http://127.0.0.1:{port}"

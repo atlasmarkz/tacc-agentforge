@@ -450,7 +450,7 @@ const I18N = {
     newBudget: "New budget", revPlaceholder: "Say what should change, e.g. needs noise cancelling",
     chips: ["A bit cheaper", "Better reviews", "Free shipping", "A different brand"],
     pick: "Our pick", within: "Within budget", qty: (n) => `Quantity ${n}`, view: (m) => `View at ${m}`, viewShop: "View offer", seeSources: "Sources",
-    seenOn: (d) => `price seen ${d}`, loading: "Loading offer details…",
+    seenOn: (d) => `price seen ${d}`, liveTag: "Live price from the web", loading: "Loading offer details…",
     shipFree: "Free shipping", ship: (v) => `Shipping ${v}`, shipUnknown: "Shipping unknown", tax: (v) => `Tax ${v}`, taxNo: "Tax not included", stale: "Price may have changed",
     items: "Items", shipping: "Shipping", taxL: "Tax", notIncl: "not included", free: "Free", total: "Total", totalPre: "Total before tax",
     budgetOf: (v) => `Your budget ${v}`, leftOf: (v) => ["left ", v],
@@ -508,7 +508,7 @@ const I18N = {
     newBudget: "新预算", revPlaceholder: "说说要改什么，比如：要降噪的",
     chips: ["再便宜一点", "评价更好的", "包邮的", "换个品牌"],
     pick: "首选", within: "在预算内", qty: (n) => `数量 ${n}`, view: (m) => `去 ${m} 看看`, viewShop: "查看商品", seeSources: "看来源",
-    seenOn: (d) => `价格读取于 ${d}`, loading: "正在读取商品信息…",
+    seenOn: (d) => `价格读取于 ${d}`, liveTag: "联网实时价格", loading: "正在读取商品信息…",
     shipFree: "包邮", ship: (v) => `运费 ${v}`, shipUnknown: "运费未知", tax: (v) => `税 ${v}`, taxNo: "不含税", stale: "价格可能已变化",
     items: "商品", shipping: "运费", taxL: "税费", notIncl: "未计入", free: "免费", total: "合计", totalPre: "合计（不含税）",
     budgetOf: (v) => `你的预算 ${v}`, leftOf: (v) => ["还剩 ", v],
@@ -1265,6 +1265,7 @@ function fillLookup(plan, r) {
     const facts = node.querySelector(".facts");
     const qty = plan.items.find((i) => i.offer_id === o.offer_id);
     facts.replaceChildren(
+      o.live ? el("span", { class: "fact good" }, "● " + T.liveTag) : "",
       o.shipping_status === "known"
         ? el("span", { class: "fact" + (o.shipping_minor === 0 ? " good" : "") }, o.shipping_minor === 0 ? "✓ " + T.shipFree : T.ship(fmt(o.shipping_minor / 100, o.currency)))
         : el("span", { class: "fact warn" }, T.shipUnknown),

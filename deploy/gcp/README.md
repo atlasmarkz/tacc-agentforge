@@ -116,6 +116,8 @@ openssl rand -hex 32
 
 然后按 `agentforge.env.example` 填写 `/etc/agentforge/agentforge.env`：TACC 账户、`KNOWLEDGE_SEED_URL`、`AGENTFORGE_PROXY_SECRET`。`CF_ACCESS_*` 保持注释状态，页面就是公开的。
 
+可选：要让 Agent 在目录之外联网搜索实时商品（SerpApi Google Shopping），在同一个文件里加 `SERPAPI_API_KEYS=<key1>,<key2>`（逗号分隔，依次轮换，用完的密钥会被跳过）和 `SERPAPI_DAILY_LIMIT=30`（所有密钥合计每天的搜索上限），重启 `agentforge-harness`。不设密钥时没有联网搜索，行为与评测一致。
+
 **注意：** 是否允许把 TACC 账户的密钥放在云服务器上，需要先和助教确认（见 #25）。
 
 ### 4. Tailscale Funnel
