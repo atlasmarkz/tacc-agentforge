@@ -71,7 +71,7 @@ After [Setup](#setup), one command runs every check of this section and Step 1 o
 
 ## Prerequisites
 
-- macOS or Linux. This README was verified on macOS with Python 3.12. The team also developed on Windows; there, set `PYTHONUTF8=1` (issue #5) and use `.venv\Scripts\python.exe`.
+- macOS or Linux. This README was verified from a fresh clone on macOS with Python 3.12 and, on 2026-11-21, on Linux (Docker image `python:3.12`). **On Windows, use WSL2**: native Windows is not supported, because `knowledge/acquisition.py` needs the POSIX `fcntl` module and Git's CRLF line endings on Windows change the hashed v1 fixture files (stages 3 and 7 fail).
 - Python **3.12**
 - [`uv`](https://docs.astral.sh/uv/) (recommended) or `pip`
 - `git` and `curl`
@@ -174,7 +174,17 @@ bash deploy/tacc/service/qwen-service/stage.sh serve --harness
 (cd deploy/tacc/service/qwen-service && tcloud submit)
 ```
 
-After 5–8.5 minutes, once the job has published `harness-url.txt` on the cluster, run `.venv/bin/python -m app.backend` locally and open http://127.0.0.1:8765. The backend reaches the cluster over SSH, so first set the SSH host and key as described in [app/README.md](app/README.md). Stopping the service is covered in the [runbook](deploy/tacc/service/RUNBOOK.md) §6. In the evaluation, a full-system request took 19 s at the median and 37 s at p95, measured on the cluster (baseline report §5).
+After 5–8.5 minutes, once the job has published `harness-url.txt` on the cluster, start the backend locally and open http://127.0.0.1:8765. The backend reaches the cluster over SSH with your own account; its defaults are the authors' account, so set these first ([app/README.md](app/README.md)):
+
+```bash
+export TACC_SSH=<TACC username>@gw.turing.ust.hk
+export TACC_SSH_PORT=30041
+export TACC_SSH_KEY=~/.ssh/<your TACC private key>
+export TACC_REMOTE_USERDIR=/mnt/home/<TACC username>/USERDIR
+.venv/bin/python -m app.backend
+```
+
+The page shows `Online · job <id>` once it reaches the harness. Stopping the service is covered in the [runbook](deploy/tacc/service/RUNBOOK.md) §6. In the evaluation, a full-system request took 19 s at the median and 37 s at p95, measured on the cluster (baseline report §5).
 
 ---
 
@@ -274,8 +284,10 @@ unzip -oq assets/knowledge/pilot-snapshot.zip -d /tmp/agentforge-snapshot
 
 ```bash
 git checkout cc6059d
-# Keep the portable Miniconda path from main so any TACC account can install harness deps (not part of freeze.json)
-git checkout main -- deploy/tacc/service/agent-e2e/job.sh deploy/tacc/service/app-service/harness-lib.sh
+# Keep from main (none of these is in freeze.json): the portable Miniconda path, so any TACC account can install
+# harness deps, and the model service's node exclusions (10-0-4-10 was added after the freeze, see Limitations)
+git checkout main -- deploy/tacc/service/agent-e2e/job.sh deploy/tacc/service/app-service/harness-lib.sh \
+  deploy/tacc/service/qwen-service/tuxiv.conf
 .venv/bin/python -m evaluations.freeze check      # expected: "matches the freeze"
 ```
 
