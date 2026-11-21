@@ -209,7 +209,7 @@ rerun with it.
 \textbf{C4} & CUDA graphs deliver \textbf{+202\%} output throughput over eager mode; prefix caching cuts TTFT p50 by \textbf{71\%} on shared prefixes. & \S\ref{sec:serving}, Table~\ref{tab:serving}, Fig.~\ref{fig:serving} \\
 \textbf{C5} & A one-line vLLM fix resolves MTP CUDA-graph capture crash, yielding \textbf{+42\%} single-request throughput ($k{=}3$). & \S\ref{sec:mtp}, Table~\ref{tab:mtp} \\
 \textbf{C6} & SFT pipeline pilot: a LoRA adapter on INT4 weights picks the right category in \textbf{8/8} first steps vs.\ 2/8 (pipeline check only). & \S\ref{sec:sft}, Table~\ref{tab:sft} \\
-\textbf{C7} & Post-freeze convergence fix: the infeasible dev-07 case ends in \textbf{3 calls} (\texttt{no\_feasible\_plan}) instead of 8, across all 9 targeted replays. & \S\ref{sec:fix}, Table~\ref{tab:replay} \\
+\textbf{C7} & Post-freeze convergence fix: the infeasible dev-07 case ends in \textbf{3 calls} (\texttt{no\_feasible\_plan}) instead of 8, across all 9 targeted replays (4 calls, same end state, after a later prompt-layout change). & \S\ref{sec:fix}, Table~\ref{tab:replay} \\
 \bottomrule
 \end{tabularx}
 \end{table*}
@@ -420,17 +420,25 @@ termination while keeping the 8-call cap. Table~\ref{tab:replay} reports 9 real-
 $\times$ 3 repeats). All three repeats were identical, and a fresh-clone TACC rerun on 2026-11-19 reproduced every call
 count and end state exactly. Because the full held-out split was not rerun after the freeze, we claim no new overall TSR.
 
+\textbf{Prompt layout for prefix caching.} The per-call runtime policy (remaining calls, phase, allowed actions) was
+part of the system message, so every call changed the prompt near its start and vLLM's prefix cache could reuse almost
+nothing: a 12-call request on the public deployment sent 84k prompt tokens at an 11\% cache hit rate and took 78\,s,
+nearly all of it prefill. On 2026-11-21 the model adapter moved this block into a final message of its own, leaving
+the agent unchanged. In an alternating A/B on one TACC service, the mean decision call fell from 4.0--4.5\,s to
+2.9--3.0\,s and dev-04 from 28--31\,s to 16\,s. Rerunning the 9 replays on this layout gave the same end states and
+scores, but dev-07 now concludes in 4 calls instead of 3 (last column of Table~\ref{tab:replay}).
+
 \begin{table}[t]
 \centering\footnotesize
-\caption{Targeted real-model replays after the PR~\#29 convergence fix (identical across all 3 repeats and 2026-11-19 fresh-clone check).}\label{tab:replay}
+\caption{Targeted real-model replays after the PR~\#29 convergence fix (identical across all 3 repeats and 2026-11-19 fresh-clone check), and again after the 2026-11-21 prompt-layout change (identical across 3 repeats).}\label{tab:replay}
 \renewcommand{\arraystretch}{1.12}
-\begin{tabularx}{\columnwidth}{@{}l Y Y@{}}
+\begin{tabularx}{\columnwidth}{@{}l Y Y Y@{}}
 \toprule
-\textbf{Request} & \textbf{Frozen} & \textbf{After Fix} \\
+\textbf{Request} & \textbf{Frozen} & \textbf{After Fix} & \textbf{New Layout} \\
 \midrule
-dev-07 (no plan) & 8 calls, limit & \textbf{3 calls}, \texttt{no\_feasible\_plan} \\
-dev-04 (\$50 plan) & 5 calls, ok & 5 calls, verified plan \\
-Issue-21 charger & 12/12 at limit & \textbf{1 call}, asks wattage \\
+dev-07 (no plan) & 8 calls, limit & \textbf{3 calls}, \texttt{no\_\allowbreak{}feasible\_\allowbreak{}plan} & 4 calls, \texttt{no\_\allowbreak{}feasible\_\allowbreak{}plan} \\
+dev-04 (\$50 plan) & 5 calls, ok & 5 calls, verified plan & 5 calls, verified plan \\
+Issue-21 charger & 12/12 at limit & \textbf{1 call}, asks wattage & 1 call, asks wattage \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -603,7 +611,7 @@ The repository is public at \repo; its complete \texttt{README.md} (Appendix~\re
 Call for Artifacts structure:
 \begin{itemize}
 \item \textbf{Getting Started ($\sim$10\,min, no GPU).} After locked dependency setup, \texttt{scripts/check\_artifact.py}
-executes seven offline stages---environment, catalog snapshot, 697 automated tests, harness HTTP self-test, full
+executes seven offline stages---environment, catalog snapshot, 699 automated tests, harness HTTP self-test, full
 backend-to-validator SSE request, C1--C7 recomputation, and v1 synthetic benchmark preflight---printing
 \texttt{ALL 7 STAGES SUCCEEDED}.
 \item \textbf{Main results ($<$1\,min).} \texttt{scripts/reproduce\_results.py} independently rescores all 660
@@ -611,7 +619,8 @@ recorded agent attempts against the frozen SQLite snapshot, regenerates serving 
 \texttt{ALL MATCH}.
 \item \textbf{TACC Reruns (optional).} Fresh-clone cluster checks on 2026-11-19 reproduced Step~2a (dev split: B0 7/10,
 B3v 6/10, 3 call-limit stops, BVR 0) and all 9 C7 replays identically, and fixed node GPU-ID remapping and portable
-cross-account Miniconda paths in the job scripts.
+cross-account Miniconda paths in the job scripts. On current \texttt{main} (after the prompt-layout change of
+\S\ref{sec:fix}) the C7 replays give 1/4/5 calls with the same end states (2026-11-21, job 30320).
 \end{itemize}
 
 % ---- 8. Group Contributions -------------------------------------------------------------------------------------

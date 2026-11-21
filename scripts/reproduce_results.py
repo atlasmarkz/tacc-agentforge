@@ -123,21 +123,30 @@ def check_mtp() -> bool:
 
 
 def check_replay() -> bool:
-    """Model calls and end states of the post-freeze issue #21 replays (PR #29, MAIN_REPLAY.md)."""
-    data = json.loads((ROOT / "docs/experiments/2026-11-17-agent-finalization/main-real-replay.json")
-                      .read_text(encoding="utf-8"))
-    got: dict[str, list[str]] = {}
-    for r in data["runs"]:
-        end = r["stop_reason"] or r["status"]
-        got.setdefault(r["case_id"], []).append(f"{r['model_calls']} calls, {end}")
-    documented = {"issue-21-charger": ["1 calls, waiting_user"] * 3,
-                  "dev-07": ["3 calls, no_feasible_plan"] * 3,
-                  "dev-04": ["5 calls, completed"] * 3}
+    """Model calls and end states of the post-freeze issue #21 replays (PR #29, MAIN_REPLAY.md): the fix as
+    merged (dde58f3), and again after the prompt-layout change that moved the per-call runtime policy to
+    the end of the prompt (inference/model_port.py, 2026-11-21)."""
+    sets = [("main-real-replay.json", "as merged, dde58f3",
+             {"issue-21-charger": ["1 calls, waiting_user"] * 3,
+              "dev-07": ["3 calls, no_feasible_plan"] * 3,
+              "dev-04": ["5 calls, completed"] * 3}),
+            ("main-prefix-layout-replay.json", "after the prompt-layout change",
+             {"issue-21-charger": ["1 calls, waiting_user"] * 3,
+              "dev-07": ["4 calls, no_feasible_plan"] * 3,
+              "dev-04": ["5 calls, completed"] * 3})]
     print("\n== Post-freeze issue #21 fix: real-model replays on main (3 repeats each)")
-    for case, runs in got.items():
-        print(f"  {case:<17} " + " | ".join(runs))
-    same = got == documented
-    print(f"{'MATCH' if same else 'DIFFERS'}: main-real-replay.json vs "
+    same = True
+    for name, label, documented in sets:
+        data = json.loads((ROOT / "docs/experiments/2026-11-17-agent-finalization" / name).read_text(encoding="utf-8"))
+        got: dict[str, list[str]] = {}
+        for r in data["runs"]:
+            end = r["stop_reason"] or r["status"]
+            got.setdefault(r["case_id"], []).append(f"{r['model_calls']} calls, {end}")
+        print(f"  {label}:")
+        for case, runs in got.items():
+            print(f"    {case:<17} " + " | ".join(runs))
+        same = same and got == documented
+    print(f"{'MATCH' if same else 'DIFFERS'}: main-real-replay.json, main-prefix-layout-replay.json vs "
           "docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md")
     return same
 

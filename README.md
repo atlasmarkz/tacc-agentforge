@@ -57,7 +57,7 @@ All numbers come from runs on TACC. The raw data is committed, and `scripts/repr
 | **C4** | Serving, one flag changed at a time: CUDA graphs give **+202% output throughput** over eager mode (67.4 → 203.9 tok/s, distinct prompts, concurrency 8). In eager mode, prefix caching cuts TTFT p50 by 71% on shared-prefix prompts. FlashInfer attention and the FP8 KV cache fail on this setup. | §4.3, Table 6, Fig. 4 | [inference/RESULTS.md](inference/RESULTS.md), `inference/results/` |
 | **C5** | MTP speculative decoding crashed during CUDA-graph capture on this hybrid model. A one-line vLLM patch fixes it; with CUDA graphs, MTP k=3 then gives **+42% single-request throughput** (57.7 → 81.8 tok/s), but little or no gain at 4 concurrent requests (−2% to +9%). Each cell is a single measurement. | §4.4, Table 7 | [private-vLLM report, E5c](docs/experiments/2026-11-06-private-vllm-feasibility/PLAN.md), [patch](deploy/tacc/private-vllm/patches/E5c-warmup-spec-decode-metadata.patch), `inference/results/private-spec-mtp-28403/` |
 | **C6** | SFT pipeline pilot: a LoRA adapter trained on the INT4 checkpoint and served by vLLM picks the correct catalog category on the first step in **8/8** prompts, vs. 2/8 for the base model. **This is a pipeline check, not a quality result**: 10 prompts, dev cases only (partly seen in training), first action only. | §4.5, Table 8 | [training/README.md](training/README.md) §3–5, `training/results/` |
-| **C7** | Post-freeze fix for issue #21 (PR #29, merged into `main` after the freeze): in targeted replays with the real model (3 requests × 3 repeats), dev-07 (no feasible plan) ends in 3 model calls with `no_feasible_plan` instead of 8 calls at the limit, and dev-04 still completes with a verified plan in 5 calls. **The held-out split was not rerun**, so there is no new overall TSR. | §4.2, Table 5 | [finalization report](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md), `docs/experiments/2026-11-17-agent-finalization/main-real-replay.json` |
+| **C7** | Post-freeze fix for issue #21 (PR #29, merged into `main` after the freeze): in targeted replays with the real model (3 requests × 3 repeats), dev-07 (no feasible plan) ends in 3 model calls with `no_feasible_plan` instead of 8 calls at the limit, and dev-04 still completes with a verified plan in 5 calls. On current `main`, after a later prompt-layout change (the per-call runtime policy moved to the end of the prompt so that vLLM's prefix cache works; dev-04 took 15.6 s instead of about 29 s), dev-07 ends in 4 calls with the same end state; the other results are unchanged. **The held-out split was not rerun**, so there is no new overall TSR. | §4.2, Table 5 | [finalization report](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md), `docs/experiments/2026-11-17-agent-finalization/main-real-replay.json`, `main-prefix-layout-replay.json` |
 
 **v1 benchmark (additional, not part of C1–C3):** a synthetic-fixture track with 10 dev + 32 heldout cases, its own independent oracle and six configurations. Its runbook is [evaluations/v1/README.md](evaluations/v1/README.md). The reported dev numbers use 10 cases and one repeat; they are not a formal heldout result and do not replace the frozen baseline above.
 
@@ -107,7 +107,7 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 ```text
 [1/7] environment          SUCCESS (0 s): Python 3.12.x, dependencies import
 [2/7] catalog snapshot     SUCCESS (1 s): snapshot_5bcd00723fb0b7589cbe50c8 installed and verified (FTS5: True)
-[3/7] automated tests      SUCCESS (85 s): 697 passed, 1 skipped, 14 subtests passed in ...
+[3/7] automated tests      SUCCESS (85 s): 699 passed, 1 skipped, 14 subtests passed in ...
 [4/7] harness self-test    SUCCESS (1 s): SELFTEST OK (10/10 checks true)
 [5/7] end-to-end request   SUCCESS (3 s): verified plan offer_640a303bc366430cfd53139e: total 16.87 USD, 83.13 left; without a budget the run asks for one
 [6/7] main results         SUCCESS (1 s): ALL MATCH (6 comparisons: C1-C7 recomputed from the committed raw data)
@@ -124,7 +124,7 @@ A failed stage prints the reason and the end of the failing command's output, an
 .venv/bin/python -m pytest tests agent/tests -q
 ```
 
-**Expected:** `697 passed, 1 skipped` and no failures. The single skip is expected: one `test_sft.py` test because PyTorch is not installed (training runs on TACC). Without `python-dotenv` (part of the Setup command), six more tests are skipped.
+**Expected:** `699 passed, 1 skipped` and no failures. The single skip is expected: one `test_sft.py` test because PyTorch is not installed (training runs on TACC). Without `python-dotenv` (part of the Setup command), six more tests are skipped.
 
 ## Example 2: end-to-end request without a GPU (about 1 minute)
 
@@ -211,7 +211,7 @@ The script does six checks:
 - **C4:** regenerates `inference/RESULTS.md` from `inference/results/`.
 - **C5:** recomputes the MTP throughput table from the raw benchmark output.
 - **C6:** recounts the SFT first-step check from the raw model outputs.
-- **C7:** tallies model calls and end states of the 9 post-freeze replays.
+- **C7:** tallies model calls and end states of the 9 post-freeze replays, both as the fix was merged and after the later prompt-layout change.
 
 Each result is compared with the committed copy and marked `MATCH` or `DIFFERS`. The script must end with `ALL MATCH`; stage 6 of `scripts/check_artifact.py` runs it and checks this.
 
@@ -246,9 +246,14 @@ MATCH: ...
   asks for the missing budget first: base 1/2, adapter 0/2
 MATCH: ...
 == Post-freeze issue #21 fix: real-model replays on main (3 repeats each)
-  issue-21-charger  1 calls, waiting_user | 1 calls, waiting_user | 1 calls, waiting_user
-  dev-07            3 calls, no_feasible_plan | 3 calls, no_feasible_plan | 3 calls, no_feasible_plan
-  dev-04            5 calls, completed | 5 calls, completed | 5 calls, completed
+  as merged, dde58f3:
+    issue-21-charger  1 calls, waiting_user | 1 calls, waiting_user | 1 calls, waiting_user
+    dev-07            3 calls, no_feasible_plan | 3 calls, no_feasible_plan | 3 calls, no_feasible_plan
+    dev-04            5 calls, completed | 5 calls, completed | 5 calls, completed
+  after the prompt-layout change:
+    issue-21-charger  1 calls, waiting_user | 1 calls, waiting_user | 1 calls, waiting_user
+    dev-07            4 calls, no_feasible_plan | 4 calls, no_feasible_plan | 4 calls, no_feasible_plan
+    dev-04            5 calls, completed | 5 calls, completed | 5 calls, completed
 MATCH: ...
 ALL MATCH
 ```
@@ -352,9 +357,9 @@ Then follow [deploy/tacc/private-vllm/README.md](deploy/tacc/private-vllm/README
 
 ## Step 4: rerun the post-freeze replays on TACC (C7)
 
-The replay command is in [MAIN_REPLAY.md](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md) (`scripts/replay_agent_finalization.py`; use `.venv/bin/python` where it says `agent/.venv/bin/python`). It needs a running model service (Step 2) reachable through `--base-url` or `--address-file`, and runs dev-07, dev-04 and the original issue #21 charger request 3 times each on current `main`. The documented run used vLLM in eager mode, so compare call counts and end states, not latency. To reach the service from your machine, forward a local port to the address in `$TACC_USERDIR/tacc-agentforge-service/service-url.txt`, for example `ssh -N -L 18084:<node IP>:8000 <TACC username>@gw.turing.ust.hk -p 30041`, and pass `--base-url http://127.0.0.1:18084/v1`.
+The replay command is in [MAIN_REPLAY.md](docs/experiments/2026-11-17-agent-finalization/MAIN_REPLAY.md) (`scripts/replay_agent_finalization.py`; use `.venv/bin/python` where it says `agent/.venv/bin/python`). It needs a running model service (Step 2) reachable through `--base-url` or `--address-file`, and runs dev-07, dev-04 and the original issue #21 charger request 3 times each on current `main`. Compare call counts and end states, not latency (the first documented run used vLLM in eager mode). **Expected on current `main`:** issue-21-charger 1 call, `waiting_user`; dev-07 4 calls, `no_feasible_plan`; dev-04 5 calls, `completed`. dev-07 took 3 calls before the prompt-layout change of 2026-11-21 (MAIN_REPLAY.md); to reproduce that number, check out the commit before it. To reach the service from your machine, forward a local port to the address in `$TACC_USERDIR/tacc-agentforge-service/service-url.txt`, for example `ssh -N -L 18084:<node IP>:8000 <TACC username>@gw.turing.ust.hk -p 30041`, and pass `--base-url http://127.0.0.1:18084/v1`.
 
-Our check from a fresh clone on 2026-11-19 (service job 29905, CUDA graphs) gave the same call counts and end states in all 9 runs: issue-21-charger 1 call, `waiting_user`; dev-07 3 calls, `no_feasible_plan`; dev-04 5 calls, `completed`.
+Our check from a fresh clone on 2026-11-19 (service job 29905, CUDA graphs, before the prompt-layout change) gave the documented call counts and end states in all 9 runs: issue-21-charger 1 call, `waiting_user`; dev-07 3 calls, `no_feasible_plan`; dev-04 5 calls, `completed`. After the change, on 2026-11-21 (service job 30320, CUDA graphs), all 9 runs gave 1 / 4 / 5 calls with the same end states, and the scorer accepted all six dev runs (`main-prefix-layout-replay.json`).
 
 ## Step 5: rerun the SFT pilot on TACC (C6)
 
