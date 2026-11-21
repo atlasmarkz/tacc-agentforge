@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shop Advisor</title>
+<link rel="icon" type="image/png" href="assets/shop_advisor_icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@600&family=Onest:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -33,8 +34,9 @@ img { display: block; max-width: 100%; }
 header.top { position: sticky; top: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between;
   padding: 14px 28px; background: rgba(246,242,236,.88); backdrop-filter: blur(10px); border-bottom: 1px solid transparent; }
 header.top.scrolled { border-bottom-color: var(--line); }
-.brand { display: flex; align-items: center; gap: 10px; font-weight: 600; font-size: 17px; letter-spacing: -.01em; background: none; border: 0; padding: 0; }
-.brand svg { width: 30px; height: 30px; }
+.brand { display: flex; align-items: baseline; gap: 8px; font-weight: 600; font-size: 17px; line-height: 24px; letter-spacing: -.01em; background: none; border: 0; padding: 0; }
+/* Account for the transparent padding above and below the visible mark. */
+.brand img { flex: none; width: auto; height: .78em; height: 1.09cap; transform: translateY(4.2%); }
 .top-right { display: flex; align-items: center; gap: 10px; }
 .health { display: inline-flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); padding: 0 6px; }
 .dot { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 50%; background: #CFC5B6; }
@@ -245,6 +247,7 @@ ol.logl .bad { color: var(--bad); }
 .mini .now { font-weight: 600; font-variant-numeric: tabular-nums; }
 
 .cols { display: grid; grid-template-columns: 1fr 310px; gap: 16px; margin-top: 6px; align-items: start; }
+#why.hidden + .receipt { grid-column: 1 / -1; width: 100%; max-width: 560px; }
 .panel { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); padding: 20px 22px; }
 .panel h3 { margin: 0 0 12px; font-size: 16px; }
 .whytext { color: var(--ink-2); }
@@ -332,7 +335,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 0 28
 <body>
 <header class="top" id="top">
   <button class="brand" id="brand" type="button" aria-label="Shop Advisor">
-    <svg viewBox="0 0 28 28" fill="none" aria-hidden="true"><rect x="1" y="1" width="26" height="26" rx="8" fill="#1D1B18"/><path d="M8 11h12l-1.2 8.2a2 2 0 0 1-2 1.8h-5.6a2 2 0 0 1-2-1.8L8 11Z" stroke="#F6F2EC" stroke-width="1.6"/><path d="M11 11V9.5a3 3 0 0 1 6 0V11" stroke="#F6F2EC" stroke-width="1.6"/><path d="m11.6 15.6 1.7 1.7 3.2-3.4" stroke="#C2502A" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <img src="assets/shop_advisor_icon.png" width="426" height="491" alt="">
     <span>Shop Advisor</span>
   </button>
   <div class="top-right">
@@ -494,6 +497,7 @@ const I18N = {
     toolFailed: (t, c) => `${t} failed (${c})`, badTool: (c) => `Invalid tool request (${c})`, passed: "Budget check passed",
     notPassed: (s) => `Budget check failed (${s}), looking again`, writing: "Writing the explanation",
     explainOk: "Explanation checked", explainFallback: "Draft did not pass the checks; using a plain summary", answerBad: (c) => `That answer could not be used (${c})`,
+    narrativeEmpty: "No explanation was available to display", narrativeFailed: "The explanation could not be written",
     waitingLog: "Waiting for your answer", reading: (n) => `Read ${n} offer${n === 1 ? "" : "s"}`, lookups: (n) => `${n} lookup${n === 1 ? "" : "s"}`,
     passedD: "The plan passed the exact budget check", rejectedD: (n) => `${n} plan${n === 1 ? "" : "s"} sent back by the budget check`,
     online: (j) => j ? `Online · job ${j}` : "Online", offline: "Service offline", backendOff: "Backend offline", statusOf: (s) => s,
@@ -553,6 +557,7 @@ const I18N = {
     toolFailed: (t, c) => `${t}失败（${c}）`, badTool: (c) => `工具请求无效（${c}）`, passed: "预算核对通过",
     notPassed: (s) => `预算核对未通过（${s}），重新挑选`, writing: "撰写推荐理由",
     explainOk: "推荐理由已核对", explainFallback: "草稿没通过核对，改用简明总结", answerBad: (c) => `这个回答没法用（${c}）`,
+    narrativeEmpty: "没有可展示的推荐理由段落", narrativeFailed: "推荐理由未能写完",
     waitingLog: "等你回答", reading: (n) => `读了 ${n} 条报价`, lookups: (n) => `${n} 次查询`,
     passedD: "方案通过了精确的预算核对", rejectedD: (n) => `${n} 个方案被预算核对退回`,
     online: (j) => j ? `在线 · 作业 ${j}` : "在线", offline: "服务离线", backendOff: "后端离线", statusOf: (s) => s,
@@ -627,7 +632,7 @@ const ICONS = {
 
 let LANG = (() => { try { const s = localStorage.getItem("lang"); if (s === "en" || s === "zh") return s; } catch (e) {} return (navigator.language || "").startsWith("zh") ? "zh" : "en"; })();
 const L = () => I18N[LANG];
-let state = { runId: null, original: null, pending: null, t0: 0, explain: "", busy: false, fallback: false, answered: false,
+let state = { runId: null, original: null, pending: null, t0: 0, explain: "", includeReasons: true, busy: false, fallback: false, answered: false,
               result: null, look: null, counts: { search: 0, read: 0, rejected: 0 }, health: null, lastCall: null };
 
 function el(tag, attrs, ...kids) {
@@ -926,7 +931,7 @@ function setTitle(kind) {
   const t = $("trace");
   t.classList.toggle("done", state.phase === "done"); t.classList.toggle("fail", state.phase === "fail");
   $("progTitle").textContent = state.phase === "done" ? L().done(state.doneIn) : state.phase === "fail" ? L().failed
-    : state.phase === "waiting" ? L().waiting : L().working;
+    : state.phase === "waiting" ? L().waiting : state.phase === "explaining" ? L().writing : L().working;
 }
 function chip(box, text, bad) { $(box).append(el("span", { class: "q" + (bad ? " bad" : "") }, text)); }
 function searchLabel(args) {
@@ -1032,6 +1037,7 @@ function handle(event, data) {
   if (event === "error") { logStep(ERRORS[LANG][data.code] || ("Error: " + data.code), true); notice("streamError", "err", ERRORS[LANG][data.code] || data.message); return; }
   if (event !== "agent") return;
   if (data.type === "explain_delta") {
+    if (!state.includeReasons) return;
     state.explain += (data.data && data.data.text) || "";
     show("result", true); show("why", true); show("skel", false);
     show("whyModel", true); renderExplanation(state.explain); $("whyText").classList.add("caret");
@@ -1060,7 +1066,7 @@ function renderNarr() {
 function narrTick() {
   if (!narr.queue) {
     clearInterval(narr.timer); narr.timer = null;
-    if (!narr.streaming) { renderNarr(); if (state.result && narr.text) saveHistory(); }
+    if (!narr.streaming) renderNarr();
     return;
   }
   const n = narr.queue.length > 200 ? 8 : narr.queue.length > 80 ? 4 : 2;
@@ -1069,26 +1075,37 @@ function narrTick() {
 }
 function narrPush(text) { narr.queue += text; if (!narr.timer) narr.timer = setInterval(narrTick, 24); }
 async function narrate() {
-  if (!$("explain").checked || !state.runId || !state.original) return;
+  if (!state.runId || !state.original) return;
   narrReset();
   const my = narr.ctl, run = state.runId, ctl = new AbortController();
   narr.abort = ctl; narr.streaming = true;
+  stage("explain"); logStep(L().writing);
   show("whyNarr", true); show("why", true);
   $("narrText").replaceChildren(...[96, 88, 64].map((w) => el("div", { class: "nline", style: `width:${w}%` })));
   const details = { ...state.original.constraints };
+  let failed = false;
   try {
     await streamCall("/api/narrative", { run_id: run, goal: state.original.message, details, lang: LANG }, (ev, data) => {
       if (narr.ctl !== my) return;
+      if (ev === "error") failed = true;
       if (ev === "narrative" && data && data.text) {
         if (!narr.got) { narr.got = true; $("narrText").replaceChildren(); }
         narrPush(data.text);
       }
     }, ctl.signal);
-  } catch (e) { /* the fact cards below are still there */ }
+  } catch (e) { failed = true; }
   if (narr.ctl !== my) return;
-  narr.streaming = false;
-  if (!narr.got) { show("whyNarr", false); return; }
-  if (!narr.timer) narrTick();                       // everything was typed already: finish and save
+  narr.abort = null; narr.streaming = false;
+  show("whyNarr", narr.got);
+  show("why", narr.got || !!state.look || !$("whyModel").classList.contains("hidden"));
+  if (!narr.timer) renderNarr();
+  const status = failed ? L().narrativeFailed : narr.got ? L().explainOk : L().narrativeEmpty;
+  stage("explain", failed ? "fail" : "done");
+  $("dExplain").textContent = status;
+  logStep(status, failed);
+  setTitle("done");
+  $("trace").open = false;
+  saveHistory();
 }
 
 // ---- results ----------------------------------------------------------------------------------------------------
@@ -1110,12 +1127,13 @@ function render(r, again) {
   state.result = r;
   show("question", false); show("skel", false); show("result", true);
   const ok = r.status === "completed" && r.verified_plan;
+  const explaining = ok && state.includeReasons && (!again || narr.streaming);
   if (!again) {
     state.doneIn = r.usage && r.usage.elapsed_s != null ? Number(r.usage.elapsed_s).toFixed(1) : elapsed();
     stagesDone(!!r.explanation, ok);
-    $("trace").open = false;
+    if (!explaining) $("trace").open = false;
   }
-  setTitle(ok ? "done" : "fail");
+  setTitle(explaining ? "explaining" : ok ? "done" : "fail");
   const head = $("resultStatus"); head.replaceChildren();
   if (!ok) {
     const why = r.message || STOP[LANG][r.stop_reason] || (r.stop_reason ? r.stop_reason.replace(/_/g, " ") + "." : "") ||
@@ -1138,14 +1156,15 @@ function render(r, again) {
     $("whyText").classList.remove("caret");
     // The reasons are built from the checked plan and its evidence once the offer details have loaded (fillLookup);
     // the model's own text is shown only when it passed the harness's checks (the harness's fallback template is not).
-    const hasModelText = !!(r.explanation && !r.explanation.fallback && r.explanation.text);
+    const hasModelText = state.includeReasons && !!(r.explanation && !r.explanation.fallback && r.explanation.text);
+    show("why", state.includeReasons && (hasModelText || narr.streaming || narr.got));
     show("whyModel", hasModelText);
     if (hasModelText) renderExplanation(r.explanation.text);
     $("whyNote").replaceChildren(el("span", {}, "✓"), el("span", {}, L().checked));
     summary(p);
     renderLead(p);
     if (again && state.look) fillLookup(p, state.look); else lookup(p);
-    if (!again) narrate();
+    if (!again && state.includeReasons) narrate();
   }
   show("refine", !!state.original);
   if (!again && !ok) saveHistory();            // a plan is saved once its offer details have loaded (lookup)
@@ -1352,11 +1371,13 @@ async function lookup(plan) {
     const resp = await fetch("/api/lookup", { method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ session_id: session, run_id: state.runId, offer_ids, evidence_ids }) });
     const r = await resp.json();
+    if (state.result?.verified_plan !== plan) return;
     if (!resp.ok) throw new Error(r.error && (ERRORS[LANG][r.error.code] || r.error.message));
     state.look = r;
     fillLookup(plan, r);
     saveHistory();
   } catch (e) {
+    if (state.result?.verified_plan !== plan) return;
     $("sources").replaceChildren(el("li", { class: "seen" }, ERRORS[LANG].noSources + e.message));
     show("sourcesCard", true);
     saveHistory();
@@ -1417,7 +1438,7 @@ function fillLookup(plan, r) {
     }));
   }
   renderLead(plan);
-  renderWhy(plan, r);
+  if (state.includeReasons) renderWhy(plan, r);
   const box = $("sources"); box.replaceChildren();
   r.evidence.forEach((e, i) => {
     const url = /^https?:\/\//.test(e.source_url || "") ? e.source_url : null;
@@ -1452,7 +1473,7 @@ function saveHistory() {
   if (!r || !state.runId || !state.original) return;
   const entry = { id: state.runId, at: Date.now(), session, message: state.original.message, constraints: state.original.constraints,
                   result: r, look: state.look, doneIn: state.doneIn, fallback: state.fallback, trace: traceSnapshot(),
-                  narrative: narr.text || "" };
+                  includeReasons: state.includeReasons, narrative: narr.streaming ? "" : narr.text + narr.queue };
   storeHistory([entry, ...loadHistory().filter((e) => e.id !== entry.id)].slice(0, 40));
   state.viewing = entry.id;
   renderHistory();
@@ -1486,7 +1507,7 @@ function openHistory(id) {
   const cap = (e.constraints || {}).purchase_cap || "";
   resetRun(e.message, cap);
   Object.assign(state, { runId: e.id, viewSession: e.session, original: { message: e.message, constraints: e.constraints || {} },
-                         look: e.look || null, doneIn: e.doneIn, fallback: !!e.fallback, viewing: e.id });
+                         look: e.look || null, doneIn: e.doneIn, fallback: !!e.fallback, viewing: e.id, includeReasons: e.includeReasons ?? true });
   $("runId").textContent = e.id;
   const t = e.trace || {};
   document.querySelectorAll("#stepper .step").forEach((n, i) => { if (t.steps && t.steps[i]) n.className = t.steps[i]; });
@@ -1495,7 +1516,14 @@ function openHistory(id) {
   (t.log || []).forEach(([time, text, bad]) => $("steps").append(el("li", {}, el("span", { class: "t" }, time), el("span", { class: bad ? "bad" : "" }, text))));
   $("trace").open = false; show("skel", false);
   render(e.result, true);
-  if (e.narrative) { narr.text = e.narrative; narr.got = true; narr.streaming = false; show("whyNarr", true); renderNarr(); }
+  if (state.includeReasons && e.narrative) {
+    narr.text = e.narrative; narr.got = true;
+    show("why", true); show("whyNarr", true); renderNarr();
+    if (e.includeReasons === undefined) { stage("explain", "done"); $("dExplain").textContent = L().explainOk; }
+  }
+  if (document.querySelector('[data-k="explain"]').classList.contains("active")) {
+    stage("explain", "fail"); $("dExplain").textContent = L().narrativeFailed;
+  }
   renderHistory();
 }
 $("clearHistory").onclick = () => { try { localStorage.removeItem(HKEY); } catch (e) {} state.viewing = null; renderHistory(); };
@@ -1515,7 +1543,7 @@ function resetRun(bubbleText, cap) {
   $("bubble").replaceChildren(bubbleText, cap ? el("span", { class: "meta" }, `${L().budget} $${cap}`) : "");
   show("home", false); show("thread", true); show("newChat", true); show("skel", true);
   for (const id of ["question", "result", "why", "summary", "refine", "sourcesCard", "lead", "stats"]) show(id, false);
-  $("products").replaceChildren(); $("resultStatus").replaceChildren(); $("sources").replaceChildren();
+  for (const id of ["products", "resultStatus", "whyCards", "sources"]) $(id).replaceChildren();
   scrollTo({ top: 0 });
 }
 
@@ -1541,6 +1569,7 @@ function ask(message, cap) {
   if (cap && !money(cap)) { notice("topNotice", "warn", L().capNum); $("cap").focus(); return; }
   const constraints = cap ? { purchase_cap: cap, currency: $("cur").value } : {};
   state.original = { message, constraints };
+  state.includeReasons = $("explain").checked;
   resetRun(message, cap);
   Object.assign(state, { viewSession: session, viewing: null }); renderHistory();
   run("/api/ask", { message, constraints, explain: false });

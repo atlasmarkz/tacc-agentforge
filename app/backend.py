@@ -223,7 +223,9 @@ class Backend:
 
 
 def make_handler(backend: Backend):
-    page = (HERE / "static" / "index.html").read_bytes()
+    static = HERE / "static"
+    page = (static / "index.html").read_bytes()
+    icon = (static / "assets" / "shop_advisor_icon.png").read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -231,23 +233,23 @@ def make_handler(backend: Backend):
         def log_message(self, fmt, *args):
             pass
 
-        def _json(self, status, payload):
-            data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+        def _send(self, status, data, content_type):
             self.send_response(status)
-            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Content-Type", content_type)
             self.send_header("Content-Length", str(len(data)))
             self.send_header("Cache-Control", "no-store")
             self.end_headers()
             self.wfile.write(data)
 
+        def _json(self, status, payload):
+            data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
+            self._send(status, data, "application/json; charset=utf-8")
+
         def do_GET(self):
             if self.path in ("/", "/index.html"):
-                self.send_response(200)
-                self.send_header("Content-Type", "text/html; charset=utf-8")
-                self.send_header("Content-Length", str(len(page)))
-                self.send_header("Cache-Control", "no-store")
-                self.end_headers()
-                self.wfile.write(page)
+                self._send(200, page, "text/html; charset=utf-8")
+            elif self.path == "/assets/shop_advisor_icon.png":
+                self._send(200, icon, "image/png")
             elif self.path == "/api/health":
                 self._json(200, backend.health())
             else:

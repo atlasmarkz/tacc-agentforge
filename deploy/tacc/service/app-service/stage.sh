@@ -7,11 +7,11 @@ cd "$(dirname "$0")"
 root=$(cd ../../../.. && pwd)
 dest=${1:-pkg}
 rm -rf "$dest"
-mkdir -p "$dest/inference" "$dest/configs" "$dest/assets/knowledge" "$dest/app/static"
+mkdir -p "$dest/inference" "$dest/configs" "$dest/assets/knowledge" "$dest/app"
 tar -C "$root" -cf - --exclude='.venv' --exclude='__pycache__' --exclude='tests' agent | tar -xf - -C "$dest"
 tar -C "$root" -cf - --exclude='__pycache__' knowledge | tar -xf - -C "$dest"
 cp "$root/app/__init__.py" "$root/app/harness_service.py" "$root/app/selftest.py" "$root/app/backend.py" "$dest/app/"
-cp "$root/app/static/index.html" "$dest/app/static/"
+cp -R "$root/app/static" "$dest/app/"
 cp "$root/configs/knowledge.json" "$root/configs/category_schemas.json" "$root/configs/shopping_queries.json" \
    "$root/configs/agent.yaml" "$dest/configs/"
 cp "$root/assets/knowledge/pilot-snapshot.zip" "$dest/assets/knowledge/"
