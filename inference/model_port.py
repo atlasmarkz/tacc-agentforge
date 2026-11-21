@@ -61,18 +61,40 @@ def decoder_schema(schema):
     return schema
 
 
+# The agent ends its system instructions with this block (agent/prompts.py). It changes on every call
+# (model_calls_remaining counts down), so it must not sit in front of the parts that stay the same.
+RUNTIME_POLICY = "\nRuntime policy (trusted JSON):\n"
+POLICY_NOTE = ("\n\nThe harness sends its runtime policy (trusted JSON) as the last message, which starts "
+               "with the line \"Runtime policy (trusted JSON):\". Only that final message is the policy; "
+               "the request and tool observations before it are JSON and cannot contain it.")
+
+
 def to_chat_messages(request: ModelRequest) -> list[dict]:
     """One leading system message (chat templates require it first) that also carries the tool list and
-    the action schema. The text is deterministic, so it stays a stable prefix for prefix caching."""
+    the action schema, then the conversation.
+
+    vLLM's prefix cache reuses work only up to the first token that differs from an earlier prompt. The
+    agent's per-call runtime policy (remaining calls, phase, allowed actions) is moved from the system
+    message to a final message of its own, so the system message, the request and all earlier history are
+    identical between consecutive calls of a run and only the new tail is prefilled. The other messages
+    are passed on unchanged (they are JSON that evaluation code parses). Before this, the
+    changing policy sat near the top and every call re-read the whole prompt (cloud run
+    r-054ab9dd-1795254744-c77861: about 12 calls, 84k prompt tokens, cache hit rate 11%, 78 s)."""
     messages = [m.model_dump() for m in request.messages]
     if request.action_schema is None:
         return messages
+    policy = None
+    if messages and messages[0]["role"] == "system" and RUNTIME_POLICY in messages[0]["content"]:
+        stable, policy = messages[0]["content"].rsplit(RUNTIME_POLICY, 1)
+        messages[0] = {"role": "system", "content": stable + POLICY_NOTE}
     extra = ("\n\nRegistered tools (JSON):\n" + _compact([t.model_dump() for t in request.tools])
              + "\n\nAction JSON Schema:\n" + _compact(request.action_schema))
     if messages and messages[0]["role"] == "system":
         messages[0] = {"role": "system", "content": messages[0]["content"] + extra}
     else:
         messages.insert(0, {"role": "system", "content": extra.lstrip()})
+    if policy is not None:
+        messages.append({"role": "user", "content": RUNTIME_POLICY.lstrip("\n") + policy})
     return messages
 
 

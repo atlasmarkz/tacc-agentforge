@@ -61,6 +61,38 @@ def test_messages_carry_tools_and_schema_in_one_leading_system_message():
     assert to_chat_messages(make_request()) == msgs          # deterministic: a stable cache prefix
 
 
+def agent_request(remaining, history):
+    policy = json.dumps({"decision_control": {"model_calls_remaining": remaining}, "validation_policy": {}})
+    return ModelRequest(
+        messages=[Message(role="system", content="You are an advisor.\nRuntime policy (trusted JSON):\n" + policy),
+                  Message(role="user", content='{"message":"buy a kettle"}'), *history],
+        tools=make_request().tools, action_schema=ACTION_ADAPTER.json_schema(), max_output_tokens=256)
+
+
+def test_runtime_policy_moves_to_the_end_so_consecutive_calls_share_a_prefix():
+    step1 = [Message(role="assistant", content='{"type":"call_tool"}'),
+             Message(role="user", content='{"observation":{"items":[]}}')]
+    step2 = step1 + [Message(role="assistant", content='{"type":"call_tool","n":2}'),
+                     Message(role="user", content='{"observation":{"items":[1]}}')]
+    first, second = to_chat_messages(agent_request(15, step1)), to_chat_messages(agent_request(14, step2))
+    # The system message no longer changes with the remaining calls, and everything before the new step
+    # is identical text: only the tail differs, which is what vLLM's prefix cache needs.
+    assert first[0] == second[0] and "model_calls_remaining" not in first[0]["content"]
+    assert "Runtime policy (trusted JSON)" in first[0]["content"]          # the note that says where it went
+    assert first[:-1] == second[:len(first) - 1]
+    assert first[-2] == {"role": "user", "content": '{"observation":{"items":[]}}'}    # passed on unchanged
+    assert first[-1] == {"role": "user", "content": 'Runtime policy (trusted JSON):\n{"decision_control": '
+                                                    '{"model_calls_remaining": 15}, "validation_policy": {}}'}
+    assert second[-1]["content"].endswith('"model_calls_remaining": 14}, "validation_policy": {}}')
+    assert [m["role"] for m in second] == ["system", "user", "assistant", "user", "assistant", "user", "user"]
+
+
+def test_runtime_policy_is_its_own_final_message_after_an_assistant_turn():
+    msgs = to_chat_messages(agent_request(3, [Message(role="assistant", content='{"type":"call_tool"}')]))
+    assert [m["role"] for m in msgs] == ["system", "user", "assistant", "user"]
+    assert msgs[-1]["content"].startswith("Runtime policy (trusted JSON):\n{")
+
+
 def test_generate_returns_valid_reply(servers):
     srv = servers([(200, ACTION_BODY, 0)])
     reply = asyncio.run(port_for(srv).generate(make_request(), make_context()))
