@@ -88,7 +88,7 @@ bash deploy/tacc/tools/submit-win.sh deploy/tacc/service/qwen-service
 
 `--harness` 把 `app/` 和 harness 打包进 `pkg/`。作业在 vLLM 加载期间装好依赖,vLLM 就绪后启动 harness 服务,发布 `harness-url.txt` 和 `harness-token.txt`。harness 通过 `service-url.txt` 调用模型,所以交接后会自动改用继任作业的 vLLM。harness 用自己的一份运行时目录(自己的 proot 根文件系统):和 `serve.py` 共用时,`serve.py` 的 proot 一退出,harness 就看不到 `/mnt/home` 下的文件(作业 28943,探测作业 28952 证实)。harness 出错不会影响 vLLM。可选的 harness 参数写在 `harness-args.txt`(不纳入 git)。
 
-**作业资源**:1 个节点、2 块 GPU、1 小时上限,排除节点 10-0-1-10 和 10-0-1-11。这两个节点的 GPU 被 Slurm 以外的进程占着(每块 15 到 23 GiB,探测作业 28961/28962),vLLM 会内存不足(作业 28960)。
+**作业资源**:1 个节点、2 块 GPU、1 小时上限,排除节点 10-0-1-10、10-0-1-11 和 10-0-4-10。前两个节点的 GPU 被 Slurm 以外的进程占着(每块 15 到 23 GiB,探测作业 28961/28962),vLLM 会内存不足(作业 28960)。10-0-4-10 的 GPU 0 长期有约 11 GiB 被 Slurm 以外的进程占用(作业 30041 起,2026-11-21 的作业 30278/30280/30282/30314 连续落在这里,GPU 检查退出码 3);重新提交时 Slurm 常常又分到它,所以也排除。
 
 **启动前的 GPU 检查**(`job.sh`):
 
@@ -253,7 +253,7 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 |---|---|---|
 | 作业在运行,但没有 `service-url.txt` | 还在启动(5 到 8.5 分钟) | 等待;超过 20 分钟仍未就绪,看 `server.log` |
 | 在 10-0-*-11 节点上启动失败,报 NVMLError | Slurm 给的 GPU 编号是 `2,3`,作业里只看得到编号 0、1 | 当前的 `job.sh` 会自动改号(日志里有 `using 0,1`);还报错说明用的是旧版本 |
-| 作业立刻退出(退出码 3),日志里有 `GPUs already in use by processes outside this job` | 节点的 GPU 被 Slurm 以外的进程占着(10-0-1-10、10-0-1-11) | `tuxiv.conf` 已排除这两个节点;新出现的节点也加进 `exclude`,并告诉助教 |
+| 作业立刻退出(退出码 3),日志里有 `GPUs already in use by processes outside this job` | 节点的 GPU 被 Slurm 以外的进程占着(10-0-1-10、10-0-1-11、10-0-4-10) | `tuxiv.conf` 已排除这三个节点;新出现的节点也加进 `exclude`,并告诉助教。只是重新提交往往会被分到同一个节点 |
 | 交接后 harness 地址指向已停止的作业 | 旧作业没能正常收尾 | 当前的 `job.sh` 会在退出前撤回自己的 `harness-url.txt`;本机后端每次重新读取地址 |
 | 作业立刻失败,日志里有 `$'\r': command not found` | 脚本被转成了 Windows 换行(CRLF) | 仓库的 `.gitattributes` 已固定为 LF;已经出问题的文件用 `sed -i 's/\r$//' 文件` 修复 |
 | 调用方一直收到 `ServiceUnavailable` | 服务没在运行、正在重启或正在交接 | 看 `events.jsonl`。重启约 5 分钟;交接排队时取决于名额 |
