@@ -40,6 +40,7 @@ The whole setup costs nothing: the VM and the bucket stay inside the GCP Always 
 - If the budget is missing, the agent asks for it, then continues where it stopped. A paused run survives a restart of the service.
 - Live progress: understanding, search, comparison, budget check, explanation.
 - Result: product card, unit price, shipping, tax status, order summary and a budget bar (spent and remaining).
+- Products the catalog does not carry (for example things to pack for a trip) are found with a live web search; their cards say "Live price from the web", and "View offer" opens the offer's link.
 - The explanation is written by the model, but only facts from the cited evidence are allowed. Every source opens with its original text and link.
 - Revise a request (for example a lower budget) or cancel it while it runs.
 
@@ -58,6 +59,7 @@ The whole setup costs nothing: the VM and the bucket stay inside the GCP Always 
 - Exact budget validator: prices, quantities, shipping and tax status in minor currency units. Budgets are compared before tax by default, and the answer says so.
 - Run limits on model calls, tool calls, time and context size; invalid model output is repaired at most twice.
 - Pause and resume with persistent checkpoints.
+- Live web search (cloud only, [app/live_search.py](app/live_search.py)): a `search_live` tool asks SerpApi Google Shopping at request time when the catalog has nothing suitable. Live offers get temporary IDs and go through the same budget validator; an offer with unknown shipping cannot enter a plan, and tax is never guessed. The key comes from the environment, results are cached, and a daily cap (30 searches by default) bounds the quota.
 
 **Model serving** ([deploy/tacc/service/RUNBOOK.md](deploy/tacc/service/RUNBOOK.md), [inference/](inference/RESULTS.md))
 
