@@ -225,7 +225,6 @@ class Backend:
 def make_handler(backend: Backend):
     static = HERE / "static"
     page = (static / "index.html").read_bytes()
-    icon = (static / "assets" / "shop_advisor_icon.png").read_bytes()
 
     class Handler(BaseHTTPRequestHandler):
         protocol_version = "HTTP/1.1"
@@ -248,8 +247,6 @@ def make_handler(backend: Backend):
         def do_GET(self):
             if self.path in ("/", "/index.html"):
                 self._send(200, page, "text/html; charset=utf-8")
-            elif self.path == "/assets/shop_advisor_icon.png":
-                self._send(200, icon, "image/png")
             elif self.path == "/api/health":
                 self._json(200, backend.health())
             else:
