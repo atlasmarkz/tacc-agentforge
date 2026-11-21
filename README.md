@@ -405,7 +405,7 @@ A new run needs a model endpoint (`BENCHMARK_BASE_URL` or `BENCHMARK_ADDRESS_FIL
 | Model serving on TACC (vLLM, 2 GPUs, hourly handover between jobs) | Done; measured in [the runbook](deploy/tacc/service/RUNBOOK.md) |
 | Knowledge base (SerpApi collection, versioned snapshots, retrieval tools) | Done; 4 categories in the evaluated snapshot |
 | Agent loop, tools, exact budget validator, pause and resume | Done |
-| Browser page and backend | Done (in-cluster deployment); a separate public cloud deployment is on the [`feat/cloud-agent-service`](https://github.com/atlasmarkz/tacc-agentforge/tree/feat/cloud-agent-service) branch and is not part of the evaluation |
+| Browser page and backend | Done (in-cluster deployment). The public cloud deployment (https://tacc-agentforge.pages.dev, branch [`feat/cloud-agent-service`](https://github.com/atlasmarkz/tacc-agentforge/tree/feat/cloud-agent-service)) adds a 7-category catalog and live web search; not evaluated |
 | Evaluation: cases, independent ground truth, frozen baselines | Done (C1–C3) |
 | Serving experiments, private vLLM build and MTP fix | Done (C4–C5); n-gram speculation was not retested after the fix |
 | SFT | Pilot only (C6); no end-to-end evaluation of the adapter |

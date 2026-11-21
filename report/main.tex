@@ -563,7 +563,9 @@ Separate from the evaluated local-backend system (C1--C7), branch \texttt{feat/\
 the agent as a zero-cost public web service (Table~\ref{tab:cloud}) while keeping model execution exclusively on TACC.
 Continuing SerpApi collection (202 remaining monthly searches) produced a 7-category snapshot adding smartwatches,
 monitors, and mice (221 detailed products, 607 offers, 974 reviews, 9{,}416 evidence records); all formal evaluations
-remain pinned to the frozen 4-category snapshot.
+remain pinned to the frozen 4-category snapshot. For goals no snapshot covers (e.g., packing for a trip), the cloud
+agent also has a \texttt{search\_live} tool that queries SerpApi Google Shopping at request time (30 searches/day);
+live offers get temporary IDs, pass the same budget validator, and are marked as live prices on the page.
 
 Live checks on 2026-11-16 verified end-to-end streaming through Cloudflare Pages and Tailscale Funnel (37\,s, \$22.99
 of \$100), checkpoint persistence across VM restarts, proxy-bypass rejection, and new-category plans (smartwatch
