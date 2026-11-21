@@ -266,9 +266,9 @@ shows a live multi-item Bali travel recommendation on TACC with the current inte
 \begin{subfigure}[t]{0.488\textwidth}
   \centering
   \uiframe{\linewidth}{build/browser-demo-receipt.png}
-  \caption{Verified pre-tax receipt (\$87.34 total, \$112.66 remaining of \$200), verified attribute badges, and cited sources.}
+  \caption{Exact pre-tax receipt (\$47.94 total, \$152.06 remaining of \$200) and the cited sources.}
 \end{subfigure}
-\caption{Live TACC browser interface (\texttt{qwen3.8-27b}) recommending a backpack, earbuds, and power bank for a \$200 Bali trip (frames from \texttt{docs/images/browser-demo.gif}).}\label{fig:ui}
+\caption{Live TACC browser interface (\texttt{qwen3.8-27b}) recommending a backpack, earbuds, and power bank for a \$200 Bali trip (screenshots from the run recorded in \texttt{docs/images/browser-demo.gif}).}\label{fig:ui}
 \end{figure*}
 
 % ---- 3. Evaluation Method ---------------------------------------------------------------------------------------
@@ -420,13 +420,10 @@ termination while keeping the 8-call cap. Table~\ref{tab:replay} reports 9 real-
 $\times$ 3 repeats). All three repeats were identical, and a fresh-clone TACC rerun on 2026-11-19 reproduced every call
 count and end state exactly. Because the full held-out split was not rerun after the freeze, we claim no new overall TSR.
 
-\textbf{Prompt layout for prefix caching.} The per-call runtime policy (remaining calls, phase, allowed actions) was
-part of the system message, so every call changed the prompt near its start and vLLM's prefix cache could reuse almost
-nothing: a 12-call request on the public deployment sent 84k prompt tokens at an 11\% cache hit rate and took 78\,s,
-nearly all of it prefill. On 2026-11-21 the model adapter moved this block into a final message of its own, leaving
-the agent unchanged. In an alternating A/B on one TACC service, the mean decision call fell from 4.0--4.5\,s to
-2.9--3.0\,s and dev-04 from 28--31\,s to 16\,s. Rerunning the 9 replays on this layout gave the same end states and
-scores, but dev-07 now concludes in 4 calls instead of 3 (last column of Table~\ref{tab:replay}).
+\textbf{Prompt layout.} The per-call runtime policy (remaining calls, phase, allowed actions) sat in the system
+message, so vLLM's prefix cache missed on every call (11\% hit rate; 78\,s for a 12-call request). Moving it
+into a final message (2026-11-21, agent unchanged) cut dev-04 from 28--31\,s to 16\,s; the replays keep their end
+states and scores, but dev-07 now takes 4 calls (Table~\ref{tab:replay}).
 
 \begin{table}[t]
 \centering\footnotesize
@@ -624,7 +621,6 @@ cross-account Miniconda paths in the job scripts. On current \texttt{main} (afte
 \end{itemize}
 
 % ---- 8. Group Contributions -------------------------------------------------------------------------------------
-\newpage
 \section{Group Contributions}\label{sec:contrib}
 
 Table~\ref{tab:contrib} summarizes each team member's contributions across the project.

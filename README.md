@@ -13,10 +13,10 @@
 TACC AgentForge is the course project for **Advanced AI Computing and Systems (CSIT6000V)**. A user describes what they need and how much they can spend. The agent searches a source-linked product catalog, compares offers, checks the plan against the budget with exact decimal arithmetic, and explains its recommendation with citations. The model is the course-provided **Qwen3.8-27B AWQ INT4** checkpoint, served by vLLM on two GPUs on the TACC cluster.
 
 <p align="center">
-  <img src="docs/images/browser-demo.gif" width="900" alt="Live run with the real model on TACC (about 3x speed): asked what to buy for a trip to Bali with a $200 budget, the agent asks what is needed, then searches the catalog and returns a backpack, earbuds and a power bank with photos, an itemised receipt checked against the budget, and the sources.">
+  <img src="docs/images/browser-demo.gif" width="900" alt="Live run of current main with the real model on TACC (waits sped up about 4x): asked what to buy for a trip to Bali with a $200 budget, the agent asks what kind of items are needed, then searches the catalog and returns a backpack, earbuds and a power bank with photos, why they fit, an itemised receipt checked against the budget, and the sources.">
 </p>
 
-*Recorded on TACC with the real model: asked what to buy for a trip to Bali with a $200 budget, the agent asks what is needed, then recommends a backpack, earbuds and a power bank for **$87.34 before tax** and shows the **$112.66** left in the budget. Idle waits are shortened.*
+*Recorded on 2026-11-21 with current `main` and the real model on TACC: asked what to buy for a trip to Bali with a $200 budget, the agent asks what kind of items are needed, then recommends a backpack, earbuds and a power bank for **$47.94 before tax** and shows the **$152.06** left in the budget. The agent took 46 s; waits are sped up (the badge shows by how much).*
 
 <p align="center"><img src="docs/images/architecture.png" width="900" alt="Dual-branch architecture of TACC AgentForge: Branch A (main, evaluated) connects a local backend over SSH to a two-GPU TACC job running the agent harness, budget validator, frozen SQLite/FTS5 snapshot and vLLM; Branch B (feat/cloud-agent-service, extension) runs the public frontend, backend, agent and 7-category GCS snapshot on Cloudflare Pages, Tailscale Funnel and GCE while sharing the TACC vLLM engine; right shows offline SerpApi collection, frozen evaluation (C1–C3, C7) and serving/SFT experiments (C4–C6)."></p>
 

@@ -1,17 +1,19 @@
 """Convert ../README.md into build/readme.tex for the ICML-style Appendix (full text/tables/code, publication typography).
 
-- Extracts two distinct frames from docs/images/browser-demo.gif for Figure 2 in Section 2:
-    * build/browser-demo-cards.png   (frame 63: 3-item product cards & prices)
-    * build/browser-demo-receipt.png (frame 67: verified budget receipt & sources)
+- Copies the two full-resolution screenshots taken during the demo recording (docs/images/browser-demo.gif)
+  for Figure 2 in Section 2:
+    * build/browser-demo-cards.png   (3-item product cards & prices)
+    * build/browser-demo-receipt.png (exact budget receipt & sources)
 - Keeps 100% of README.md's prose, headings, tables, links, and code blocks in Appendix A, while replacing
   the two inline images (already shown as Figures 1 and 2 in Section 2) with crisp cross-references so no
   image is duplicated in the PDF.
 - Formats tables with bold tinted headers and exact full-width booktabs columns, wraps code blocks in clean
   breakable tcolorbox frames (no broken borders across page breaks), and strips raw Markdown horizontal rules.
 
-    python3 readme_to_tex.py            # needs pandoc and Pillow
+    python3 readme_to_tex.py            # needs pandoc
 """
 import re
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -21,13 +23,10 @@ BUILD = HERE / "build"
 BLOB = "https://github.com/atlasmarkz/tacc-agentforge/blob/main/"
 
 
-def gif_frames():
-    from PIL import Image, ImageSequence
-    frames = [f.copy().convert("RGB") for f in ImageSequence.Iterator(Image.open(ROOT / "docs/images/browser-demo.gif"))]
-    cards_idx = 63 if len(frames) > 63 else 0
-    receipt_idx = 67 if len(frames) > 67 else -1
-    frames[cards_idx].save(BUILD / "browser-demo-cards.png")
-    frames[receipt_idx].save(BUILD / "browser-demo-receipt.png")
+def demo_stills():
+    # Screenshots from the same live run as the README GIF, at full resolution (a GIF frame has 256 colours).
+    for name in ("browser-demo-cards.png", "browser-demo-receipt.png"):
+        shutil.copyfile(ROOT / "docs/images" / name, BUILD / name)
 
 
 def markdown():
@@ -169,7 +168,7 @@ def to_latex(md):
 
 def main():
     BUILD.mkdir(exist_ok=True)
-    gif_frames()
+    demo_stills()
     (BUILD / "readme.tex").write_text(to_latex(markdown()), encoding="utf-8")
     print("wrote", BUILD / "readme.tex")
 
