@@ -426,12 +426,16 @@ def main():
         client = HarnessClient(lambda: (a.harness_url, a.token or ""))
         refresh = None
     else:
-        tunnel = Tunnel(os.environ.get("TACC_SSH", "markzhang@gw.turing.ust.hk"),
-                        int(os.environ.get("TACC_SSH_PORT", "30041")),
-                        Path(os.environ.get("TACC_SSH_KEY", Path.home() / ".ssh" / "id_rsa_tacc")),
-                        os.environ.get("TACC_REMOTE_USERDIR", "/mnt/home/markzhang/USERDIR"))
+        target = os.environ.get("TACC_SSH", "markzhang@gw.turing.ust.hk")
+        port = int(os.environ.get("TACC_SSH_PORT", "30041"))
+        userdir = os.environ.get("TACC_REMOTE_USERDIR", "/mnt/home/markzhang/USERDIR")
+        tunnel = Tunnel(target, port, Path(os.environ.get("TACC_SSH_KEY", Path.home() / ".ssh" / "id_rsa_tacc")),
+                        userdir)
         client = HarnessClient(tunnel.resolve)
         refresh = lambda: tunnel.resolve(refresh=True) if tunnel.remote_addr else None  # noqa: E731
+        log(f"TACC account {target} (port {port}), USERDIR {userdir}"
+            + ("" if "TACC_SSH" in os.environ else
+               "; these are the authors' defaults: set TACC_SSH, TACC_SSH_KEY and TACC_REMOTE_USERDIR for your account"))
     backend = Backend(client, a.log, refresh=lambda: _quiet(refresh))
     server = ThreadingHTTPServer(("127.0.0.1", a.port), make_handler(backend))
     log(f"open http://127.0.0.1:{a.port}")

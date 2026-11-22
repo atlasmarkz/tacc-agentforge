@@ -65,9 +65,21 @@ All numbers come from runs on TACC. The raw data is committed, and `scripts/repr
 
 # Getting Started Instructions
 
-Expected time: about **10 minutes**, with no GPU and no TACC account. This part shows that the artifact installs, its tests pass, and the full request path works end to end: page → backend → harness → knowledge base → budget validator. A scripted stand-in replaces the model.
+There are three ways to check the system, from quickest to most complete:
 
-After [Setup](#setup), one command runs every check of this section and Step 1 of the Detailed Instructions, and prints `SUCCESS` or `FAILED` for each stage ([Example 0](#example-0-one-command-check-about-4-minutes)). Examples 1–2 run the same checks one at a time.
+| | What it shows | Needs | Time |
+|---|---|---|---|
+| [Public cloud deployment](#public-cloud-deployment-already-running) | The finished system in a browser, nothing to install | A browser | 1 minute |
+| [Examples 0–2](#example-0-one-command-check-4-12-minutes) | The artifact installs, its tests pass, the full request path works end to end (page → backend → harness → knowledge base → budget validator) with a scripted stand-in for the model, and every reported number is recomputed | macOS or Linux, Python 3.12; no GPU, no TACC account | 15–25 minutes |
+| [Example 3](#example-3-local-deployment-with-the-real-model-on-tacc-step-by-step) | **The evaluated deployment**: your own TACC account runs vLLM and the agent, and the page on your machine talks to it | A CSIT6000V TACC account | 25–45 minutes |
+
+After [Setup](#setup), one command runs every check of Examples 1–2 and Step 1 of the Detailed Instructions, and prints `SUCCESS` or `FAILED` for each stage ([Example 0](#example-0-one-command-check-4-12-minutes)). Examples 1–2 run the same checks one at a time.
+
+## Public cloud deployment (already running)
+
+**https://tacc-agentforge.pages.dev**: open it and ask, for example, *what should I buy for a trip to Bali, budget 200 USD*. Nothing needs to be installed.
+
+This is the extension on branch [`feat/cloud-agent-service`](https://github.com/atlasmarkz/tacc-agentforge/tree/feat/cloud-agent-service) (report §5): the page is on Cloudflare Pages, the backend and agent run on a Google Cloud VM, and the model calls go to the same vLLM service on TACC through an SSH tunnel. It adds a 7-category catalog and live web search. It is **not** the evaluated system; C1–C7 come from `main` (Example 3 and the Detailed Instructions). `https://tacc-agentforge.pages.dev/api/health` shows its state. The model runs as one-hour TACC jobs that the VM resubmits, so the page can report the model as unavailable for up to about 15 minutes after a job ends; please try again a little later in that case.
 
 ## Prerequisites
 
@@ -77,7 +89,7 @@ After [Setup](#setup), one command runs every check of this section and Step 1 o
 - `git` and `curl`
 - About 150 MB of disk
 
-Only needed for the optional real-model run and for rerunning experiments: a CSIT6000V TACC account with the `tcloud` SDK configured ([setup](deploy/tacc/README.md)).
+Only needed for Example 3 (the real model on TACC) and for rerunning experiments: a CSIT6000V TACC account, its SSH key and the course's `tcloud` SDK. Example 3 walks through the setup.
 
 ## Setup
 
@@ -96,7 +108,7 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 **Expected:** `doctor` prints a JSON report that starts with `"ready": true` and ends with
 `"valid": true, "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8", "errors": []`.
 
-## Example 0: one-command check (about 4 minutes)
+## Example 0: one-command check (4-12 minutes)
 
 ```bash
 .venv/bin/python scripts/check_artifact.py
@@ -107,7 +119,7 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 ```text
 [1/7] environment          SUCCESS (0 s): Python 3.12.x, dependencies import
 [2/7] catalog snapshot     SUCCESS (1 s): snapshot_5bcd00723fb0b7589cbe50c8 installed and verified (FTS5: True)
-[3/7] automated tests      SUCCESS (85 s): 699 passed, 1 skipped, 14 subtests passed in ...
+[3/7] automated tests      SUCCESS (85-400 s): 699 passed, 1 skipped, 14 subtests passed in ...
 [4/7] harness self-test    SUCCESS (1 s): SELFTEST OK (10/10 checks true)
 [5/7] end-to-end request   SUCCESS (3 s): verified plan offer_640a303bc366430cfd53139e: total 16.87 USD, 83.13 left; without a budget the run asks for one
 [6/7] main results         SUCCESS (1 s): ALL MATCH (6 comparisons: C1-C7 recomputed from the committed raw data)
@@ -116,9 +128,9 @@ uv pip install --python .venv/bin/python -r agent/requirements.lock pytest pytho
 ALL 7 STAGES SUCCEEDED
 ```
 
-A failed stage prints the reason and the end of the failing command's output, and the other stages still run. For example, `[1/7] environment FAILED: missing packages [...]` means the Setup install command was not run with this interpreter. Add `--skip-tests` to leave out stage 3.
+Stage 3 takes most of the time: 85 s on a recent MacBook, about 380 s in a Docker container on a Windows laptop (2026-11-22, fresh clone, all 7 stages passed). A failed stage prints the reason and the end of the failing command's output, and the other stages still run. For example, `[1/7] environment FAILED: missing packages [...]` means the Setup install command was not run with this interpreter. Add `--skip-tests` to leave out stage 3.
 
-## Example 1: automated tests (about 1.5 minutes)
+## Example 1: automated tests (1.5-7 minutes)
 
 ```bash
 .venv/bin/python -m pytest tests agent/tests -q
@@ -165,26 +177,95 @@ curl -sN --noproxy '*' http://127.0.0.1:8765/api/ask -H 'Content-Type: applicati
 
 Leave out `purchase_cap` and the run instead stops with `"status": "waiting_user"` and a question asking for the budget. In the page, answering it resumes the run. The scripted model follows a fixed script, so this example tests the system around the model, not the model's decisions.
 
-## Example 3 (optional): the real model on TACC
+## Example 3: local deployment with the real model on TACC (step by step)
 
-With `tcloud` configured, start vLLM and the harness in one two-GPU job:
+This is the deployment that was evaluated. One two-GPU TACC job runs vLLM (Qwen3.8-27B AWQ INT4, TP=2) and the agent harness side by side; the backend on your Mac or Linux machine reaches the harness through an SSH tunnel, and the page runs in your browser. Everything runs under **your own** TACC account. It uses one of the account's two job slots, so the second slot stays free for Step 2a or Step 4 against the same service.
+
+Run all commands from the repository root, in the environment from [Setup](#setup). Replace `<user>` with your TACC username and `<key>` with the private key file the course gave you.
+
+**3.1. Check SSH access (once).**
+
+```bash
+ssh -p 30041 -i ~/.ssh/<key> <user>@gw.turing.ust.hk 'echo ok; ls -d $HOME/USERDIR'
+```
+
+**Expected:** `ok` and `/mnt/home/<user>/USERDIR`.
+
+**3.2. Configure the `tcloud` SDK (once per account).** Use the course's `tcloud` SDK: run `tcloud init` and enter your username and private-key path, then let the account find the public course environment:
+
+```bash
+export TCLOUD_BIN=$(command -v tcloud)
+bash deploy/tacc/setup-sdk-account.sh
+```
+
+**Expected:** `Public course environment configured; no packages installed.` or, if this was done before, `Public course environment already configured.`
+
+**3.3. Submit the model service with the harness.**
 
 ```bash
 bash deploy/tacc/service/qwen-service/stage.sh serve --harness
 (cd deploy/tacc/service/qwen-service && tcloud submit)
+ssh -p 30041 -i ~/.ssh/<key> <user>@gw.turing.ust.hk 'squeue -u $USER'
 ```
 
-After 5–8.5 minutes, once the job has published `harness-url.txt` on the cluster, start the backend locally and open http://127.0.0.1:8765. The backend reaches the cluster over SSH with your own account; its defaults are the authors' account, so set these first ([app/README.md](app/README.md)):
+**Expected:** `staged mode=serve with harness`, then a `qwen-service` job in `squeue` (state `PD` while it waits for a node, then `R`). Note its job ID.
+
+**3.4. Start the backend on your machine** (in a second terminal, while the job starts):
 
 ```bash
-export TACC_SSH=<TACC username>@gw.turing.ust.hk
+export TACC_SSH=<user>@gw.turing.ust.hk
 export TACC_SSH_PORT=30041
-export TACC_SSH_KEY=~/.ssh/<your TACC private key>
-export TACC_REMOTE_USERDIR=/mnt/home/<TACC username>/USERDIR
+export TACC_SSH_KEY=~/.ssh/<key>
+export TACC_REMOTE_USERDIR=/mnt/home/<user>/USERDIR
 .venv/bin/python -m app.backend
 ```
 
-The page shows `Online · job <id>` once it reaches the harness. Stopping the service is covered in the [runbook](deploy/tacc/service/RUNBOOK.md) §6. In the evaluation, a full-system request took 19 s at the median and 37 s at p95, measured on the cluster (baseline report §5).
+**Expected:** the first log lines name your account (`TACC account <user>@gw.turing.ust.hk (port 30041), USERDIR /mnt/home/<user>/USERDIR`) and `open http://127.0.0.1:8765`. If the line ends with *these are the authors' defaults*, the variables were not exported in this terminal.
+
+**3.5. Wait until the service is ready.** From another terminal:
+
+```bash
+curl -s --noproxy '*' http://127.0.0.1:8765/api/health
+```
+
+While the job loads vLLM, the answer contains `"harness": null`. When it is ready, it contains `"harness": {"status": "ok", ... "model": "qwen3.8-27b", ..., "job_id": "<job ID>"}`, and the page at http://127.0.0.1:8765 shows `Online · job <job ID>`. This takes 5–8.5 minutes after the job starts running. **On an account that has never run this job, add about 5–10 minutes**: the job first installs the harness dependencies into `USERDIR/agent-pylib` and builds vLLM's compile cache in `USERDIR/CSIT6000V-project-cache`; later jobs reuse both. To watch progress:
+
+```bash
+ssh -p 30041 -i ~/.ssh/<key> <user>@gw.turing.ust.hk 'tail -5 $HOME/USERDIR/tacc-agentforge-service/service-<job ID>/harness.log'
+```
+
+The harness is up when this log shows `READY harness service http://...`.
+
+**3.6. Ask a question.** Open http://127.0.0.1:8765 and ask *wireless earbuds for commuting, under 100 USD*, or *what should I buy for a trip to Bali, budget 200 USD* (the request in the GIF above). Or send the same request as Example 2:
+
+```bash
+curl -sN --noproxy '*' http://127.0.0.1:8765/api/ask -H 'Content-Type: application/json' -d '{
+  "session_id": "s1234567890abcdef",
+  "message": "wireless earbuds for commuting, under 100 USD",
+  "constraints": {"currency": "USD", "purchase_cap": "100", "budget_basis": "pre_tax"}}'
+```
+
+**Expected:** the same kind of event stream as Example 2, now with real model calls, ending in `"status": "completed"` and a `verified_plan` whose `total_cost` is at most `100` and whose `snapshot_id` is `snapshot_5bcd00723fb0b7589cbe50c8`. The page shows product cards, an itemised receipt checked against the budget, and source links. The products the model picks can differ from run to run; a verified total within the budget, source links and `"status": "completed"` are what to check. A request takes about 15–40 s (in the evaluation: 19 s median, 37 s p95, baseline report §5). Leaving out the budget makes the agent ask for it first (`"status": "waiting_user"`), as in Example 2.
+
+**3.7. Stop the service** when you are done (the job also ends by itself after one hour):
+
+```bash
+ssh -p 30041 -i ~/.ssh/<key> <user>@gw.turing.ust.hk 'scancel <job ID>'
+```
+
+Stop the backend with Ctrl-C.
+
+**If something goes wrong:**
+
+| Symptom | Cause and fix |
+|---|---|
+| Job log (`$HOME/USERDIR/slurm_log/qwen-service-<job ID>.log`) says `GPUs already in use by processes outside this job` | The node's GPUs are held outside Slurm. Add that node to the `exclude=` line of `deploy/tacc/service/qwen-service/tuxiv.conf` and repeat 3.3 ([Limitations](#known-limitations-and-expected-variation)). |
+| Job stays `PD` in `squeue` | No free two-GPU node; it starts when one is free. The backend keeps waiting. |
+| `"harness": null` with an SSH error in `"error"` | Check 3.1 and the four variables of 3.4. |
+| Page shows `Service offline` after it was online | The one-hour job ended. Repeat 3.3; the backend finds the new job by itself. |
+| `harness.log` stops at `installing harness dependencies` with a pip error | The compute node could not reach PyPI; resubmit (3.3). |
+
+For runs longer than one hour, the service can hand over to a successor job ([runbook](deploy/tacc/service/RUNBOOK.md) §2); Step 2 shows how.
 
 ---
 
@@ -192,7 +273,7 @@ The page shows `Online · job <id>` once it reaches the harness. Stopping the se
 
 The results can be checked at two levels:
 
-1. **Recompute every reported number from the committed raw data** (Step 1, under 1 minute, no GPU). Each recorded model output is rescored independently against the frozen snapshot, and each report is regenerated. This is the reproduction of C1–C7, and stage 6 of [Example 0](#example-0-one-command-check-about-4-minutes) runs it.
+1. **Recompute every reported number from the committed raw data** (Step 1, under 1 minute, no GPU). Each recorded model output is rescored independently against the frozen snapshot, and each report is regenerated. This is the reproduction of C1–C7, and stage 6 of [Example 0](#example-0-one-command-check-4-12-minutes) runs it.
 2. **Optional: rerun experiments on TACC** to produce new raw data (Steps 2–5). This needs a TACC account and GPU time. The quickest real-model check is Step 2a (under an hour); the others take one to several hours each. On 2026-11-19 we followed Steps 2a and 4 from a fresh clone; the results are given in those steps.
 
 ## Test cases, data and configurations
@@ -291,11 +372,11 @@ git checkout main -- deploy/tacc/service/agent-e2e/job.sh deploy/tacc/service/ap
 .venv/bin/python -m evaluations.freeze check      # expected: "matches the freeze"
 ```
 
-**Start the model service** (2 GPUs). For anything longer than one hour, enable handover so that a successor job takes over before the 1-hour limit ([runbook](deploy/tacc/service/RUNBOOK.md) §2):
+**Start the model service** (2 GPUs). If the service from [Example 3](#example-3-local-deployment-with-the-real-model-on-tacc-step-by-step) is still running and has at least 15 minutes left, Step 2a and Step 4 can use it: skip this block. For anything longer than one hour, enable handover so that a successor job takes over before the 1-hour limit ([runbook](deploy/tacc/service/RUNBOOK.md) §2):
 
 ```bash
-# on the cluster, only for runs longer than 1 hour: allow up to 3 successor jobs
-echo '{"remaining": 3}' > $TACC_USERDIR/tacc-agentforge-service/service-chain.json
+# on the cluster (over ssh), only for runs longer than 1 hour: allow up to 3 successor jobs
+echo '{"remaining": 3}' > $HOME/USERDIR/tacc-agentforge-service/service-chain.json
 # locally: hand over 15 minutes before the limit
 echo '--handover-lead-s 900' > deploy/tacc/service/qwen-service/args.txt
 bash deploy/tacc/service/qwen-service/stage.sh serve
@@ -436,4 +517,4 @@ A new run needs a model endpoint (`BENCHMARK_BASE_URL` or `BENCHMARK_ADDRESS_FIL
 
 ## License
 
-No license has been selected. All rights are reserved by the repository owner.
+MIT License; see [LICENSE](LICENSE). The model weights and the course's private vLLM source are not part of this repository and stay under the course's terms.
