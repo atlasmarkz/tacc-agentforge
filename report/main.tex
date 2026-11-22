@@ -609,7 +609,7 @@ Model Server & TACC (2 GPUs) & Same vLLM serving job as Section~\ref{sec:system}
 The repository is public at \repo; its complete \texttt{README.md} (Appendix~\ref{app:readme}) follows the NSDI~'27
 Call for Artifacts structure:
 \begin{itemize}
-\item \textbf{Getting Started ($\sim$10\,min, no GPU).} After locked dependency setup, \texttt{scripts/check\_artifact.py}
+\item \textbf{Getting Started (15--25\,min, no GPU).} After locked dependency setup, \texttt{scripts/check\_artifact.py}
 executes seven offline stages---environment, catalog snapshot, 699 automated tests, harness HTTP self-test, full
 backend-to-validator SSE request, C1--C7 recomputation, and v1 synthetic benchmark preflight---printing
 \texttt{ALL 7 STAGES SUCCEEDED}.
@@ -625,20 +625,32 @@ cross-account Miniconda paths in the job scripts. On current \texttt{main} (afte
 % ---- 8. Group Contributions -------------------------------------------------------------------------------------
 \section{Group Contributions}\label{sec:contrib}
 
-Table~\ref{tab:contrib} summarizes each team member's contributions across the project.
 
 \begin{table}[H]
 \centering\footnotesize
-\caption{Summary of group member contributions.}\label{tab:contrib}
-\renewcommand{\arraystretch}{1.15}
+\caption{Group member contributions from the repository history (\#: PR number). Workload on \texttt{main} as of 2026-11-22: merged PRs, non-merge commits, and lines added excluding raw results, data, images, PDFs and lock files (share of all such lines).}\label{tab:contrib}
+\renewcommand{\arraystretch}{1.1}
 \setlength{\tabcolsep}{4.5pt}
-\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.35cm} Y@{}}
+\newcommand{\contrib}[1]{\begin{itemize}[nosep,leftmargin=0.9em,topsep=0pt,before=\vspace{-0.55\baselineskip},after=\vspace{-0.8\baselineskip}]#1\end{itemize}}
+\begin{tabularx}{\columnwidth}{@{}>{\raggedright\arraybackslash}p{1.55cm} Y@{}}
 \toprule
 \textbf{Member} & \textbf{Contributions} \\
 \midrule
-\textbf{Hechuan Zhang} & Model serving on TACC with automatic recovery, hourly handover, and runbook; deterministic budget validator; evaluation cases, independent SQLite enumerator, scorer, and frozen baseline; browser UI, backend, and cluster bridge; serving and MTP speculative-decoding experiments including the vLLM fix; SFT pilot; README, reproduction suite, and artifact check; public cloud deployment and 7-category catalog expansion (\S\ref{sec:cloud}). \\[4pt]
-\textbf{Bailin Chen} & Agent runtime (LangGraph loop, tool dispatch, policies, SQLite checkpoints); convergence and grounded-explanation fixes; post-freeze call-limit fix (C7). \\[4pt]
-\textbf{Jieming Chen} & Knowledge base: SerpApi acquisition, SQLite/FTS5 versioned snapshots, retrieval tools, and offline bootstrap; tool error recovery and schema discovery; persistent session memory and bounded context selection; additional v1 synthetic benchmark and ShoppingBench track. \\
+Hechuan Zhang\newline 12 PRs\newline 115~commits\newline 24.7k lines\newline (54\%) & \contrib{
+\item vLLM service on TACC: recovery, hourly handover, load tests, runbook (\#12); serving ablations (C4); MTP fix (C5).
+\item Budget validator (\#18); cases, enumerator, scorer, frozen baseline (\#16, \#22; C1--C3).
+\item Browser page and TACC bridge (\#20); SerpApi collection; SFT pilot (\#14; C6); cloud deployment (\S\ref{sec:cloud}).
+\item README and artifact check (\#30, \#32); wrote the final report (\#33).} \\[2pt]
+Bailin Chen\newline 5 PRs\newline 14~commits\newline 7.9k lines\newline (17\%) & \contrib{
+\item Agent runtime: LangGraph loop, tools, policies, resume, SQLite checkpoints (\#13).
+\item Streamed, citation-checked explanations (\#13, \#24).
+\item Convergence and post-freeze call-limit fix (\#23, \#27, \#29; C7).
+\item Shop Advisor page update (icon, layout).} \\[2pt]
+Jieming Chen\newline 4 PRs\newline 7~commits\newline 13.0k lines\newline (29\%) & \contrib{
+\item Knowledge base: SerpApi acquisition, SQLite/FTS5 snapshots, retrieval tools, offline bootstrap (\#3).
+\item Tool error recovery (\#15); session memory and bounded context (\#19).
+\item v1 synthetic benchmark and ShoppingBench track (\#28).
+\item Made the presentation slides.} \\
 \bottomrule
 \end{tabularx}
 \end{table}
