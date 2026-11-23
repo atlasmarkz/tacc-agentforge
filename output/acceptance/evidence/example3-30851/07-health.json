@@ -1,0 +1,28 @@
+{
+  "backend": "ok",
+  "harness": {
+    "status": "ok",
+    "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+    "uptime_s": 5.9,
+    "model_address": "http://compute-node:33483/v1",
+    "active_runs": 0,
+    "waiting_runs": 0,
+    "counts": {
+      "runs": 0,
+      "resumes": 0,
+      "errors": 0
+    },
+    "categories": [
+      "backpacks",
+      "chargers",
+      "earbuds",
+      "keyboards"
+    ],
+    "job_id": "30851",
+    "node": "10-0-3-10",
+    "profile": "tacc-demo",
+    "explain_default": false,
+    "model": "qwen3.8-27b",
+    "address": "http://compute-node:8100"
+  }
+}

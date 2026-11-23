@@ -1,0 +1,56 @@
+{
+  "budgeted": {
+    "run_id": "r-s1234567-1795361274-77df96",
+    "job_id": "30837",
+    "total": "16.87",
+    "remaining": "83.13",
+    "cost_breakdown": {
+      "items": "9.88",
+      "shipping": "6.99"
+    },
+    "offers": [
+      "offer_640a303bc366430cfd53139e"
+    ],
+    "source_domains": [
+      "www.walmart.com"
+    ],
+    "model_calls": 3,
+    "s": 13.28
+  },
+  "resumed": {
+    "run_id": "r-s1234567-1795361287-eeeac7",
+    "job_id": "30837",
+    "total": "16.87",
+    "remaining": "83.13",
+    "cost_breakdown": {
+      "items": "9.88",
+      "shipping": "6.99"
+    },
+    "offers": [
+      "offer_640a303bc366430cfd53139e"
+    ],
+    "source_domains": [
+      "www.walmart.com"
+    ],
+    "model_calls": 3,
+    "s": 10.67
+  },
+  "waiting": {
+    "run_id": "r-s1234567-1795361287-eeeac7",
+    "status": "waiting_user",
+    "fields": [
+      "purchase_cap",
+      "currency"
+    ]
+  },
+  "optional_routes": {
+    "10b-form": {
+      "http": 200,
+      "empty_response": false
+    },
+    "12b-narrative": {
+      "http": 200,
+      "empty_response": false
+    }
+  }
+}

@@ -265,7 +265,7 @@ policy = RunPolicy(**run_policy_kwargs(enable_thinking=False))  # 上下文 3600
 | `events.jsonl` 里有 `handover_submit_failed` | 辅助循环没有运行,或 `sbatch` 报错 | 看 `service-<作业号>/handover-result`;确认用的是当前的 `job.sh` |
 | 继任作业一直不启动 | 2 个作业名额已满 | 正常现象;它会在旧作业结束后启动 |
 | 地址文件存在,但调用方一直连不上,或报 "Name or service not known" | 地址里是对方节点的主机名,本节点无法解析 | 当前的 `serve.py` 已改为发布 IP;如果看到主机名形式的地址,说明用的是旧版本 |
-| harness 作业装依赖失败(找不到 pip) | 课程的 vLLM 环境没有 pip | `agent-e2e/job.sh` 已改用个人 Miniconda 引导的新版 pip,装到 `USERDIR/agent-pylib` |
+| harness 作业装依赖或导入失败 | 课程的 vLLM 环境没有 pip，计算节点也可能无法连接 PyPI | 服务用个人 Miniconda 的 pip 在 `USERDIR/agent-harness-deps` 构建新缓存，完整导入通过才发布，不复用评测作业的 `agent-pylib`。若节点无法联网，可在本机将 `TACC_HARNESS_WHEELHOUSE` 指向包含锁定版 CPython 3.12 Linux x86-64 wheels 的目录，再按原命令打包和提交。首次使用还需个人目录中已有 `pip-new` 或能联网引导 pip。 |
 
 ## 11. 证据
 

@@ -1,0 +1,13 @@
+2026-11-22 22:57:00 +0800
+             JOBID PARTITION     NAME     USER ST          START_TIME  NODES SCHEDNODES           NODELIST(REASON)
+             30837      tacc qwen-ser audit-user PD 2026-11-22T23:15:18      1 10-0-3-10            (Priority)
+Remote lock marker: cb931357ac2f7222d34721c7f0c122cbd0a8721f0cfc13579f0f4ffab891749d
+missing: langsmith/__init__.py
+present: langgraph/checkpoint/sqlite/aio.py
+present: pydantic/__init__.py
+cb931357ac2f7222d34721c7f0c122cbd0a8721f0cfc13579f0f4ffab891749d  cached/agent/requirements.lock
+local 2026-11-22 23:00:23 +0800
+gateway 2026-11-22 23:00:25 +0800
+             JOBID PARTITION     NAME     USER ST          START_TIME  NODES SCHEDNODES           NODELIST(REASON)
+             30837      tacc qwen-ser audit-user PD 2026-11-22T23:15:18      1 10-0-3-10            (Priority)
+30837 PD 2026-11-22T22:54:19 2026-11-22T23:15:18 (Priority)

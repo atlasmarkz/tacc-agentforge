@@ -1,0 +1,318 @@
+2026-11-22 23:41:40 +0800
+96e40bee49563209b44b0f4082429dbdcf5fcdf1
+ deploy/tacc/service/app-service/harness-lib.sh | 97 +++++++++++++++-----------
+ deploy/tacc/service/app-service/stage.sh       | 12 ++++
+ 2 files changed, 69 insertions(+), 40 deletions(-)
+Public course environment already configured.
+staged harness:      109 files in /tmp/example3-audit/checkout/deploy/tacc/service/qwen-service/pkg
+staged mode=serve with harness
+Start parsing tuxiv.conf...
+Transfer starting: 138 files
+qwen-service/
+qwen-service/client.py
+          20971 100%    2.88MB/s   00:00:00 (xfer#1, to-check=1/138)
+qwen-service/harness-lib.sh
+           3632 100%    5.27MB/s   00:00:00 (xfer#2, to-check=2/138)
+qwen-service/job.sh
+           8554 100%   11.22MB/s   00:00:00 (xfer#3, to-check=3/138)
+qwen-service/main.py
+            205 100%    1.09MB/s   00:00:00 (xfer#4, to-check=4/138)
+qwen-service/mode.txt
+              6 100%   38.58KB/s   00:00:00 (xfer#5, to-check=5/138)
+qwen-service/run.sh
+            145 100%    1.02MB/s   00:00:00 (xfer#6, to-check=6/138)
+qwen-service/serve.py
+          22089 100%   40.83MB/s   00:00:00 (xfer#7, to-check=7/138)
+qwen-service/service.json
+            512 100%    3.76MB/s   00:00:00 (xfer#8, to-check=8/138)
+qwen-service/smoke.py
+           7975 100%   28.16MB/s   00:00:00 (xfer#9, to-check=9/138)
+qwen-service/smoke_requests.json
+          32512 100%   47.71MB/s   00:00:00 (xfer#10, to-check=10/138)
+qwen-service/stage.sh
+            901 100%    7.04MB/s   00:00:00 (xfer#11, to-check=11/138)
+qwen-service/tuxiv.conf
+            419 100%    3.73MB/s   00:00:00 (xfer#12, to-check=12/138)
+qwen-service/configurations/
+qwen-service/configurations/citynet.sh
+              0 nan%   00:00:00 (xfer#13, to-check=14/138)
+qwen-service/configurations/conda.yaml
+             64 100%  547.27KB/s   00:00:00 (xfer#14, to-check=15/138)
+qwen-service/configurations/run.slurm
+            462 100%    3.87MB/s   00:00:00 (xfer#15, to-check=16/138)
+qwen-service/pkg/
+qwen-service/pkg/agent/
+qwen-service/pkg/agent/.gitignore
+            100 100%  713.59KB/s   00:00:00 (xfer#16, to-check=19/138)
+qwen-service/pkg/agent/ARCHITECTURE.md
+          30373 100%   52.28MB/s   00:00:00 (xfer#17, to-check=20/138)
+qwen-service/pkg/agent/README.md
+          34946 100%   54.37MB/s   00:00:00 (xfer#18, to-check=21/138)
+qwen-service/pkg/agent/__init__.py
+           1044 100%    7.91MB/s   00:00:00 (xfer#19, to-check=22/138)
+qwen-service/pkg/agent/answers.py
+           2549 100%   17.11MB/s   00:00:00 (xfer#20, to-check=23/138)
+qwen-service/pkg/agent/budget.py
+          15692 100%   45.62MB/s   00:00:00 (xfer#21, to-check=24/138)
+qwen-service/pkg/agent/budget_fields.py
+           1707 100%   10.92MB/s   00:00:00 (xfer#22, to-check=25/138)
+qwen-service/pkg/agent/checkpoint_cleanup.py
+           4590 100%   24.45MB/s   00:00:00 (xfer#23, to-check=26/138)
+qwen-service/pkg/agent/checkpoints.py
+           2940 100%   18.20MB/s   00:00:00 (xfer#24, to-check=27/138)
+qwen-service/pkg/agent/config.py
+           3280 100%   18.30MB/s   00:00:00 (xfer#25, to-check=28/138)
+qwen-service/pkg/agent/contracts.py
+          12268 100%   42.09MB/s   00:00:00 (xfer#26, to-check=29/138)
+qwen-service/pkg/agent/explanation.py
+          11873 100%   41.05MB/s   00:00:00 (xfer#27, to-check=30/138)
+qwen-service/pkg/agent/graph.py
+           4120 100%   22.09MB/s   00:00:00 (xfer#28, to-check=31/138)
+qwen-service/pkg/agent/nodes.py
+          36293 100%   55.03MB/s   00:00:00 (xfer#29, to-check=32/138)
+qwen-service/pkg/agent/policies.py
+           2151 100%   12.60MB/s   00:00:00 (xfer#30, to-check=33/138)
+qwen-service/pkg/agent/progress.py
+           5363 100%   27.22MB/s   00:00:00 (xfer#31, to-check=34/138)
+qwen-service/pkg/agent/prompts.py
+           8131 100%   35.09MB/s   00:00:00 (xfer#32, to-check=35/138)
+qwen-service/pkg/agent/requirements-dev.txt
+             34 100%  296.31KB/s   00:00:00 (xfer#33, to-check=36/138)
+qwen-service/pkg/agent/requirements-local.txt
+            149 100%    1.20MB/s   00:00:00 (xfer#34, to-check=37/138)
+qwen-service/pkg/agent/requirements.lock
+           3800 100%   21.20MB/s   00:00:00 (xfer#35, to-check=38/138)
+qwen-service/pkg/agent/requirements.txt
+            156 100%  757.98KB/s   00:00:00 (xfer#36, to-check=39/138)
+qwen-service/pkg/agent/runtime.py
+          10804 100%   37.48MB/s   00:00:00 (xfer#37, to-check=40/138)
+qwen-service/pkg/agent/settings.py
+           2656 100%   17.14MB/s   00:00:00 (xfer#38, to-check=41/138)
+qwen-service/pkg/agent/shopping_context.py
+           5761 100%   28.31MB/s   00:00:00 (xfer#39, to-check=42/138)
+qwen-service/pkg/agent/state.py
+           1994 100%   10.44MB/s   00:00:00 (xfer#40, to-check=43/138)
+qwen-service/pkg/agent/tools.py
+           2433 100%   12.29MB/s   00:00:00 (xfer#41, to-check=44/138)
+qwen-service/pkg/agent/examples/
+qwen-service/pkg/agent/examples/__init__.py
+            106 100%  778.09KB/s   00:00:00 (xfer#42, to-check=46/138)
+qwen-service/pkg/agent/examples/local_run.py
+          11657 100%   40.44MB/s   00:00:00 (xfer#43, to-check=47/138)
+qwen-service/pkg/agent/examples/mock_run.py
+           9189 100%   40.75MB/s   00:00:00 (xfer#44, to-check=48/138)
+qwen-service/pkg/agent/examples/persistent_resume.py
+           3111 100%   21.79MB/s   00:00:00 (xfer#45, to-check=49/138)
+qwen-service/pkg/app/
+qwen-service/pkg/app/__init__.py
+              0 nan%   00:00:00 (xfer#46, to-check=51/138)
+qwen-service/pkg/app/backend.py
+          22914 100%   30.70MB/s   00:00:00 (xfer#47, to-check=52/138)
+qwen-service/pkg/app/formspec.py
+           5365 100%   26.53MB/s   00:00:00 (xfer#48, to-check=53/138)
+qwen-service/pkg/app/harness_service.py
+          34323 100%   35.88MB/s   00:00:00 (xfer#49, to-check=54/138)
+qwen-service/pkg/app/narrative.py
+           7263 100%   22.14MB/s   00:00:00 (xfer#50, to-check=55/138)
+qwen-service/pkg/app/selftest.py
+           6349 100%   18.62MB/s   00:00:00 (xfer#51, to-check=56/138)
+qwen-service/pkg/app/static/
+qwen-service/pkg/app/static/index.html
+         124512 100%   46.69MB/s   00:00:00 (xfer#52, to-check=58/138)
+qwen-service/pkg/assets/
+qwen-service/pkg/assets/knowledge/
+qwen-service/pkg/assets/knowledge/pilot-snapshot.zip
+        7356458 100%  157.63MB/s   00:00:00 (xfer#53, to-check=61/138)
+qwen-service/pkg/configs/
+qwen-service/pkg/configs/agent.yaml
+           5239 100%   16.61MB/s   00:00:00 (xfer#54, to-check=63/138)
+qwen-service/pkg/configs/category_schemas.json
+           5867 100%   28.69MB/s   00:00:00 (xfer#55, to-check=64/138)
+qwen-service/pkg/configs/knowledge.json
+            366 100%    2.60MB/s   00:00:00 (xfer#56, to-check=65/138)
+qwen-service/pkg/configs/shopping_queries.json
+            813 100%    4.36MB/s   00:00:00 (xfer#57, to-check=66/138)
+qwen-service/pkg/inference/
+qwen-service/pkg/inference/__init__.py
+              0 nan%   00:00:00 (xfer#58, to-check=68/138)
+qwen-service/pkg/inference/client.py
+          20971 100%   47.61MB/s   00:00:00 (xfer#59, to-check=69/138)
+qwen-service/pkg/inference/model_port.py
+           9638 100%   41.41MB/s   00:00:00 (xfer#60, to-check=70/138)
+qwen-service/pkg/knowledge/
+qwen-service/pkg/knowledge/.gitkeep
+              0 nan%   00:00:00 (xfer#61, to-check=72/138)
+qwen-service/pkg/knowledge/README.md
+          13184 100%   86.17MB/s   00:00:00 (xfer#62, to-check=73/138)
+qwen-service/pkg/knowledge/__main__.py
+             48 100%  885.62KB/s   00:00:00 (xfer#63, to-check=74/138)
+qwen-service/pkg/knowledge/acquisition.py
+          20448 100%   97.95MB/s   00:00:00 (xfer#64, to-check=75/138)
+qwen-service/pkg/knowledge/agent_tools.py
+           9784 100%   76.59MB/s   00:00:00 (xfer#65, to-check=76/138)
+qwen-service/pkg/knowledge/benchmark.py
+          18560 100%   95.18MB/s   00:00:00 (xfer#66, to-check=77/138)
+qwen-service/pkg/knowledge/bootstrap.py
+           4820 100%   49.44MB/s   00:00:00 (xfer#67, to-check=78/138)
+qwen-service/pkg/knowledge/budget_source.py
+           5516 100%   59.63MB/s   00:00:00 (xfer#68, to-check=79/138)
+qwen-service/pkg/knowledge/cli.py
+           9498 100%   77.53MB/s   00:00:00 (xfer#69, to-check=80/138)
+qwen-service/pkg/knowledge/credentials.py
+           1329 100%   21.44MB/s   00:00:00 (xfer#70, to-check=81/138)
+qwen-service/pkg/knowledge/evaluation.py
+          15384 100%   92.26MB/s   00:00:00 (xfer#71, to-check=82/138)
+qwen-service/pkg/knowledge/explanation.py
+           6255 100%   63.50MB/s   00:00:00 (xfer#72, to-check=83/138)
+qwen-service/pkg/knowledge/schema.sql
+           9134 100%   75.02MB/s   00:00:00 (xfer#73, to-check=84/138)
+qwen-service/pkg/knowledge/serpapi.py
+          12787 100%   86.40MB/s   00:00:00 (xfer#74, to-check=85/138)
+qwen-service/pkg/knowledge/service.py
+          44280 100%  115.99MB/s   00:00:00 (xfer#75, to-check=86/138)
+qwen-service/pkg/knowledge/settings.py
+           3585 100%   44.40MB/s   00:00:00 (xfer#76, to-check=87/138)
+qwen-service/pkg/knowledge/store.py
+          44841 100%  116.85MB/s   00:00:00 (xfer#77, to-check=88/138)
+qwen-service/pkg/knowledge/examples/
+qwen-service/pkg/knowledge/examples/__init__.py
+             93 100%    1.41MB/s   00:00:00 (xfer#78, to-check=90/138)
+qwen-service/pkg/knowledge/examples/agent_demo.py
+           4692 100%   53.32MB/s   00:00:00 (xfer#79, to-check=91/138)
+qwen-service/pkg/wheels/
+qwen-service/pkg/wheels/aiosqlite-0.22.1-py3-none-any.whl
+          17405 100%   56.10MB/s   00:00:00 (xfer#80, to-check=93/138)
+qwen-service/pkg/wheels/annotated_types-0.8.0-py3-none-any.whl
+          13427 100%   77.61MB/s   00:00:00 (xfer#81, to-check=94/138)
+qwen-service/pkg/wheels/anyio-4.16.0-py3-none-any.whl
+         134521 100%  143.18MB/s   00:00:00 (xfer#82, to-check=95/138)
+qwen-service/pkg/wheels/certifi-2026.10.23-py3-none-any.whl
+         135082 100%  124.59MB/s   00:00:00 (xfer#83, to-check=96/138)
+qwen-service/pkg/wheels/charset_normalizer-3.5.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+         257601 100%  131.93MB/s   00:00:00 (xfer#84, to-check=97/138)
+qwen-service/pkg/wheels/distro-1.9.0-py3-none-any.whl
+          20277 100%   86.01MB/s   00:00:00 (xfer#85, to-check=98/138)
+qwen-service/pkg/wheels/h11-0.16.0-py3-none-any.whl
+          37515 100%   63.53MB/s   00:00:00 (xfer#86, to-check=99/138)
+qwen-service/pkg/wheels/httpcore-1.0.9-py3-none-any.whl
+          78784 100%   89.55MB/s   00:00:00 (xfer#87, to-check=100/138)
+qwen-service/pkg/wheels/httpcore2-2.16.0-py3-none-any.whl
+          85070 100%   64.59MB/s   00:00:00 (xfer#88, to-check=101/138)
+qwen-service/pkg/wheels/httpx-0.28.1-py3-none-any.whl
+          73517 100%   86.04MB/s   00:00:00 (xfer#89, to-check=102/138)
+qwen-service/pkg/wheels/httpx2-2.16.0-py3-none-any.whl
+          97880 100%   91.16MB/s   00:00:00 (xfer#90, to-check=103/138)
+qwen-service/pkg/wheels/idna-3.20-py3-none-any.whl
+          69583 100%   49.83MB/s   00:00:00 (xfer#91, to-check=104/138)
+qwen-service/pkg/wheels/iniconfig-2.3.1-py3-none-any.whl
+           7552 100%   41.67MB/s   00:00:00 (xfer#92, to-check=105/138)
+qwen-service/pkg/wheels/jsonpatch-1.39-py3-none-any.whl
+          17444 100%   55.25MB/s   00:00:00 (xfer#93, to-check=106/138)
+qwen-service/pkg/wheels/jsonpointer-3.7-py3-none-any.whl
+           9363 100%   46.24MB/s   00:00:00 (xfer#94, to-check=107/138)
+qwen-service/pkg/wheels/langchain_core-1.7.3-py3-none-any.whl
+         577074 100%   77.25MB/s   00:00:00 (xfer#95, to-check=108/138)
+qwen-service/pkg/wheels/langchain_protocol-0.0.20-py3-none-any.whl
+           7347 100%   33.55MB/s   00:00:00 (xfer#96, to-check=109/138)
+qwen-service/pkg/wheels/langgraph-1.2.19-py3-none-any.whl
+         262285 100%   52.26MB/s   00:00:00 (xfer#97, to-check=110/138)
+qwen-service/pkg/wheels/langgraph_checkpoint-4.3.1-py3-none-any.whl
+          58093 100%   49.64MB/s   00:00:00 (xfer#98, to-check=111/138)
+qwen-service/pkg/wheels/langgraph_checkpoint_sqlite-3.1.3-py3-none-any.whl
+          41844 100%   55.35MB/s   00:00:00 (xfer#99, to-check=112/138)
+qwen-service/pkg/wheels/langgraph_prebuilt-1.1.1-py3-none-any.whl
+          42254 100%   48.61MB/s   00:00:00 (xfer#100, to-check=113/138)
+qwen-service/pkg/wheels/langgraph_sdk-0.4.11-py3-none-any.whl
+         163840  97%   14.36KB/s   00:00:00
+         169311 100%   00:00:00
+         169311 100%    9.65KB/s   00:00:17 (xfer#101, to-check=114/138)
+qwen-service/pkg/wheels/langsmith-0.14.17-py3-none-any.whl
+         327680  35%  621.54KB/s   00:00:00
+         589824  63%  482.79KB/s   00:00:00
+         786432  84%  351.71KB/s   00:00:00
+         940828 100%  463.32KB/s   00:00:01 (xfer#102, to-check=115/138)
+qwen-service/pkg/wheels/orjson-3.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+          98304  75%   86.13KB/s   00:00:00
+         130612 100%   94.54KB/s   00:00:01 (xfer#103, to-check=116/138)
+qwen-service/pkg/wheels/ormsgpack-1.13.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+         254913 100%   39.96MB/s   00:00:00 (xfer#104, to-check=117/138)
+qwen-service/pkg/wheels/packaging-26.3-py3-none-any.whl
+         129956 100%   14.39MB/s   00:00:00 (xfer#105, to-check=118/138)
+qwen-service/pkg/wheels/pluggy-1.7.0-py3-none-any.whl
+          27082 100%   39.19MB/s   00:00:00 (xfer#106, to-check=119/138)
+qwen-service/pkg/wheels/pydantic-2.14.2-py3-none-any.whl
+         490403 100%  653.59KB/s   00:00:00
+         490403 100%  649.83KB/s   00:00:00 (xfer#107, to-check=120/138)
+qwen-service/pkg/wheels/pydantic_core-2.50.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+         262144  12%  429.69KB/s   00:00:04
+        1572864  70%    2.07MB/s   00:00:00
+        2228224  99%    1.13MB/s   00:00:00
+        2242782 100%    1.21MB/s   00:00:01 (xfer#108, to-check=121/138)
+qwen-service/pkg/wheels/pygments-2.21.0-py3-none-any.whl
+        1250147 100%   79.07MB/s   00:00:00 (xfer#109, to-check=122/138)
+qwen-service/pkg/wheels/pytest-9.2.0-py3-none-any.whl
+         411776 100%  135.69MB/s   00:00:00 (xfer#110, to-check=123/138)
+qwen-service/pkg/wheels/pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+         807870 100%    2.28MB/s   00:00:00 (xfer#111, to-check=124/138)
+qwen-service/pkg/wheels/requests-2.34.2-py3-none-any.whl
+          73075 100%   47.27MB/s   00:00:00 (xfer#112, to-check=125/138)
+qwen-service/pkg/wheels/requests_toolbelt-1.0.0-py2.py3-none-any.whl
+          54481 100%    2.01MB/s   00:00:00 (xfer#113, to-check=126/138)
+qwen-service/pkg/wheels/sniffio-1.3.1-py3-none-any.whl
+          10235 100%   14.76MB/s   00:00:00 (xfer#114, to-check=127/138)
+qwen-service/pkg/wheels/sqlite_vec-0.1.9-py3-none-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux1_x86_64.whl
+         163388 100%    3.63MB/s   00:00:00 (xfer#115, to-check=128/138)
+qwen-service/pkg/wheels/tenacity-9.2.1-py3-none-any.whl
+          32310 100%   34.27MB/s   00:00:00 (xfer#116, to-check=129/138)
+qwen-service/pkg/wheels/truststore-0.10.5-py3-none-any.whl
+          19017 100%   31.71MB/s   00:00:00 (xfer#117, to-check=130/138)
+qwen-service/pkg/wheels/typing_extensions-4.16.0-py3-none-any.whl
+          45571 100%   47.19MB/s   00:00:00 (xfer#118, to-check=131/138)
+qwen-service/pkg/wheels/typing_inspection-0.4.4-py3-none-any.whl
+          14750 100%   40.19MB/s   00:00:00 (xfer#119, to-check=132/138)
+qwen-service/pkg/wheels/urllib3-2.8.0-py3-none-any.whl
+         135717 100%  346.37KB/s   00:00:00 (xfer#120, to-check=133/138)
+qwen-service/pkg/wheels/uuid_utils-0.19.0-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+         330342 100%    3.69MB/s   00:00:00 (xfer#121, to-check=134/138)
+qwen-service/pkg/wheels/websockets-17.4-cp312-cp312-manylinux1_x86_64.manylinux_2_28_x86_64.manylinux_2_5_x86_64.whl
+         226321 100%  498.94KB/s   00:00:00 (xfer#122, to-check=135/138)
+qwen-service/pkg/wheels/xxhash-4.0.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+         261797 100%    1.26MB/s   00:00:00 (xfer#123, to-check=136/138)
+qwen-service/pkg/wheels/zstandard-0.25.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl
+         786432  14%    1.49MB/s   00:00:03
+         983040  18%  293.77KB/s   00:00:15
+        1212416  22%  328.97KB/s   00:00:12
+        1409024  25%  373.79KB/s   00:00:10
+        1966080  35%    1.00MB/s   00:00:03
+        4227072  76%    3.76MB/s   00:00:00
+        4882432  88%    1.24MB/s   00:00:00
+        5537792 100%    1.08MB/s   00:00:00
+        5546993 100%    1.16MB/s   00:00:04 (xfer#124, to-check=137/138)
+
+sent 15865263 bytes  received 26046 bytes  495255 bytes/sec
+total size is 23965628  speedup is 1.51
+Collecting package metadata (repodata.json): done
+Solving environment: done
+
+
+==> WARNING: A newer version of conda exists. <==
+  current version: 4.9.2
+  latest version: 26.10.0
+
+Please update conda by running
+
+    $ conda update -n base -c defaults conda
+
+
+#
+# To activate this environment, use
+#
+#     $ conda activate mpi-gemm-v1
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+
+Env mpi-gemm-v1 exists, dependencies updated.
+Submitted batch job 30851
+Job qwen-service submitted.

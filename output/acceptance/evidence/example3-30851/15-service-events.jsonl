@@ -1,0 +1,4 @@
+{"t": 1795364819.035, "event": "port_moved", "preferred": 8000, "port": 33483}
+{"t": 1795364819.267, "event": "vllm_started", "pid": 70404, "attempt": 0}
+{"t": 1795364819.895, "event": "gpu_sampler_started", "source": "nvml"}
+{"t": 1795365142.533, "event": "ready", "address": "http://compute-node:33483/v1", "ready_after_s": 322.5, "attempt": 0}

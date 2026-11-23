@@ -1,0 +1,35 @@
+event: meta
+data: {"run_id": "r-s1234567-1795361274-77df96", "kind": "narrative"}
+
+event: narrative
+data: {"text": "Commuting by public transit or cycling often exposes you to constant ambient noise from engines, crowds, and traffic."}
+
+event: narrative
+data: {"text": " To stay focused on your music or podcasts without raising the volume to unsafe levels, you need earbuds that can effectively block out the surrounding environment while remaining comfortable for the duration of your daily journey."}
+
+event: narrative
+data: {"text": "\n\n"}
+
+event: narrative
+data: {"text": "The Onn Mini Sticks Blue Wireless Bluetooth Earbuds are a practical choice for this specific need."}
+
+event: narrative
+data: {"text": " They feature environmental noise canceling, which helps reduce the distraction of outside sounds during your ride."}
+
+event: narrative
+data: {"text": " As wireless Bluetooth earbuds, they also eliminate the hassle of tangled wires, making them convenient to put on and take off quickly at your stops."}
+
+event: narrative
+data: {"text": "\n\n"}
+
+event: narrative
+data: {"text": "This single item costs $16.87, which is well within your $100.00 budget, leaving you with $83.13 remaining."}
+
+event: narrative
+data: {"text": " Please note that this total does not include tax."}
+
+event: narrative_done
+data: {"sentences": 7, "dropped": 0}
+
+event: end
+data: {"run_id": "r-s1234567-1795361274-77df96"}

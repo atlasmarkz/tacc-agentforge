@@ -1,0 +1,14 @@
+2026-11-22 23:26:48 +0800
+Attaching a CPU-only step to own allocation 30837
+srun: unrecognized option '--overlap'
+srun: unrecognized option '--overlap'
+Try "srun --help" for more information
+2026-11-22 23:27:18 +0800
+Attaching a CPU-only step to own allocation 30837 (legacy Slurm, no overlap option)
+Offline pinned dependencies installed in scratch
+Locked dependency and staged modules import correctly
+15:27:46 snapshot snapshot_5bcd00723fb0b7589cbe50c8: installed
+15:27:46 READY harness service http://compute-node:8100 (job 30837) -> /mnt/home/audit-user/USERDIR/ex3-audit-20261122-30837/tacc-agentforge-service/harness-url.txt
+srun: Job step aborted: Waiting up to 32 seconds for job step to finish.
+slurmstepd-10-0-3-10: error: *** STEP 30837.1 ON 10-0-3-10 CANCELLED AT 2026-11-22T15:29:46 ***
+srun: error: 10-0-3-10: task 0: Exited with exit code 143

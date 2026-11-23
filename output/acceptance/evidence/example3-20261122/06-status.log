@@ -1,0 +1,124 @@
+2026-11-22 22:54:41 +0800
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+             30837      tacc qwen-ser audit-user PD       0:00      1 (Priority)
+
+slurm_log/qwen-service-30837.log
+
+tacc-agentforge-service/service-30837/events.jsonl
+
+tacc-agentforge-service/service-30837/harness.log
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:55:41 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:56:08 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:56:36 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:57:03 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:57:29 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:57:56 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:58:24 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:58:51 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:59:18 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 22:59:45 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:00:12 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:00:39 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:01:07 +0800
+30837 PD 0:00 (Priority)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:01:34 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:02:01 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:02:28 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:02:55 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:03:22 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:03:50 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+
+2026-11-22 23:04:17 +0800
+30837 PD 0:00 (Resources)
+{"backend": "ok", "harness": null, "error": "The harness service is not running (no published address). Start the service job first (qwen-service staged with: stage.sh serve --harness)."}
+2026-11-22 23:17:13 +0800
+30837 R 5:10 2026-11-22T23:12:04 10-0-3-10
+{"t": 1795360329.559, "event": "port_moved", "preferred": 8000, "port": 51881}
+{"t": 1795360329.683, "event": "vllm_started", "pid": 67065, "attempt": 0}
+{"t": 1795360329.877, "event": "gpu_sampler_started", "source": "nvml"}
+{"t": 1795360616.683, "event": "ready", "address": "http://compute-node:51881/v1", "ready_after_s": 286.6, "attempt": 0}
+    from langchain_core.tracers.log_stream import (
+  File "/mnt/home/audit-user/USERDIR/agent-pylib/langchain_core/tracers/log_stream.py", line 28, in <module>
+    from langchain_core.tracers.base import BaseTracer
+  File "/mnt/home/audit-user/USERDIR/agent-pylib/langchain_core/tracers/base.py", line 17, in <module>
+    from langchain_core.tracers.core import _TracerCore
+  File "/mnt/home/audit-user/USERDIR/agent-pylib/langchain_core/tracers/core.py", line 18, in <module>
+    from langchain_core.tracers.schemas import Run
+  File "/mnt/home/audit-user/USERDIR/agent-pylib/langchain_core/tracers/schemas.py", line 5, in <module>
+    from langsmith import RunTree
+ImportError: cannot import name 'RunTree' from 'langsmith' (unknown location)
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:02,  1.87it/s]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:01<00:02,  1.01it/s]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:02<00:02,  1.04s/it]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:04<00:01,  1.07s/it]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.16it/s]
+(Worker_TP0 pid=67242)
+Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:04<00:00,  1.10it/s]
+(Worker_TP0 pid=67242) INFO 11-22 15:15:33 [default_loader.py:430] Loading weights took 4.59 seconds
+(Worker_TP1 pid=67243) WARNING 11-22 15:16:39 [import_utils.py:408] Traceback (most recent call last):
+(Worker_TP0 pid=67242) WARNING 11-22 15:16:39 [import_utils.py:408] Traceback (most recent call last):
+(APIServer pid=67065) INFO:     Application startup complete.

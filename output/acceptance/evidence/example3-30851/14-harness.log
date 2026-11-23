@@ -1,0 +1,6 @@
+installing harness dependencies into /mnt/home/audit-user/USERDIR/agent-harness-deps/build.NyfqerSf
+pip 25.0.1 from /mnt/home/audit-user/USERDIR/pip-new/pip (python 3.8)
+harness dependencies installed and validated
+16:41:28 snapshot snapshot_5bcd00723fb0b7589cbe50c8: already_installed
+16:41:28 watching stop file /mnt/home/audit-user/USERDIR/tacc-agentforge-service/service-30851/harness-stop
+16:41:29 READY harness service http://compute-node:8100 (job 30851) -> /mnt/home/audit-user/USERDIR/tacc-agentforge-service/harness-url.txt

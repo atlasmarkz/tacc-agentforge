@@ -1,0 +1,102 @@
+{
+  "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8",
+  "offers": [
+    {
+      "kind": "offer",
+      "source_record_id": "obs_f6a760a24e87eb4dbd45bf10",
+      "variant_id": "variant_ec5f890a563cd6edd651031b",
+      "offer_id": "offer_640a303bc366430cfd53139e",
+      "observation_id": "obs_f6a760a24e87eb4dbd45bf10",
+      "evidence_id": "ev_9efc7967e78c4c5ff6a6cd6f",
+      "observed_at": "2026-11-08T15:51:21.000000+00:00",
+      "currency": "USD",
+      "currency_basis": "explicit_source_currency",
+      "price_minor": 988,
+      "shipping_minor": 699,
+      "shipping_status": "known",
+      "shipping_scope": "unknown",
+      "tax_minor": null,
+      "tax_status": "unknown",
+      "price_includes_tax": "unknown",
+      "context_key": "context_b5ef78cbc977757ff73c03fe",
+      "cost_conflict": 0,
+      "identity_status": "provider_group_unverified",
+      "store_title": "Onn Mini Sticks Blue Wireless Bluetooth Earbuds with Environmental Noise Canceling",
+      "variant_conflict": false,
+      "variant_conflict_fields": [],
+      "selected_options": {},
+      "context": {
+        "destination": null,
+        "quantity": null,
+        "search_market": "us"
+      },
+      "unknown_fields": [
+        "destination",
+        "quantity",
+        "tax",
+        "shipping_scope",
+        "price_includes_tax",
+        "variant_identity"
+      ],
+      "complete_total_minor": null,
+      "price_age_seconds": 1208224,
+      "price_stale": true
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "ev_83d0c50042ac4ea60b3f21b6",
+      "variant_id": "variant_ec5f890a563cd6edd651031b",
+      "kind": "attribute",
+      "title": "Onn Mini Sticks Wireless Bluetooth Earbuds with Environmental Noise Canceling",
+      "text": "Noise Canceling: Yes",
+      "source_url": "https://www.walmart.com/ip/onn-Mini-Sticks-Blue-Wireless-Bluetooth-Earbuds-with-Environmental-Noise-Canceling/18819170147",
+      "source_label": "Google Product",
+      "observed_at": "2026-11-08T15:51:21.000000+00:00",
+      "scope": "product_family_or_unknown",
+      "raw_id": "raw_94b2d75c17c847da33886a07",
+      "json_pointer": "/product_results/about_the_product/features/1",
+      "archive_path": "raw/raw_94b2d75c17c847da33886a07.json",
+      "archive_sha256": "d2702f1ec4a6bfcdca42dc8d4b2580631a3cbcf6f2de9878f594cfd0b7302ce8",
+      "origin_sha256": "81494f83533119a5d38fad27270bc2395748498d1a9497d036b0af6be66ff817",
+      "text_start": 0,
+      "text_end": 20,
+      "text_total_chars": 20,
+      "text_truncated": false
+    },
+    {
+      "evidence_id": "ev_9efc7967e78c4c5ff6a6cd6f",
+      "variant_id": "variant_ec5f890a563cd6edd651031b",
+      "kind": "offer",
+      "title": "Onn Mini Sticks Blue Wireless Bluetooth Earbuds with Environmental Noise Canceling",
+      "text": "Seller: Walmart; item price: $9.88; shipping: + $6.99; additional costs: +tax; displayed total (not a verified final total): $16.87; offer conditions: [\"In stock online\",\"Next-day delivery $6.99\",\"Free 90-day returns\"]; selected options: {}",
+      "source_url": "https://www.walmart.com/ip/ONN-MINI-STICKS-DENM/18819170147?wmlspartner=wlpa&selectedSellerId=0&veh=seo_fpl&cn=google",
+      "source_label": "Walmart",
+      "observed_at": "2026-11-08T15:51:21.000000+00:00",
+      "scope": "offer_variant_unverified",
+      "raw_id": "raw_94b2d75c17c847da33886a07",
+      "json_pointer": "/product_results/stores/0",
+      "archive_path": "raw/raw_94b2d75c17c847da33886a07.json",
+      "archive_sha256": "d2702f1ec4a6bfcdca42dc8d4b2580631a3cbcf6f2de9878f594cfd0b7302ce8",
+      "origin_sha256": "81494f83533119a5d38fad27270bc2395748498d1a9497d036b0af6be66ff817",
+      "text_start": 0,
+      "text_end": 240,
+      "text_total_chars": 240,
+      "text_truncated": false
+    }
+  ],
+  "unknown_offer_ids": [],
+  "unknown_evidence_ids": [],
+  "photos": {
+    "variant_ec5f890a563cd6edd651031b": "https://encrypted-tbn2.gstatic.com/shopping?q=tbn:ANd9GcSl7OChbTU2HrGchF_e2JvsRgK1M7dJCaIAMgPoLeJiHJIyRInKi9om9DdQpy5ZAfOSfGYVgXhMxwsDhVCDIR764vgXvEQ7bLvTgvow0Vup9KslbpD-ddK1"
+  },
+  "shops": {
+    "offer_640a303bc366430cfd53139e": {
+      "merchant": "Walmart",
+      "url": "https://www.walmart.com/ip/ONN-MINI-STICKS-DENM/18819170147?wmlspartner=wlpa&selectedSellerId=0&veh=seo_fpl&cn=google"
+    }
+  },
+  "categories": {
+    "variant_ec5f890a563cd6edd651031b": "earbuds"
+  }
+}

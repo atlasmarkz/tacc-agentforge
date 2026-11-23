@@ -1,0 +1,3 @@
+harness import: /tmp/example3-audit/cached/deploy/tacc/service/qwen-service/pkg/app/harness_service.py
+app.narrative False
+app.formspec False

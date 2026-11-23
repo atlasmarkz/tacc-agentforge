@@ -1,0 +1,3 @@
+23:18:41 TACC account audit-user@gw.turing.ust.hk (port 30041), USERDIR /mnt/home/audit-user/USERDIR/ex3-audit-20261122-30837
+23:18:41 open http://127.0.0.1:8765
+23:27:53 tunnel 127.0.0.1:51511 -> http://compute-node:8100

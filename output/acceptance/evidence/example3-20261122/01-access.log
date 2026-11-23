@@ -1,0 +1,11 @@
+2026-11-22 22:51:52 +0800
+README 3.1: SSH gateway own account, BatchMode and finite connect timeout
+ok
+/mnt/home/audit-user/USERDIR
+ssh rc=0
+tcloud init
+PARTITION AVAIL  TIMELIMIT  NODES  STATE NODELIST
+tacc*        up    1:00:00      4 drain* 10-0-1-[12-13],10-0-4-[12-13]
+tacc*        up    1:00:00      6  alloc 10-0-1-[10-11],10-0-3-[10-11],10-0-4-[10-11]
+tcloud ps (own account only)
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)

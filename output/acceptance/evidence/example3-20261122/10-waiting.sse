@@ -1,0 +1,14 @@
+event: meta
+data: {"run_id": "r-s1234567-1795361287-eeeac7", "kind": "request"}
+
+event: agent
+data: {"run_id": "r-s1234567-1795361287-eeeac7", "sequence": 1, "node": "prepare", "type": "run_started", "data": {"snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8"}, "result": null}
+
+event: agent
+data: {"run_id": "r-s1234567-1795361287-eeeac7", "sequence": 2, "node": "prepare_question", "type": "question_prepared", "data": {"question_id": "2fd1620ac7ec4e7ea2a988efd29dda79"}, "result": null}
+
+event: agent
+data: {"run_id": "r-s1234567-1795361287-eeeac7", "sequence": 3, "node": "suspend", "type": "run_waiting", "data": {"question_id": "2fd1620ac7ec4e7ea2a988efd29dda79"}, "result": {"schema_version": "1", "run_id": "r-s1234567-1795361287-eeeac7", "conversation_id": "s-s1234567890abcdef", "snapshot_id": "snapshot_5bcd00723fb0b7589cbe50c8", "status": "waiting_user", "stop_reason": null, "message": null, "verified_plan": null, "clarification": {"type": "ask_user", "question": "Please provide or confirm these budget fields: purchase_cap, currency. Amounts must be non-negative decimal strings; currency is a three-letter uppercase code, and budget_basis is pre_tax or all_in.", "required_fields": ["purchase_cap", "currency"]}, "pending_question": {"question_id": "2fd1620ac7ec4e7ea2a988efd29dda79", "question": "Please provide or confirm these budget fields: purchase_cap, currency. Amounts must be non-negative decimal strings; currency is a three-letter uppercase code, and budget_basis is pre_tax or all_in.", "required_fields": ["purchase_cap", "currency"], "expires_at": 1795368488.207172}, "explanation": null, "issues": [], "usage": {"model_calls": 0, "explain_model_calls": 0, "tool_calls": 0, "action_repairs": 0, "plan_repairs": 0, "prompt_tokens": 0, "completion_tokens": 0, "unreported_token_calls": 0, "elapsed_s": 0.020934}}}
+
+event: end
+data: {"run_id": "r-s1234567-1795361287-eeeac7", "wall_s": 0.02, "job_id": "30837"}
